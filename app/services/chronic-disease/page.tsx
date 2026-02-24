@@ -1,0 +1,109 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight, CheckCircle } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Chronic Disease Management | Arthritis, Migraines, Digestive Homeopathy Kalyan",
+  description:
+    "Homeopathic management of chronic diseases — arthritis, migraines, IBS, skin disorders, anxiety in Kalyan, Andheri, Mumbai. Dr. Pratima Agale BHMS MD. Natural, safe, long-lasting relief.",
+  keywords: [
+    "arthritis homeopathy kalyan",
+    "migraine homeopathy mumbai",
+    "IBS homeopathy treatment",
+    "chronic disease homeopathy",
+    "skin disorder homeopathy",
+    "anxiety homeopathy kalyan",
+  ],
+};
+
+const diseases = [
+  { emoji: "🦴", title: "Arthritis & Joint Disorders", types: ["Rheumatoid Arthritis", "Osteoarthritis", "Gout"], desc: "Homeopathy reduces joint inflammation, improves mobility, and addresses the autoimmune component of rheumatoid arthritis without the side effects of NSAIDs or steroids." },
+  { emoji: "🧠", title: "Chronic Migraines & Headaches", types: ["Migraine with aura", "Tension headaches", "Cluster headaches"], desc: "Constitutional treatment identifies your unique migraine triggers and addresses the underlying nervous system sensitivity. Many patients see dramatic reduction in frequency and severity." },
+  { emoji: "🫃", title: "Digestive Disorders", types: ["IBS", "Acid Reflux / GERD", "Colitis", "Food sensitivities"], desc: "The gut-mind connection is central to homeopathy. We address stress responses, food intolerances, and bowel dysfunction through remedies that work on the whole digestive system." },
+  { emoji: "✨", title: "Chronic Skin Conditions", types: ["Psoriasis", "Eczema / Dermatitis", "Chronic urticaria", "Acne"], desc: "Skin conditions often reflect internal imbalances. Homeopathy addresses the root hormonal, immune, or stress-related causes rather than applying topical suppression." },
+  { emoji: "🫁", title: "Respiratory Conditions", types: ["Chronic asthma", "Sinusitis", "Allergic rhinitis", "Frequent bronchitis"], desc: "Build your respiratory immunity from within. Homeopathy reduces bronchial hypersensitivity, reduces mucus overproduction, and strengthens lung defenses." },
+  { emoji: "💆", title: "Anxiety & Stress-Related Disorders", types: ["Generalized anxiety", "Panic attacks", "Insomnia", "Depression support"], desc: "Mental health responds profoundly to individualized homeopathic treatment. We treat the whole mental-emotional picture safely, without habit-forming medications." },
+];
+
+export default function ChronicDiseasePage() {
+  return (
+    <div className="pt-24">
+      <section
+        className="py-20 px-6 text-center"
+        style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <div className="text-5xl mb-4">💚</div>
+          <h1
+            className="font-serif mb-4"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}
+          >
+            Chronic Disease Management
+            <span className="block italic text-sage-500">Natural, Lasting Relief</span>
+          </h1>
+          <p className="text-sage-700 text-lg leading-relaxed">
+            Chronic conditions don't have to mean lifetime medication. Homeopathy works at the
+            root level to resolve the imbalances driving your disease — giving you genuine,
+            lasting improvement without side effects.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {diseases.map((d) => (
+            <div
+              key={d.title}
+              className="bg-white rounded-2xl border border-sage-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden"
+            >
+              <div className="p-7">
+                <div className="text-4xl mb-4">{d.emoji}</div>
+                <h2
+                  className="font-serif text-xl mb-3"
+                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                >
+                  {d.title}
+                </h2>
+                <p className="text-sage-600 text-sm leading-relaxed mb-5">{d.desc}</p>
+                <div className="space-y-2">
+                  {d.types.map((t) => (
+                    <div key={t} className="flex items-center gap-2 text-xs text-sage-600 bg-sage-50 rounded-lg px-3 py-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-sage-400" />
+                      {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-7 pb-7">
+                <Link
+                  href="/contact"
+                  className="flex items-center gap-2 text-sage-600 hover:text-sage-800 font-medium text-sm transition-colors"
+                >
+                  Consult for {d.title.split(" ")[0]} <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-16 px-6 bg-sage-500 text-center">
+        <div className="max-w-xl mx-auto">
+          <h2 className="font-serif text-3xl text-white mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            Reclaim Your Health from Chronic Disease
+          </h2>
+          <p className="text-sage-100 mb-6">
+            Dr. Pratima Agale has helped hundreds of patients in Kalyan and Mumbai break free from
+            chronic illness through personalized homeopathic treatment.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
+          >
+            Book Consultation <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
