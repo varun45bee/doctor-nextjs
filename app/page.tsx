@@ -189,8 +189,8 @@ export default function HomePage() {
             {/* Mini trust badges */}
             <div className="flex flex-wrap gap-6 mt-10">
               {[
-                { n: "10+", l: t.home.statsYears },
-                { n: "5000+", l: t.home.statsPatients },
+                { n: "4+", l: t.home.statsYears },
+                { n: "500+", l: t.home.statsPatients },
                 { n: "50+", l: t.home.statsConditions },
                 { n: "97%", l: t.home.statsSuccess },
               ].map((s) => (
@@ -230,8 +230,7 @@ export default function HomePage() {
                 </h2>
                 <p className="text-sage-600 text-sm font-medium">BHMS, MD (Homeopathy)</p>
                 <p className="text-sage-500 text-xs mt-2">
-                  [Replace this with your actual photo — ideally a warm, professional portrait in clinic or natural setting]
-                </p>
+With 4 years of dedicated experience in Homeopathy, I provide compassionate, individualized care for patients of all ages.             </p>
               </div>
 
               {/* Floating badge */}
@@ -243,7 +242,7 @@ export default function HomePage() {
                     <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <span className="text-xs font-medium text-gray-700">5000+ Patients Healed</span>
+                <span className="text-xs font-medium text-gray-700">500+ Patients Healed</span>
               </div>
             </div>
 

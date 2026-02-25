@@ -37,8 +37,8 @@ export default function ContactPage() {
             <div className="rounded-2xl p-7 border border-sage-100" style={{ backgroundColor: "#f4f7f4" }}>
               <h2 className="font-serif text-2xl mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}>{t.contact.clinicDetails}</h2>
               {[
-                { icon: MapPin, label: t.contact.addressLabel, value: "[Your Full Clinic Address],\nKalyan, Maharashtra 421301", href: "https://maps.google.com/?q=Kalyan,Maharashtra" },
-                { icon: Phone, label: t.contact.phoneLabel, value: "+91 XXXXX XXXXX", href: "tel:+91XXXXXXXXXX" },
+                { icon: MapPin, label: t.contact.addressLabel, value: "Yogidham,Phase 3,\nKalyan, Maharashtra 421301", href: "https://maps.google.com/?q=Kalyan,Maharashtra" },
+                { icon: Phone, label: t.contact.phoneLabel, value: "+91 9087234577", href: "tel:+91XXXXXXXXXX" },
                 { icon: Mail, label: t.contact.emailLabel, value: "info@pratimaagale.in", href: "mailto:info@pratimaagale.in" },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-4 mb-5">
@@ -68,8 +68,14 @@ export default function ContactPage() {
               <div className="text-center">
                 <MapPin className="w-8 h-8 text-sage-500 mx-auto mb-2" />
                 <p className="text-sage-600 text-sm font-medium">Kalyan, Maharashtra</p>
-                <a href="https://maps.google.com/?q=Kalyan,Maharashtra" target="_blank" rel="noopener noreferrer" className="text-xs text-sage-500 hover:text-sage-700 underline mt-1 block">Open in Google Maps</a>
-              </div>
+<a
+  href="https://maps.google.com/?q=Yogidham+Phase+3+Kalyan+West+Maharashtra+421301"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-xs text-sage-500 hover:text-sage-700 underline mt-1 block"
+>
+  Open Yogidham Phase 3 on Google Maps
+</a>              </div>
             </div>
           </div>
 

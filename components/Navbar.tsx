@@ -1,11 +1,17 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, Globe, Leaf } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { Locale } from "@/lib/translations";
 
-const localeLabels: Record<Locale, string> = { en: "EN", hi: "हिं", mr: "मर" };
+const localeLabels: Record<Locale, string> = {
+  en: "EN",
+  hi: "हिं",
+  mr: "मर",
+};
 
 export default function Navbar() {
   const { t, locale, setLocale } = useLanguage();
@@ -68,7 +74,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-all duration-500`}
+      className="fixed top-0 w-full z-50 transition-all duration-500"
       style={{
         backgroundColor: scrolled ? "rgba(253,250,245,0.97)" : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
@@ -76,188 +82,241 @@ export default function Navbar() {
         borderBottom: scrolled ? "1px solid #e6ede6" : "none",
       }}
     >
-      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-        {/* Logo */}
+<nav className="max-w-7xl mx-auto px-[19px] py-4 flex items-center justify-between gap-4">
+          {/* LOGO - Same for both mobile and desktop */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-          <div className="w-9 h-9 rounded-full bg-sage-500 flex items-center justify-center group-hover:bg-sage-600 transition-colors">
-            <Leaf className="w-5 h-5 text-white" />
-          </div>
-          <div className="hidden sm:block">
-            <div
-              className="font-serif text-lg leading-none"
-              style={{ color: "#263727", fontFamily: "'Cormorant Garamond', serif" }}
-            >
-              Dr. Pratima Agale
-            </div>
-            <div className="text-xs tracking-widest text-sage-500 uppercase">BHMS, MD · Homeopathy</div>
+          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
+            <Image
+              src="/logo.png"
+              alt="Dr. Pratima Agale"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-5 text-sm font-sans">
-          <Link href="/" className="text-sage-800 hover:text-sage-500 transition-colors font-medium">
+        {/* DESKTOP NAVIGATION (hidden on mobile) */}
+        <div className="hidden lg:flex items-center gap-5 text-sm font-medium">
+          <Link href="/" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.home}
           </Link>
-          <Link href="/about" className="text-sage-800 hover:text-sage-500 transition-colors font-medium">
+          <Link href="/about" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.about}
           </Link>
 
-          {/* Services mega menu */}
+          {/* SERVICES MEGA MENU */}
           <div
             className="relative"
             onMouseEnter={() => setOpenMenu("services")}
             onMouseLeave={() => setOpenMenu(null)}
           >
-            <button className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors font-medium">
+            <button className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors">
               {t.nav.services}
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === "services" ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${
+                  openMenu === "services" ? "rotate-180" : ""
+                }`}
+              />
             </button>
 
-            <div
-              className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] bg-white rounded-2xl shadow-2xl border border-sage-100 transition-all duration-200 ${
-                openMenu === "services" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-              }`}
-            >
-              <div className="grid grid-cols-4 p-5 gap-4">
-                {menuSections.map((section) => (
-                  <div key={section.title}>
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-sage-50">
-                      <span>{section.emoji}</span>
-                      <span className="text-xs font-semibold text-sage-700">{section.title}</span>
+            {openMenu === "services" && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] bg-white rounded-2xl shadow-2xl border border-sage-100">
+                <div className="grid grid-cols-4 p-5 gap-4">
+                  {menuSections.map((section) => (
+                    <div key={section.title}>
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-sage-50">
+                        <span>{section.emoji}</span>
+                        <span className="text-xs font-semibold text-sage-700 uppercase tracking-wide">
+                          {section.title}
+                        </span>
+                      </div>
+                      <ul className="space-y-2">
+                        {section.items.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              className="text-xs text-sage-600 hover:text-sage-900 transition-colors"
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul className="space-y-2">
-                      {section.items.map((item) => (
-                        <li key={item.href}>
-                          <Link
-                            href={item.href}
-                            onClick={() => setOpenMenu(null)}
-                            className="text-xs text-sage-600 hover:text-sage-900 transition-colors block py-0.5"
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="bg-sage-50 px-6 py-3 flex justify-between border-t border-sage-100 rounded-b-2xl">
+                  <span className="text-xs text-sage-500">
+                    View all conditions treated
+                  </span>
+                  <Link
+                    href="/conditions"
+                    className="text-xs font-semibold text-sage-600 hover:text-sage-900 transition-colors"
+                  >
+                    {t.nav.conditions} →
+                  </Link>
+                </div>
               </div>
-              <div className="bg-sage-50 px-6 py-3 flex items-center justify-between border-t border-sage-100 rounded-b-2xl">
-                <span className="text-xs text-sage-500">View all 40+ conditions treated by Dr. Pratima Agale</span>
-                <Link
-                  href="/conditions"
-                  onClick={() => setOpenMenu(null)}
-                  className="text-xs font-semibold text-sage-600 hover:text-sage-900 transition-colors"
-                >
-                  {t.nav.conditions} →
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
 
-          <Link href="/why-homeopathy" className="text-sage-800 hover:text-sage-500 transition-colors font-medium">
+          <Link href="/why-homeopathy" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.whyHomeopathy}
           </Link>
-          <Link href="/case-studies" className="text-sage-800 hover:text-sage-500 transition-colors font-medium">
+          <Link href="/case-studies" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.caseStudies}
           </Link>
-          <Link href="/blog" className="text-sage-800 hover:text-sage-500 transition-colors font-medium">
+          <Link href="/blog" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.blog}
           </Link>
         </div>
 
-        {/* Right: language + CTA */}
-        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-0.5 border border-sage-200 rounded-full px-2 py-1 bg-white/80">
+        {/* DESKTOP RIGHT SIDE (hidden on mobile) */}
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="flex items-center border border-sage-200 rounded-full px-2 py-1 bg-white/80">
             <Globe className="w-3.5 h-3.5 text-sage-400 mr-1" />
             {(["en", "hi", "mr"] as Locale[]).map((l) => (
               <button
                 key={l}
                 onClick={() => setLocale(l)}
-                className={`px-2.5 py-0.5 text-xs rounded-full transition-all font-medium ${
-                  locale === l ? "bg-sage-500 text-white" : "text-sage-600 hover:bg-sage-50"
+                className={`px-2.5 py-0.5 text-xs rounded-full font-medium transition-colors ${
+                  locale === l
+                    ? "bg-sage-500 text-white"
+                    : "text-sage-600 hover:bg-sage-50"
                 }`}
               >
                 {localeLabels[l]}
               </button>
             ))}
           </div>
+
           <Link
             href="/contact"
-            className="bg-sage-500 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-sage-600 transition-all hover:shadow-md"
+            className="bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors"
           >
             {t.hero.cta}
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button className="lg:hidden p-2 text-sage-700" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {/* MOBILE TOGGLE BUTTON (visible only on mobile) */}
+        <button
+          className="lg:hidden p-2 text-sage-700 hover:text-sage-500 transition-colors"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>
 
-      {/* Mobile drawer */}
+      {/* MOBILE MENU DROPDOWN (visible only when menuOpen is true) */}
       {menuOpen && (
-        <div className="lg:hidden bg-white border-t border-sage-100 shadow-xl overflow-y-auto max-h-[85vh]">
-          <div className="px-6 py-5 flex flex-col gap-0.5">
-            {/* Language */}
-            <div className="flex items-center gap-2 mb-5 pb-4 border-b border-sage-50">
-              <Globe className="w-4 h-4 text-sage-400" />
-              {(["en", "hi", "mr"] as Locale[]).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLocale(l)}
-                  className={`px-3 py-1.5 text-sm rounded-full border font-medium transition-colors ${
-                    locale === l ? "bg-sage-500 text-white border-sage-500" : "border-sage-200 text-sage-600 hover:bg-sage-50"
-                  }`}
-                >
-                  {l === "en" ? "English" : l === "hi" ? "हिंदी" : "मराठी"}
-                </button>
-              ))}
+        <div className="lg:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md border-b border-sage-100 shadow-lg max-h-[calc(100vh-80px)] overflow-y-auto">
+          <div className="px-6 py-4 space-y-4">
+            {/* Mobile Navigation Links */}
+            <div className="space-y-1">
+              <Link
+                href="/"
+                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.nav.home}
+              </Link>
+              
+              <Link
+                href="/about"
+                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.nav.about}
+              </Link>
+
+              {/* Mobile Services Section */}
+              <div className="py-3 border-b border-sage-50">
+                <div className="font-medium text-sage-800 mb-3">{t.nav.services}</div>
+                <div className="pl-2 space-y-4">
+                  {menuSections.map((section) => (
+                    <div key={section.title}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span>{section.emoji}</span>
+                        <span className="text-sm font-medium text-sage-700 uppercase tracking-wide">
+                          {section.title}
+                        </span>
+                      </div>
+                      <ul className="pl-6 space-y-2">
+                        {section.items.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              className="text-sm text-sage-600 hover:text-sage-900 transition-colors"
+                              onClick={() => setMenuOpen(false)}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Link
+                href="/why-homeopathy"
+                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.nav.whyHomeopathy}
+              </Link>
+              
+              <Link
+                href="/case-studies"
+                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.nav.caseStudies}
+              </Link>
+              
+              <Link
+                href="/blog"
+                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.nav.blog}
+              </Link>
             </div>
 
-            {/* All nav links flat for mobile */}
-            {[
-              { href: "/", label: t.nav.home },
-              { href: "/about", label: t.nav.about },
-              { href: "/conditions", label: "✨ " + t.nav.conditions },
-              { href: "/conditions/psoriasis", label: "  › Psoriasis" },
-              { href: "/conditions/eczema", label: "  › Eczema" },
-              { href: "/conditions/acne", label: "  › Acne" },
-              { href: "/conditions/hair-loss", label: "  › Hair Loss" },
-              { href: "/conditions/vitiligo", label: "  › Vitiligo" },
-              { href: "/services/womens-health", label: "🌸 " + t.nav.womensHealth },
-              { href: "/conditions/pcod-pcos", label: "  › PCOD / PCOS" },
-              { href: "/conditions/thyroid", label: "  › Thyroid" },
-              { href: "/services/pediatric", label: "🌱 " + t.nav.pediatric },
-              { href: "/conditions/child-immunity", label: "  › Child Immunity" },
-              { href: "/conditions/adhd", label: "  › ADHD" },
-              { href: "/services/chronic-disease", label: "💚 " + t.nav.chronic },
-              { href: "/conditions/arthritis", label: "  › Arthritis" },
-              { href: "/conditions/migraines", label: "  › Migraines" },
-              { href: "/why-homeopathy", label: t.nav.whyHomeopathy },
-              { href: "/case-studies", label: t.nav.caseStudies },
-              { href: "/patient-journey", label: t.nav.journey },
-              { href: "/blog", label: t.nav.blog },
-              { href: "/contact", label: t.nav.contact },
-            ].map((item) => (
-              <Link
-                key={item.href + item.label}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={`py-2 text-sm border-b border-sage-50 transition-colors ${
-                  item.label.startsWith("  ›")
-                    ? "pl-6 text-sage-500 hover:text-sage-700"
-                    : "text-sage-800 font-medium hover:text-sage-500"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {/* Mobile Language Switcher */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-sage-400" />
+                <span className="text-sm text-sage-600">Language:</span>
+              </div>
+              <div className="flex gap-1">
+                {(["en", "hi", "mr"] as Locale[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => {
+                      setLocale(l);
+                      setMenuOpen(false);
+                    }}
+                    className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${
+                      locale === l
+                        ? "bg-sage-500 text-white"
+                        : "text-sage-600 hover:bg-sage-50"
+                    }`}
+                  >
+                    {localeLabels[l]}
+                  </button>
+                ))}
+              </div>
+            </div>
 
+            {/* Mobile CTA */}
             <Link
               href="/contact"
+              className="block w-full bg-sage-500 text-white text-center px-5 py-3 rounded-full hover:bg-sage-600 transition-colors mt-4"
               onClick={() => setMenuOpen(false)}
-              className="bg-sage-500 text-white text-center py-3.5 rounded-full font-medium mt-4 hover:bg-sage-600 transition-colors"
             >
               {t.hero.cta}
             </Link>

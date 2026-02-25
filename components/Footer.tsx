@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { Leaf, Phone, MapPin, Mail, Clock, Instagram, Facebook, Youtube } from "lucide-react";
+import { Leaf, Phone, MapPin, Mail, Clock, Instagram,Linkedin, Facebook, Youtube } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import Image from "next/image";
 
 export default function Footer() {
   const { t, locale } = useLanguage();
@@ -42,42 +43,63 @@ export default function Footer() {
 
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-5 group">
-              <div className="w-9 h-9 rounded-full bg-sage-500 flex items-center justify-center group-hover:bg-sage-400 transition-colors">
-                <Leaf className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div
-                  className="text-white text-lg leading-none"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                >
-                  Dr. Pratima Agale
-                </div>
-                <div className="text-xs text-sage-400 tracking-widest uppercase">BHMS, MD</div>
-              </div>
-            </Link>
+
+
+<Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+  {/* Logo */}
+  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
+     <Image
+                  src="/logo.png"
+                  alt="Dr. Pratima Agale"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+  </div>
+
+  {/* Text */}
+  <div className="hidden sm:block">
+    <div
+      className="text-sage-300 text-lg leading-none"
+      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+    >
+      Dr. Pratima Agale
+    </div>
+    <div className="text-xs text-sage-300 tracking-widest uppercase">
+      BHMS, MD
+    </div>
+  </div>
+</Link>
+
+           
 
             <p className="text-sage-400 text-sm leading-relaxed mb-6">
               {t.footer.tagline}
             </p>
 
             {/* Social icons */}
-            <div className="flex gap-3">
-              {[
-                { Icon: Instagram, href: "#", label: "Instagram" },
-                { Icon: Facebook, href: "#", label: "Facebook" },
-                { Icon: Youtube, href: "#", label: "YouTube" },
-              ].map(({ Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="w-9 h-9 rounded-full border border-sage-700 flex items-center justify-center text-sage-400 hover:bg-sage-600 hover:text-white hover:border-sage-600 transition-all"
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
+           {/* Social icons */}
+<div className="flex gap-3 mt-4">
+  <a
+    href="https://www.linkedin.com/in/pratima-agale-2a26101a4/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="LinkedIn"
+    className="w-9 h-9 rounded-full border border-sage-700 flex items-center justify-center text-sage-400 hover:bg-sage-600 hover:text-white hover:border-sage-600 transition-all"
+  >
+    <Linkedin className="w-4 h-4" />
+  </a>
+
+  <a
+    href="https://www.instagram.com/dr.pratimaagale/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Instagram"
+    className="w-9 h-9 rounded-full border border-sage-700 flex items-center justify-center text-sage-400 hover:bg-sage-600 hover:text-white hover:border-sage-600 transition-all"
+  >
+    <Instagram className="w-4 h-4" />
+  </a>
+</div>
           </div>
 
           {/* Quick Links */}
@@ -137,7 +159,7 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-sage-500 flex-shrink-0 mt-0.5" />
                 <span className="text-sage-400 text-sm leading-snug">
-                  [Your Clinic Address],<br />
+                  Yogidham, Phase 3,<br />
                   {locale === "hi" ? "कल्याण, महाराष्ट्र 421301" : locale === "mr" ? "कल्याण, महाराष्ट्र ४२१३०१" : "Kalyan, Maharashtra 421301"}
                 </span>
               </li>
