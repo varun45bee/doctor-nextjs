@@ -218,20 +218,34 @@ export default function HomePage() {
               style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
             >
               {/* Placeholder — replace with actual image */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                <div className="w-24 h-24 rounded-full bg-sage-300 flex items-center justify-center mb-4">
-                  <span className="text-5xl">👩‍⚕️</span>
-                </div>
-                <h2
-                  className="font-serif text-2xl text-sage-900 mb-1"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                >
-                  Dr. Pratima Agale
-                </h2>
-                <p className="text-sage-600 text-sm font-medium">BHMS, MD (Homeopathy)</p>
-                <p className="text-sage-500 text-xs mt-2">
-With 4 years of dedicated experience in Homeopathy, I provide compassionate, individualized care for patients of all ages.             </p>
-              </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+  
+  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-sage-300 mb-4">
+    <Image
+      src="/desk.jpeg"   // your image path
+      alt="Dr. Pratima Agale"
+      width={96}
+      height={96}
+className="object-cover w-full h-full scale-110"    />
+  </div>
+
+  <h2
+    className="font-serif text-2xl text-sage-900 mb-1"
+    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+  >
+    Dr. Pratima Agale
+  </h2>
+
+  <p className="text-sage-600 text-sm font-medium">
+    BHMS, MD (Homeopathy)
+  </p>
+
+  <p className="text-sage-500 text-xs mt-2">
+    With 4 years of dedicated experience in Homeopathy, I provide compassionate,
+    individualized care for patients of all ages.
+  </p>
+
+</div>
 
               {/* Floating badge */}
               <div
