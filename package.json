@@ -9,12 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.13",
+    "framer-motion": "^11.3.0",
+    "lucide-react": "^0.400.0",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
-    "framer-motion": "^11.3.0",
-    "lucide-react": "^0.400.0",
-    "@tailwindcss/typography": "^0.5.13"
+    "twilio": "^5.12.2"
   },
   "devDependencies": {
     "@types/node": "^20",

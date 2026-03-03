@@ -209,63 +209,61 @@ export default function HomePage() {
 
           {/* Right — doctor card */}
           <div
-            className="relative flex justify-center items-center page-enter"
-            style={{ animationDelay: "0.2s" }}
-          >
-            {/* Doctor image placeholder */}
-            <div
-              className="relative w-[340px] h-[420px] rounded-[2rem] overflow-hidden shadow-2xl"
-              style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
-            >
-              {/* Placeholder — replace with actual image */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-  
-  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-sage-300 mb-4">
+  className="relative flex justify-center items-center page-enter"
+  style={{ animationDelay: "0.2s" }}
+>
+  {/* Doctor image card */}
+  <div
+    className="relative w-[340px] h-[420px] rounded-[2rem] overflow-hidden shadow-2xl"
+    style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
+  >
+    {/* Background Image */}
     <Image
-      src="/desk.jpeg"   // your image path
+      src="/desk.jpeg"
       alt="Dr. Pratima Agale"
-      width={96}
-      height={96}
-className="object-cover w-full h-full scale-110"    />
+      fill
+      className="object-cover w-full h-full scale-110"
+    />
+
+    {/* Gradient Overlay */}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+    {/* Text Content */}
+    <div className="absolute bottom-20 left-0 right-0 px-6 text-center">
+      <h2
+        className="font-serif text-2xl text-white mb-1"
+        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+      >
+        Dr. Pratima Agale
+      </h2>
+
+      <p className="text-white/80 text-sm font-medium">
+        BHMS, MD (Homeopathy)
+      </p>
+
+      <p className="text-white/60 text-xs mt-2">
+        With 4 years of dedicated experience in Homeopathy, I provide
+        compassionate, individualized care for patients of all ages.
+      </p>
+    </div>
+
+    {/* Floating badge */}
+    <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-2 whitespace-nowrap">
+      <div className="flex">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+        ))}
+      </div>
+      <span className="text-xs font-medium text-gray-700">500+ Patients Healed</span>
+    </div>
   </div>
 
-  <h2
-    className="font-serif text-2xl text-sage-900 mb-1"
-    style={{ fontFamily: "'Cormorant Garamond', serif" }}
-  >
-    Dr. Pratima Agale
-  </h2>
-
-  <p className="text-sage-600 text-sm font-medium">
-    BHMS, MD (Homeopathy)
-  </p>
-
-  <p className="text-sage-500 text-xs mt-2">
-    With 4 years of dedicated experience in Homeopathy, I provide compassionate,
-    individualized care for patients of all ages.
-  </p>
-
+  {/* Decorative spinning ring */}
+  <div
+    className="absolute -z-10 w-[380px] h-[380px] rounded-full border-2 border-dashed border-sage-200 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+    style={{ animation: "spin 30s linear infinite" }}
+  />
 </div>
-
-              {/* Floating badge */}
-              <div
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-2"
-              >
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <span className="text-xs font-medium text-gray-700">500+ Patients Healed</span>
-              </div>
-            </div>
-
-            {/* Decorative ring */}
-            <div
-              className="absolute -z-10 w-[380px] h-[380px] rounded-full border-2 border-dashed border-sage-200 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-              style={{ animation: "spin 30s linear infinite" }}
-            />
-          </div>
         </div>
 
         {/* Scroll indicator */}
