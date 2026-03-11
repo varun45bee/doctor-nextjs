@@ -82,8 +82,9 @@ export default function Navbar() {
         borderBottom: scrolled ? "1px solid #e6ede6" : "none",
       }}
     >
-<nav className="max-w-7xl mx-auto px-[19px] py-4 flex items-center justify-between gap-4">
-          {/* LOGO - Same for both mobile and desktop */}
+      <nav className="max-w-7xl mx-auto px-[19px] py-4 flex items-center justify-between gap-4">
+
+        {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
           <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
             <Image
@@ -96,16 +97,17 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* DESKTOP NAVIGATION (hidden on mobile) */}
+        {/* DESKTOP NAVIGATION */}
         <div className="hidden lg:flex items-center gap-5 text-sm font-medium">
           <Link href="/" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.home}
           </Link>
+
           <Link href="/about" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.about}
           </Link>
 
-          {/* SERVICES MEGA MENU */}
+          {/* SERVICES MENU */}
           <div
             className="relative"
             onMouseEnter={() => setOpenMenu("services")}
@@ -146,17 +148,6 @@ export default function Navbar() {
                     </div>
                   ))}
                 </div>
-                <div className="bg-sage-50 px-6 py-3 flex justify-between border-t border-sage-100 rounded-b-2xl">
-                  <span className="text-xs text-sage-500">
-                    View all conditions treated
-                  </span>
-                  <Link
-                    href="/conditions"
-                    className="text-xs font-semibold text-sage-600 hover:text-sage-900 transition-colors"
-                  >
-                    {t.nav.conditions} →
-                  </Link>
-                </div>
               </div>
             )}
           </div>
@@ -164,15 +155,26 @@ export default function Navbar() {
           <Link href="/why-homeopathy" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.whyHomeopathy}
           </Link>
+
           <Link href="/case-studies" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.caseStudies}
           </Link>
+
           <Link href="/blog" className="text-sage-800 hover:text-sage-500 transition-colors">
             {t.nav.blog}
           </Link>
+
+          {/* NEW LINKS */}
+          <Link href="/intake" className="text-sage-800 hover:text-sage-500 transition-colors">
+            AI Consultation
+          </Link>
+
+          <Link href="/doctor-dashboard" className="text-sage-800 hover:text-sage-500 transition-colors">
+            Doctor Dashboard
+          </Link>
         </div>
 
-        {/* DESKTOP RIGHT SIDE (hidden on mobile) */}
+        {/* RIGHT SIDE */}
         <div className="hidden lg:flex items-center gap-3">
           <div className="flex items-center border border-sage-200 rounded-full px-2 py-1 bg-white/80">
             <Globe className="w-3.5 h-3.5 text-sage-400 mr-1" />
@@ -180,7 +182,7 @@ export default function Navbar() {
               <button
                 key={l}
                 onClick={() => setLocale(l)}
-                className={`px-2.5 py-0.5 text-xs rounded-full font-medium transition-colors ${
+                className={`px-2.5 py-0.5 text-xs rounded-full font-medium ${
                   locale === l
                     ? "bg-sage-500 text-white"
                     : "text-sage-600 hover:bg-sage-50"
@@ -199,127 +201,34 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* MOBILE TOGGLE BUTTON (visible only on mobile) */}
+        {/* MOBILE TOGGLE */}
         <button
-          className="lg:hidden p-2 text-sage-700 hover:text-sage-500 transition-colors"
+          className="lg:hidden p-2 text-sage-700"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
         >
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>
 
-      {/* MOBILE MENU DROPDOWN (visible only when menuOpen is true) */}
+      {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md border-b border-sage-100 shadow-lg max-h-[calc(100vh-80px)] overflow-y-auto">
-          <div className="px-6 py-4 space-y-4">
-            {/* Mobile Navigation Links */}
-            <div className="space-y-1">
-              <Link
-                href="/"
-                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.nav.home}
-              </Link>
-              
-              <Link
-                href="/about"
-                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.nav.about}
-              </Link>
+        <div className="lg:hidden bg-white border-t border-sage-100">
+          <div className="px-6 py-4 space-y-3">
 
-              {/* Mobile Services Section */}
-              <div className="py-3 border-b border-sage-50">
-                <div className="font-medium text-sage-800 mb-3">{t.nav.services}</div>
-                <div className="pl-2 space-y-4">
-                  {menuSections.map((section) => (
-                    <div key={section.title}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span>{section.emoji}</span>
-                        <span className="text-sm font-medium text-sage-700 uppercase tracking-wide">
-                          {section.title}
-                        </span>
-                      </div>
-                      <ul className="pl-6 space-y-2">
-                        {section.items.map((item) => (
-                          <li key={item.href}>
-                            <Link
-                              href={item.href}
-                              className="text-sm text-sage-600 hover:text-sage-900 transition-colors"
-                              onClick={() => setMenuOpen(false)}
-                            >
-                              {item.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link href="/about" onClick={() => setMenuOpen(false)}>About</Link>
+            <Link href="/why-homeopathy" onClick={() => setMenuOpen(false)}>Why Homeopathy</Link>
+            <Link href="/case-studies" onClick={() => setMenuOpen(false)}>Case Studies</Link>
+            <Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link>
 
-              <Link
-                href="/why-homeopathy"
-                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.nav.whyHomeopathy}
-              </Link>
-              
-              <Link
-                href="/case-studies"
-                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.nav.caseStudies}
-              </Link>
-              
-              <Link
-                href="/blog"
-                className="block py-3 text-sage-800 hover:text-sage-500 transition-colors border-b border-sage-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.nav.blog}
-              </Link>
-            </div>
-
-            {/* Mobile Language Switcher */}
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-sage-400" />
-                <span className="text-sm text-sage-600">Language:</span>
-              </div>
-              <div className="flex gap-1">
-                {(["en", "hi", "mr"] as Locale[]).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => {
-                      setLocale(l);
-                      setMenuOpen(false);
-                    }}
-                    className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${
-                      locale === l
-                        ? "bg-sage-500 text-white"
-                        : "text-sage-600 hover:bg-sage-50"
-                    }`}
-                  >
-                    {localeLabels[l]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile CTA */}
-            <Link
-              href="/contact"
-              className="block w-full bg-sage-500 text-white text-center px-5 py-3 rounded-full hover:bg-sage-600 transition-colors mt-4"
-              onClick={() => setMenuOpen(false)}
-            >
-              {t.hero.cta}
+            <Link href="/intake" onClick={() => setMenuOpen(false)}>
+              AI Consultation
             </Link>
+
+            <Link href="/doctor-dashboard" onClick={() => setMenuOpen(false)}>
+              Doctor Dashboard
+            </Link>
+
           </div>
         </div>
       )}
