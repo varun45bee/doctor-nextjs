@@ -1,29 +1,29 @@
-// app/intake/page.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Patient Intake Page
-// Route: /intake
-// ─────────────────────────────────────────────────────────────────────────────
+// // app/intake/page.jsx
+// // ─────────────────────────────────────────────────────────────────────────────
+// // Patient Intake Page
+// // Route: /intake
+// // ─────────────────────────────────────────────────────────────────────────────
 
-"use client";
+// "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useState } from "react";
+// import { useRouter } from "next/navigation";
 
-export default function IntakePage() {
-  const router = useRouter();
+// export default function IntakePage() {
+//   const router = useRouter();
 
-  // When the AI finishes and generates a report,
-  // store it in localStorage so the doctor page can read it.
-  function handleReportReady(report, navigate = false) {
-    try {
-      localStorage.setItem("vitaintake_report", JSON.stringify(report));
-    } catch {
-      // fallback: sessionStorage
-      sessionStorage.setItem("vitaintake_report", JSON.stringify(report));
-    }
-    if (navigate) {
-      router.push("/doctor-dashboard");
-    }
-  }
+//   // When the AI finishes and generates a report,
+//   // store it in localStorage so the doctor page can read it.
+//   function handleReportReady(report, navigate = false) {
+//     try {
+//       localStorage.setItem("vitaintake_report", JSON.stringify(report));
+//     } catch {
+//       // fallback: sessionStorage
+//       sessionStorage.setItem("vitaintake_report", JSON.stringify(report));
+//     }
+//     if (navigate) {
+//       router.push("/doctor-dashboard");
+//     }
+//   }
 
-}
+// }
