@@ -4,6 +4,8 @@ import { LanguageProvider } from "@/lib/language-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatbaseWidget from "./ChatbaseWidget";
+import WhatsAppButton from "@/components/WhatsAppButton";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://pratimaagale.in"),
   title: {
@@ -48,7 +50,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://pratimaagale.in" },
 };
 
-// JSON-LD schema for local business
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
@@ -121,9 +122,14 @@ export default function RootLayout({
         <LanguageProvider>
           <Navbar />
           <main>{children}</main>
-          <Footer/>
+          <Footer />
         </LanguageProvider>
-<ChatbaseWidget />
+
+        {/* WhatsApp floating button — sits above the Chatbase bubble */}
+        <WhatsAppButton />
+
+        {/* Chatbase chatbot widget */}
+        <ChatbaseWidget />
       </body>
     </html>
   );
