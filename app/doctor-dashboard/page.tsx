@@ -7,7 +7,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DoctorDashboard from "@/components/vitaintake/DoctorDashboard";
+// import DoctorDashboard from "@/components/vitaintake/DoctorDashboard";
 
 export default function DoctorDashboardPage() {
   const [report, setReport] = useState(null);
@@ -47,5 +47,5 @@ export default function DoctorDashboardPage() {
     );
   }
 
-  return <DoctorDashboard report={report} />;
+//   return <DoctorDashboard report={report} />;
 }

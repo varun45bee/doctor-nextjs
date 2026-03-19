@@ -8,7 +8,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PatientChat from "@/components/vitaintake/PatientChat";
 
 export default function IntakePage() {
   const router = useRouter();
@@ -27,5 +26,4 @@ export default function IntakePage() {
     }
   }
 
-  return <PatientChat onReportReady={handleReportReady} />;
 }

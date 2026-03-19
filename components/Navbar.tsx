@@ -164,14 +164,7 @@ export default function Navbar() {
             {t.nav.blog}
           </Link>
 
-          {/* NEW LINKS */}
-          <Link href="/intake" className="text-sage-800 hover:text-sage-500 transition-colors">
-            AI Consultation
-          </Link>
-
-          <Link href="/doctor-dashboard" className="text-sage-800 hover:text-sage-500 transition-colors">
-            Doctor Dashboard
-          </Link>
+      
         </div>
 
         {/* RIGHT SIDE */}
@@ -221,13 +214,7 @@ export default function Navbar() {
             <Link href="/case-studies" onClick={() => setMenuOpen(false)}>Case Studies</Link>
             <Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link>
 
-            <Link href="/intake" onClick={() => setMenuOpen(false)}>
-              AI Consultation
-            </Link>
-
-            <Link href="/doctor-dashboard" onClick={() => setMenuOpen(false)}>
-              Doctor Dashboard
-            </Link>
+             
 
           </div>
         </div>
