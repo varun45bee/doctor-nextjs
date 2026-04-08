@@ -84,9 +84,8 @@ export default function WomensHealthPage() {
           {conditions.map((cond, i) => (
             <div
               key={cond.title}
-              className={`grid md:grid-cols-2 gap-10 items-start ${
-                i % 2 === 1 ? "md:flex-row-reverse" : ""
-              }`}
+              className={`grid md:grid-cols-2 gap-10 items-start ${i % 2 === 1 ? "md:flex-row-reverse" : ""
+                }`}
             >
               <div>
                 <div className="text-5xl mb-4">{cond.emoji}</div>
@@ -132,12 +131,15 @@ export default function WomensHealthPage() {
           <p className="text-sage-100 mb-6">
             Dr. Pratima Agale brings deep expertise and a woman-first approach to every consultation.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
+          <a
+            href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20my%20consultation%20with%20Dr.%20Pratima%20Agale."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
-            Book Your Consultation <ArrowRight className="w-4 h-4" />
-          </Link>
+
+            Book Your Consultation
+          </a>
         </div>
       </section>
     </div>

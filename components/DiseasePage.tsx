@@ -63,9 +63,15 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
             </h1>
             <p className="text-sage-600 text-lg italic mb-6">{data.tagline}</p>
             <div className="flex flex-wrap gap-4">
-              <Link href="/contact" className="flex items-center gap-2 text-white px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:-translate-y-0.5 bg-sage-500 hover:bg-sage-600">
-                {t.common.bookConsultation} <ArrowRight className="w-4 h-4" />
-              </Link>
+              <a
+                href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-white px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:-translate-y-0.5 bg-sage-500 hover:bg-sage-600"
+              >
+
+                {t.common.bookConsultation}
+              </a>
               <a href="tel:+91XXXXXXXXXX" className="flex items-center gap-2 border-2 border-sage-400 text-sage-600 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50">
                 {t.common.callNow}
               </a>
@@ -214,9 +220,15 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
           </h2>
           <p className="text-sage-100 mb-6">{t.common.servedAreas}</p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/contact" className="bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all">
+            <a
+              href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+            >
+
               {t.common.bookNow}
-            </Link>
+            </a>
             <a href="tel:+91XXXXXXXXXX" className="border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all">
               {t.common.callNow}
             </a>

@@ -192,12 +192,16 @@ export default function PatientJourneyPage() {
             Ready to Begin?
           </h2>
           <p className="text-sage-100 mb-6">Take the first step toward natural, lasting health.</p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
-          >
-            Book Your First Consultation <ArrowRight className="w-4 h-4" />
-          </Link>
+          <a
+  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20my%20first%20consultation%20with%20Dr.%20Pratima%20Agale."
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+>
+   
+
+  Book Your First Consultation
+</a>
         </div>
       </section>
     </div>

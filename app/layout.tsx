@@ -129,7 +129,7 @@ export default function RootLayout({
 
         {/* Chatbase chatbot widget */}
         <ChatbaseWidget />
-        <WhatsAppButton />
+        {/* <WhatsAppButton /> */}
       </body>
     </html>
   );

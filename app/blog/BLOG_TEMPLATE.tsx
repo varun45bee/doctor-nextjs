@@ -302,7 +302,7 @@ export default function BlogPost() {
             href="/contact"
             className="inline-flex items-center gap-2 bg-white text-sage-700 px-7 py-3 rounded-full font-semibold hover:bg-cream-50 transition-all"
           >
-            Book Consultation <ArrowRight className="w-4 h-4" />
+            Book Consultastion <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>

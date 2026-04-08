@@ -75,12 +75,18 @@ export default function ChronicDiseasePage() {
                 </div>
               </div>
               <div className="px-7 pb-7">
-                <Link
-                  href="/contact"
-                  className="flex items-center gap-2 text-sage-600 hover:text-sage-800 font-medium text-sm transition-colors"
-                >
-                  Consult for {d.title.split(" ")[0]} <ArrowRight className="w-4 h-4" />
-                </Link>
+               <a
+  href={`https://wa.me/919087234577?text=${encodeURIComponent(
+    `Hello, I would like to consult for ${d.title} with Dr. Pratima Agale.`
+  )}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="flex items-center gap-2 text-sage-600 hover:text-sage-800 font-medium text-sm transition-colors"
+>
+  <ArrowRight className="w-4 h-4" />
+
+  Consult for {d.title.split(" ")[0]}
+</a>
               </div>
             </div>
           ))}
@@ -96,12 +102,15 @@ export default function ChronicDiseasePage() {
             Dr. Pratima Agale has helped hundreds of patients in Kalyan and Mumbai break free from
             chronic illness through personalized homeopathic treatment.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
+          <a
+            href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
-            Book Consultation <ArrowRight className="w-4 h-4" />
-          </Link>
+
+            Book Consultation
+          </a>
         </div>
       </section>
     </div>

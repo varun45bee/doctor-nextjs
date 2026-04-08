@@ -234,12 +234,17 @@ export default function ConditionsPage() {
             Homeopathy treats over 100 conditions. If you don't see yours above,
             contact Dr. Pratima Agale — she'll let you know if homeopathy can help.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-sage-500 text-white px-7 py-3 rounded-full font-medium hover:bg-sage-600 transition-all"
-          >
-            Ask Dr. Pratima <ArrowRight className="w-4 h-4" />
-          </Link>
+       <a
+  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20consult%20Dr.%20Pratima%20Agale."
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 bg-sage-500 text-white px-7 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"
+>
+  {/* WhatsApp Icon */}
+   
+
+  Ask Dr. Pratima
+</a>
         </div>
       </section>
     </div>

@@ -221,12 +221,17 @@ export default function CaseStudiesPage() {
             Every case is different. A consultation helps determine whether
             homeopathy may be suitable for your situation.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
-          >
-            Book a Consultation <ArrowRight className="w-4 h-4" />
-          </Link>
+         <a
+  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+>
+  {/* WhatsApp Icon */}
+ 
+
+  Book a Consultation
+</a>
         </div>
       </section>
     </div>

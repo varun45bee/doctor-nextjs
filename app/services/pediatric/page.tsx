@@ -96,12 +96,15 @@ export default function PediatricPage() {
             Dr. Pratima Agale's gentle, child-friendly approach has made her a trusted name
             for pediatric homeopathy in Kalyan and Mumbai.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all"
+          <a
+            href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20children%27s%20consultation%20with%20Dr.%20Pratima%20Agale."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
-            Book Children's Consultation <ArrowRight className="w-4 h-4" />
-          </Link>
+
+            Book Children's Consultation
+          </a>
         </div>
       </section>
     </div>
