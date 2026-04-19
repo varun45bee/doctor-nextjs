@@ -223,8 +223,7 @@ export default function BlogPostPage({ params }: PageProps) {
               <span className="text-sm text-sage-500 font-medium">Share this article:</span>
               {[
                 { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent(post.title + " — Read at pratimaagale.in")}` },
-                { label: "Facebook", color: "#1877F2", href: "#" },
-                { label: "Twitter", color: "#1DA1F2", href: "#" },
+               
               ].map((s) => (
                 <a
                   key={s.label}
