@@ -4,7 +4,6 @@ import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ChatbaseWidget from "./ChatbaseWidget";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
@@ -140,7 +139,7 @@ export default function RootLayout({
         {/* WhatsApp floating button — sits above the Chatbase bubble */}
 
         {/* Chatbase chatbot widget */}
-        <ChatbaseWidget />
+         
         <WhatsAppButton />
 
       </body>
