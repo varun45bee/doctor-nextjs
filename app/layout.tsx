@@ -138,11 +138,11 @@ export default function RootLayout({
           </LanguageProvider>
         </ThemeProvider>
 
+        {/* Chatbase chatbot widget */}
+        <ChatbaseWidget />
         {/* WhatsApp floating button — sits above the Chatbase bubble */}
         <WhatsAppButton />
 
-        {/* Chatbase chatbot widget */}
-        <ChatbaseWidget />
       </body>
     </html>
   );
