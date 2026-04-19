@@ -112,10 +112,13 @@ export default function ConditionsPage() {
       {/* Hero */}
       <section
         className="py-16 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-sage-100 text-sage-700 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-5">
+          <div
+            className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-5"
+            style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
+          >
             40+ Conditions Treated
           </div>
           <h1
@@ -123,7 +126,7 @@ export default function ConditionsPage() {
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(2.5rem, 5vw, 3.8rem)",
-              color: "#1e2820",
+              color: "var(--text-primary)",
             }}
           >
             All Conditions We Treat
@@ -131,7 +134,7 @@ export default function ConditionsPage() {
               होम्योपैथी से इलाज · होमिओपॅथीने उपचार
             </span>
           </h1>
-          <p className="text-sage-700 leading-relaxed mb-8">
+          <p className="leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
             Click any condition to learn what it is, how homeopathy treats it,
             and how Dr. Pratima Agale can help you in Kalyan, Mumbai.
           </p>
@@ -144,7 +147,8 @@ export default function ConditionsPage() {
               placeholder="Search condition (English, हिंदी, मराठी)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-full border border-sage-200 text-sm focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 bg-white"
+              className="w-full pl-11 pr-4 py-3 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-sage-100"
+              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
             />
           </div>
         </div>
@@ -152,21 +156,22 @@ export default function ConditionsPage() {
 
       {/* Search results */}
       {filtered && (
-        <section className="py-10 px-6 bg-white border-b border-sage-50">
+        <section className="py-10 px-6 border-b" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
           <div className="max-w-5xl mx-auto">
-            <p className="text-sage-500 text-sm mb-4">{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
+            <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
             <div className="flex flex-wrap gap-3">
               {filtered.map((c) => (
                 <Link
                   key={c.href}
                   href={c.href}
-                  className="flex items-center gap-2 bg-sage-50 border border-sage-100 text-sage-800 px-5 py-2.5 rounded-full text-sm hover:bg-sage-100 hover:border-sage-200 transition-all"
+                  className="flex items-center gap-2 border px-5 py-2.5 rounded-full text-sm hover:opacity-80 transition-all"
+                  style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
                 >
                   {c.name} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               ))}
               {filtered.length === 0 && (
-                <p className="text-sage-400 text-sm">No conditions found. Try a different search.</p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>No conditions found. Try a different search.</p>
               )}
             </div>
           </div>
@@ -175,7 +180,7 @@ export default function ConditionsPage() {
 
       {/* Category groups */}
       {!filtered && (
-        <section className="py-16 px-6 bg-white">
+        <section className="py-16 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
           <div className="max-w-6xl mx-auto space-y-14">
             {conditionGroups.map((group) => (
               <div key={group.categoryKey}>
@@ -185,7 +190,7 @@ export default function ConditionsPage() {
                     className="font-serif text-2xl"
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
-                      color: "#1e2820",
+                      color: "var(--text-primary)",
                       borderLeft: `4px solid ${group.borderColor}`,
                       paddingLeft: "0.75rem",
                     }}
@@ -199,14 +204,14 @@ export default function ConditionsPage() {
                     <Link
                       key={cond.href}
                       href={cond.href}
-                      className="group flex items-center justify-between p-4 rounded-xl border border-sage-100 hover:border-sage-200 hover:shadow-md transition-all hover:-translate-y-0.5"
-                      style={{ backgroundColor: group.color }}
+                      className="group flex items-center justify-between p-4 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
+                      style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
                     >
                       <div>
-                        <div className="font-medium text-sage-900 text-sm group-hover:text-sage-700 transition-colors">
+                        <div className="font-medium text-sm transition-colors" style={{ color: "var(--text-primary)" }}>
                           {cond.name}
                         </div>
-                        <div className="text-xs text-sage-400 mt-0.5">
+                        <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                           {locale === "hi" ? cond.hindi : locale === "mr" ? cond.marathi : ""}
                           {locale === "en" && `${cond.hindi} · ${cond.marathi}`}
                         </div>
@@ -222,15 +227,15 @@ export default function ConditionsPage() {
       )}
 
       {/* Not listed CTA */}
-      <section className="py-12 px-6" style={{ backgroundColor: "#f4f7f4" }}>
+      <section className="py-12 px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
         <div className="max-w-2xl mx-auto text-center">
           <h3
             className="font-serif text-2xl mb-3"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
           >
             Don't see your condition listed?
           </h3>
-          <p className="text-sage-600 text-sm mb-5">
+          <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
             Homeopathy treats over 100 conditions. If you don't see yours above,
             contact Dr. Pratima Agale — she'll let you know if homeopathy can help.
           </p>
