@@ -211,7 +211,7 @@ export default function Navbar() {
           
 
      <a
-  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
   className="flex items-center gap-2 bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors"
@@ -269,7 +269,7 @@ export default function Navbar() {
             <div className="pt-3 flex flex-col gap-3">
              
            <a
-  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
   onClick={() => setMenuOpen(false)}

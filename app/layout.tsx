@@ -59,12 +59,12 @@ const localBusinessSchema = {
   description:
     "Expert homeopathic treatment in Kalyan, Mumbai by Dr. Pratima Agale (BHMS, MD)",
   url: "https://pratimaagale.in",
-  telephone: "+91-XXXXXXXXXX",
+  telephone: "+91-9359875511",
   priceRange: "₹₹",
   image: "https://pratimaagale.in/og-image.jpg",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "[Clinic Address]",
+    streetAddress: "Yogidham, Phase 3",
     addressLocality: "Kalyan",
     addressRegion: "Maharashtra",
     postalCode: "421301",
@@ -129,10 +129,10 @@ export default function RootLayout({
         </ThemeProvider>
 
         {/* WhatsApp floating button — sits above the Chatbase bubble */}
+        <WhatsAppButton />
 
         {/* Chatbase chatbot widget */}
         <ChatbaseWidget />
-        {/* <WhatsAppButton /> */}
       </body>
     </html>
   );

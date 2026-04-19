@@ -94,9 +94,7 @@ export default function BlogPage() {
           <div className="mt-12 text-center py-12 border-2 border-dashed border-sage-100 rounded-2xl">
             <div className="text-4xl mb-3">✍️</div>
             <h3 className="font-semibold text-sage-700 mb-2">{t.blog.noArticles}</h3>
-            <p className="text-sage-500 text-sm max-w-md mx-auto">
-              {locale === "hi" ? "नए लेख जोड़ने के लिए app/blog/[slug]/page.tsx में फाइल बनाएं" : locale === "mr" ? "नवीन लेख जोडण्यासाठी app/blog/[slug]/page.tsx मध्ये फाइल तयार करा" : "Add new articles by creating files in app/blog/[slug]/page.tsx — use the _template folder as a guide."}
-            </p>
+             
           </div>
         </div>
       </section>

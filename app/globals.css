@@ -49,19 +49,19 @@
   --text-dark:  #e8f0e8;
 
   /* Semantic tokens */
-  --bg-base:        #0f1a0f;
-  --bg-surface:     #1a2a1a;
-  --bg-surface-alt: #1f2f1f;
-  --bg-subtle:      rgba(26,42,26,0.92);
-  --bg-muted:       #1a2a1a;
+  --bg-base:        #0a100a;
+  --bg-surface:     #121d12;
+  --bg-surface-alt: #1a261a;
+  --bg-subtle:      rgba(18,29,18,0.92);
+  --bg-muted:       #121d12;
 
-  --text-primary:   #e8f0e8;
-  --text-secondary: #a8c8a8;
-  --text-muted:     #6a8f6a;
+  --text-primary:   #f0f5f0;
+  --text-secondary: #b8d0b8;
+  --text-muted:     #7aa07a;
 
-  --border-color:   #2a3d2a;
-  --border-mid:     #3a5a3a;
-  --border-light:   #243424;
+  --border-color:   #253625;
+  --border-mid:     #354d35;
+  --border-light:   #1f2d1f;
 
   --nav-bg:         rgba(15,26,15,0.97);
   --nav-shadow:     0 1px 20px rgba(0,0,0,0.3);

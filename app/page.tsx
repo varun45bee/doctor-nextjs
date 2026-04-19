@@ -102,12 +102,12 @@ export default function HomePage() {
       >
         {/* Background botanical decorations */}
         <div
-          className="absolute top-0 right-0 w-[600px] h-[600px] opacity-10"
+          className="absolute top-0 right-0 w-[600px] h-[600px] opacity-10 animate-blob"
           style={{ background: "radial-gradient(circle, #5a7f5a 0%, transparent 70%)" }}
         />
         <div
-          className="absolute bottom-0 left-0 w-[400px] h-[400px] opacity-8"
-          style={{ background: "radial-gradient(circle, #6b9e8a 0%, transparent 70%)" }}
+          className="absolute bottom-0 left-0 w-[400px] h-[400px] opacity-8 animate-blob"
+          style={{ background: "radial-gradient(circle, #6b9e8a 0%, transparent 70%)", animationDelay: "2s" }}
         />
 
         {/* Floating leaves decoration */}
@@ -166,7 +166,7 @@ export default function HomePage() {
 
             <div className="flex flex-wrap gap-4">
               <a
-                href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+                href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-sage-500 text-white px-7 py-3.5 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-lg hover:-translate-y-0.5"
@@ -216,7 +216,7 @@ export default function HomePage() {
               className="relative w-[340px] h-[420px] rounded-[2rem] overflow-hidden shadow-2xl"
               style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
             >
-              <Image src="/desk.jpeg" alt="Dr. Pratima Agale" fill className="object-cover w-full h-full scale-110" />
+              <Image src="/desk.jpeg" alt="Dr. Pratima Agale" fill className="object-cover w-full h-full scale-110" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               <div className="absolute bottom-20 left-0 right-0 px-6 text-center">
                 <h2 className="font-serif text-2xl text-white mb-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
@@ -519,7 +519,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
-              href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
+              href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-lg hover:-translate-y-0.5"
@@ -527,7 +527,7 @@ export default function HomePage() {
               Book Appointment
             </a>
             <a
-              href="tel:+91XXXXXXXXXX"
+              href="tel:+919359875511"
               className="border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
             >
               Call Now

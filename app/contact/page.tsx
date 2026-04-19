@@ -145,8 +145,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
                 {
                   icon: Phone,
                   label: t.contact.phoneLabel,
-                  value: "+91 9087234577",
-                  href: "tel:+919087234577",
+                  value: "+91 9359875511",
+                  href: "tel:+919359875511",
                 },
                 {
                   icon: Mail,
