@@ -502,6 +502,65 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── TESTIMONIALS ── */}
+      <section className="py-24 px-6 relative overflow-hidden" style={{ backgroundColor: "var(--bg-muted)" }}>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16 reveal">
+            <h2
+              className="font-serif text-3xl md:text-5xl mb-4"
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
+            >
+              Patient Stories
+              <span className="block italic text-sage-500 text-2xl mt-2">Real Healing, Real Results</span>
+            </h2>
+            <div className="w-20 h-1 bg-sage-200 mx-auto rounded-full" />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                text: "I was struggling with chronic PCOD and severe hormonal acne for 3 years. After 6 months of treatment with Dr. Pratima, my cycles are regular and my skin has cleared completely. The best part is it's all natural!",
+                name: "Anjali S.",
+                location: "Kalyan West",
+                condition: "PCOD & Skin Care"
+              },
+              {
+                text: "My son's recurrent tonsillitis was taking a toll on his studies. Homeopathy worked wonders for his immunity. He hasn't needed an antibiotic in over a year now. Truly grateful to Dr. Agale.",
+                name: "Rajesh K.",
+                location: "Andheri East",
+                condition: "Pediatric Immunity"
+              },
+              {
+                text: "Dealing with chronic psoriasis was emotionally draining. Dr. Pratima's approach wasn't just about the skin, but my overall well-being. The patches have reduced by 90% and I feel like myself again.",
+                name: "Meera D.",
+                location: "Dombivli",
+                condition: "Psoriasis Treatment"
+              }
+            ].map((t, i) => (
+              <div 
+                key={i} 
+                className="reveal bg-white p-8 rounded-3xl shadow-sm border border-sage-50 relative dark:bg-zinc-900 dark:border-zinc-800"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <div className="text-sage-300 text-5xl font-serif absolute top-4 left-6 opacity-20">"</div>
+                <p className="text-sage-700 leading-relaxed mb-6 italic relative z-10 dark:text-zinc-400">
+                  {t.text}
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-sage-100 flex items-center justify-center text-sage-600 font-bold dark:bg-zinc-800">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sage-900 dark:text-zinc-100">{t.name}</div>
+                    <div className="text-xs text-sage-400 uppercase tracking-widest">{t.condition} · {t.location}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA STRIP ── */}
       <section
         className="py-16 px-6 text-center"

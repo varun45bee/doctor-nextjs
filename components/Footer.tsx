@@ -47,12 +47,12 @@ export default function Footer() {
 
 <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
   {/* Logo */}
-  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
+  <div className="relative w-12 h-12 rounded-full bg-white border-2 border-sage-100 flex items-center justify-center overflow-hidden shadow-sm">
      <Image
                   src="/logo.png"
                   alt="Dr. Pratima Agale"
                   fill
-                  className="object-contain"
+                  className="object-contain p-1.5"
                   priority
                 />
   </div>

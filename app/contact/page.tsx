@@ -37,7 +37,8 @@ export default function ContactPage() {
     "Other",
   ];
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
     setLoading(true);
     setError("");
@@ -45,20 +46,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
     try {
       const payload = { ...form };
 
-      // Send WhatsApp via Twilio API route
-      const waRes = await fetch("/api/send-whatsapp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!waRes.ok) {
-        throw new Error("WhatsApp sending failed");
-      }
-
-      // Send Email via Formspree
+      // 1. Send Email via Formspree (Keep the user's ID or allow them to change it)
       const emailRes = await fetch("https://formspree.io/f/xjgenbzw", {
         method: "POST",
         headers: {
@@ -68,15 +56,24 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
       });
 
       if (!emailRes.ok) {
-        throw new Error("Email sending failed");
+        throw new Error("Email submission failed. Please try again.");
       }
+
+      // 2. Format WhatsApp message
+      const whatsappMsg = `*New Appointment Request*%0A*Name:* ${form.name}%0A*Phone:* ${form.phone}%0A*Condition:* ${form.condition}%0A*Date:* ${form.date}%0A*Time:* ${form.time}%0A*Message:* ${form.message}`;
+      const whatsappUrl = `https://wa.me/919359875511?text=${whatsappMsg}`;
 
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
 
-    } catch (err) {
+      // Automatically redirect to WhatsApp after 2 seconds to confirm
+      setTimeout(() => {
+        window.open(whatsappUrl, "_blank");
+      }, 2000);
+
+    } catch (err: any) {
       console.error("Submission error:", err);
-      setError("Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong. Please try again.");
     }
 
     setLoading(false);
@@ -409,6 +406,22 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* Google Maps Section */}
+      <section className="pb-20 px-6">
+        <div className="max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-xl border border-sage-100 h-[450px]">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3767.123!2d73.1305!3d19.2403!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7963333333333%3A0x3333333333333333!2sYogidham+Phase+3+Kalyan!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Clinic Location"
+          ></iframe>
         </div>
       </section>
     </div>
