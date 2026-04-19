@@ -409,3 +409,15 @@ main,
 article {
   transition: background-color 0.35s ease, border-color 0.25s ease, color 0.25s ease;
 }
+
+/* ─── CHATBASE WIDGET OVERRIDE ─────────────────────────── */
+/* Position Chatbase above WhatsApp */
+#chatbase-bubble-button {
+  bottom: 80px !important;
+}
+
+@media (max-width: 640px) {
+  #chatbase-bubble-button {
+    bottom: 80px !important;
+  }
+}
