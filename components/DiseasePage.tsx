@@ -75,7 +75,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
             >
               {data.category}
             </div>
-            <div className="text-5xl mb-4">{data.emoji}</div>
+            <div className="text-5xl mb-4" role="img" aria-label="Condition Icon">{data.emoji}</div>
             <h1
               className="font-serif mb-3"
               style={{
@@ -108,7 +108,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
                 {t.common.bookConsultation}
               </a>
               <a
-                href="tel:+91XXXXXXXXXX"
+                href="tel:+919359875511"
                 className="flex items-center gap-2 border-2 border-sage-400 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50 dark:hover:bg-sage-900"
                 style={{ color: "var(--text-secondary)" }}
               >
@@ -425,7 +425,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
               {t.common.bookNow}
             </a>
             <a
-              href="tel:+91XXXXXXXXXX"
+              href="tel:+919359875511"
               className="border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
             >
               {t.common.callNow}

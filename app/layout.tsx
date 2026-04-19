@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Dr. Pratima Agale | Best Homeopathy Doctor in Kalyan, Mumbai",
     description:
       "Expert homeopathic treatment for women's health, pediatric care & chronic diseases. Serving Kalyan, Andheri, and all of Mumbai.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
@@ -49,6 +49,16 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://pratimaagale.in" },
+  verification: {
+    google: "GOOGLE_VERIFICATION_ID_HERE", // User can replace this later
+  },
+  category: "Health",
+};
+
+export const viewport = {
+  themeColor: "#5a7f5a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 const localBusinessSchema = {

@@ -270,6 +270,7 @@ export default function HomePage() {
               <Link
                 key={c.title}
                 href={c.href}
+                aria-label={`Learn about homeopathic treatment for ${c.title}`}
                 className="reveal group p-6 rounded-2xl text-center hover:shadow-md transition-all hover:-translate-y-1 border border-transparent hover:border-sage-100 dark:hover:border-sage-800"
                 style={{
                   backgroundColor: "var(--bg-surface-alt)",
