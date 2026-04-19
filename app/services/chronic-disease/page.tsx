@@ -30,18 +30,18 @@ export default function ChronicDiseasePage() {
     <div className="pt-24">
       <section
         className="py-20 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-5xl mb-4">💚</div>
           <h1
             className="font-serif mb-4"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
             Chronic Disease Management
             <span className="block italic text-sage-500">Natural, Lasting Relief</span>
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed">
+          <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             Chronic conditions don't have to mean lifetime medication. Homeopathy works at the
             root level to resolve the imbalances driving your disease — giving you genuine,
             lasting improvement without side effects.
@@ -49,25 +49,26 @@ export default function ChronicDiseasePage() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {diseases.map((d) => (
             <div
               key={d.title}
-              className="bg-white rounded-2xl border border-sage-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden"
+              className="rounded-2xl border shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden"
+              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
             >
               <div className="p-7">
                 <div className="text-4xl mb-4">{d.emoji}</div>
                 <h2
                   className="font-serif text-xl mb-3"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                 >
                   {d.title}
                 </h2>
-                <p className="text-sage-600 text-sm leading-relaxed mb-5">{d.desc}</p>
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-secondary)" }}>{d.desc}</p>
                 <div className="space-y-2">
                   {d.types.map((t) => (
-                    <div key={t} className="flex items-center gap-2 text-xs text-sage-600 bg-sage-50 rounded-lg px-3 py-1.5">
+                    <div key={t} className="flex items-center gap-2 text-xs rounded-lg px-3 py-1.5" style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}>
                       <CheckCircle className="w-3.5 h-3.5 text-sage-400" />
                       {t}
                     </div>

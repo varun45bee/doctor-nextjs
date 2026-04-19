@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { useTheme } from "@/lib/theme-context";
 import { Locale } from "@/lib/translations";
 
 const localeLabels: Record<Locale, string> = {
@@ -15,6 +16,7 @@ const localeLabels: Record<Locale, string> = {
 
 export default function Navbar() {
   const { t, locale, setLocale } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -76,10 +78,10 @@ export default function Navbar() {
     <header
       className="fixed top-0 w-full z-50 transition-all duration-500"
       style={{
-        backgroundColor: scrolled ? "rgba(253,250,245,0.97)" : "transparent",
+        backgroundColor: scrolled ? "var(--nav-bg)" : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        boxShadow: scrolled ? "0 1px 20px rgba(0,0,0,0.05)" : "none",
-        borderBottom: scrolled ? "1px solid #e6ede6" : "none",
+        boxShadow: scrolled ? "var(--nav-shadow)" : "none",
+        borderBottom: scrolled ? "1px solid var(--nav-border)" : "none",
       }}
     >
       <nav className="max-w-7xl mx-auto px-[19px] py-4 flex items-center justify-between gap-4">
@@ -123,7 +125,10 @@ export default function Navbar() {
             </button>
 
             {openMenu === "services" && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] bg-white rounded-2xl shadow-2xl border border-sage-100">
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] rounded-2xl shadow-2xl border"
+                style={{ backgroundColor: "var(--dropdown-bg)", borderColor: "var(--border-color)" }}
+              >
                 <div className="grid grid-cols-4 p-5 gap-4">
                   {menuSections.map((section) => (
                     <div key={section.title}>
@@ -160,7 +165,7 @@ export default function Navbar() {
             {t.nav.caseStudies}
           </Link>
 
-          <Link href="/blog" className="text-sage-800 hover:text-sage-500 transition-colors">
+          <Link href="/blog" className="text-sage-800 dark:text-sage-300 hover:text-sage-500 transition-colors">
             {t.nav.blog}
           </Link>
 
@@ -169,8 +174,23 @@ export default function Navbar() {
 
         {/* RIGHT SIDE */}
         <div className="hidden lg:flex items-center gap-3">
-          <div className="flex items-center border border-sage-200 rounded-full px-2 py-1 bg-white/80">
-            <Globe className="w-3.5 h-3.5 text-sage-400 mr-1" />
+          {/* Theme toggle */}
+          <button
+            id="theme-toggle-desktop"
+            onClick={toggleTheme}
+            className="theme-toggle"
+            aria-label="Toggle dark mode"
+          >
+            <span className="theme-toggle-thumb">
+              {theme === "dark" ? "🌙" : "☀️"}
+            </span>
+          </button>
+
+          <div
+            className="flex items-center rounded-full px-2 py-1 border"
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-color)" }}
+          >
+            <Globe className="w-3.5 h-3.5 mr-1" style={{ color: "var(--text-muted)" }} />
             {(["en", "hi", "mr"] as Locale[]).map((l) => (
               <button
                 key={l}
@@ -178,8 +198,9 @@ export default function Navbar() {
                 className={`px-2.5 py-0.5 text-xs rounded-full font-medium ${
                   locale === l
                     ? "bg-sage-500 text-white"
-                    : "text-sage-600 hover:bg-sage-50"
+                    : "hover:bg-sage-50 dark:hover:bg-sage-800"
                 }`}
+                style={locale !== l ? { color: "var(--text-secondary)" } : {}}
               >
                 {localeLabels[l]}
               </button>
@@ -210,17 +231,33 @@ export default function Navbar() {
         </div>
 
         {/* MOBILE TOGGLE */}
-        <button
-          className="lg:hidden p-2 text-sage-700"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="lg:hidden flex items-center gap-2">
+          <button
+            id="theme-toggle-mobile"
+            onClick={toggleTheme}
+            className="theme-toggle"
+            aria-label="Toggle dark mode"
+          >
+            <span className="theme-toggle-thumb">
+              {theme === "dark" ? "🌙" : "☀️"}
+            </span>
+          </button>
+          <button
+            className="p-2"
+            style={{ color: "var(--text-secondary)" }}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
 
       {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="lg:hidden bg-white border-t border-sage-100">
+        <div
+          className="lg:hidden border-t"
+          style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
+        >
           <div className="px-6 py-4 space-y-3">
 
             <Link href="/" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Home</Link>

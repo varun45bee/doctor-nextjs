@@ -29,18 +29,18 @@ export default function PediatricPage() {
     <div className="pt-24">
       <section
         className="py-20 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #f0fdf4, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-5xl mb-4">🌱</div>
           <h1
             className="font-serif mb-4"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
             Pediatric Homeopathy
             <span className="block italic text-sage-500">Gentle Healing for Growing Bodies</span>
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed mb-8">
+          <p className="text-lg leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
             Children's bodies are sensitive and responsive — making them ideal candidates for
             homeopathic treatment. Dr. Pratima Agale has helped hundreds of children in Kalyan
             and Mumbai grow stronger, healthier, and happier.
@@ -52,26 +52,26 @@ export default function PediatricPage() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto space-y-12">
           {childConditions.map((cond) => (
-            <div key={cond.title} className="bg-white rounded-2xl border border-sage-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div key={cond.title} className="rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
               <div className="grid md:grid-cols-3">
                 <div className="md:col-span-2 p-8">
                   <div className="text-4xl mb-4">{cond.emoji}</div>
                   <h2
                     className="font-serif text-2xl mb-3"
-                    style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                    style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                   >
                     {cond.title}
                   </h2>
-                  <p className="text-sage-700 text-sm leading-relaxed">{cond.desc}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{cond.desc}</p>
                 </div>
-                <div className="bg-sage-50 p-8">
-                  <h3 className="font-semibold text-sage-900 text-sm mb-4">Benefits</h3>
+                <div className="p-8" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
+                  <h3 className="font-semibold text-sm mb-4" style={{ color: "var(--text-primary)" }}>Benefits</h3>
                   <ul className="space-y-3">
                     {cond.benefits.map((b) => (
-                      <li key={b} className="flex items-start gap-2 text-sage-700 text-sm">
+                      <li key={b} className="flex items-start gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
                         <CheckCircle className="w-4 h-4 text-sage-500 flex-shrink-0 mt-0.5" />
                         {b}
                       </li>

@@ -60,18 +60,18 @@ export default function WomensHealthPage() {
     <div className="pt-24">
       <section
         className="py-20 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #fdf4f7, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-4xl mb-4">🌸</div>
           <h1
             className="font-serif mb-4"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
             Women's Health
             <span className="block italic text-sage-500">Holistic Homeopathic Care</span>
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed">
+          <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             From adolescence to menopause, Dr. Pratima Agale provides compassionate,
             effective homeopathic care for every stage of a woman's health journey.
             Serving women across Kalyan, Andheri, and Mumbai.
@@ -79,7 +79,7 @@ export default function WomensHealthPage() {
         </div>
       </section>
 
-      <section className="py-20 px-6" style={{ backgroundColor: "#fff" }}>
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto space-y-16">
           {conditions.map((cond, i) => (
             <div
@@ -91,21 +91,21 @@ export default function WomensHealthPage() {
                 <div className="text-5xl mb-4">{cond.emoji}</div>
                 <h2
                   className="font-serif text-3xl mb-4"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                 >
                   {cond.title}
                 </h2>
-                <p className="text-sage-700 leading-relaxed mb-6">{cond.desc}</p>
-                <div className="bg-sage-50 rounded-xl p-4 text-sm text-sage-600 italic border-l-4 border-sage-300">
-                  <strong className="not-italic text-sage-800">Note on remedies:</strong> {cond.remedy}
+                <p className="leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>{cond.desc}</p>
+                <div className="rounded-xl p-4 text-sm italic border-l-4" style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)", borderColor: "var(--border-color)" }}>
+                  <strong className="not-italic" style={{ color: "var(--text-primary)" }}>Note on remedies:</strong> {cond.remedy}
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-sage-100 shadow-sm p-7">
-                <h3 className="font-semibold text-sage-900 mb-4">Common Symptoms Addressed</h3>
+              <div className="rounded-2xl border shadow-sm p-7" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
+                <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Common Symptoms Addressed</h3>
                 <ul className="space-y-3">
                   {cond.symptoms.map((s) => (
-                    <li key={s} className="flex items-center gap-3 text-sage-700 text-sm">
+                    <li key={s} className="flex items-center gap-3 text-sm" style={{ color: "var(--text-secondary)" }}>
                       <CheckCircle className="w-4 h-4 text-sage-500 flex-shrink-0" />
                       {s}
                     </li>

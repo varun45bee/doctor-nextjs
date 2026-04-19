@@ -89,7 +89,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
       <section
         className="py-16 px-6 text-center"
         style={{
-          background: "linear-gradient(135deg, #f4f7f4, #faf3e6)",
+          background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))",
         }}
       >
         <div className="max-w-2xl mx-auto">
@@ -98,7 +98,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
-              color: "#1e2820",
+              color: "var(--text-primary)",
             }}
           >
             {t.contact.title}
@@ -107,7 +107,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
             </span>
           </h1>
 
-          <p className="text-sage-700">{t.contact.desc}</p>
+          <p style={{ color: "var(--text-secondary)" }}>{t.contact.desc}</p>
         </div>
       </section>
 
@@ -120,14 +120,14 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
 
             {/* Clinic Details */}
             <div
-              className="rounded-2xl p-7 border border-sage-100"
-              style={{ backgroundColor: "#f4f7f4" }}
+              className="rounded-2xl p-7 border"
+              style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
             >
               <h2
                 className="font-serif text-2xl mb-6"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  color: "#1e2820",
+                  color: "var(--text-primary)",
                 }}
               >
                 {t.contact.clinicDetails}
@@ -170,7 +170,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
 
                     <a
                       href={item.href}
-                      className="text-sage-900 font-medium text-sm hover:text-sage-600 whitespace-pre-line"
+                      className="font-medium text-sm hover:text-sage-600 whitespace-pre-line"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       {item.value}
                     </a>
@@ -189,7 +190,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
                     {t.contact.hours}
                   </div>
 
-                  <div className="text-sage-900 text-sm space-y-1">
+                  <div className="text-sm space-y-1" style={{ color: "var(--text-primary)" }}>
                     <div>{t.contact.monFri}</div>
                     <div>{t.contact.sat}</div>
                     <div className="text-sage-400">
@@ -217,7 +218,10 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
           {/* RIGHT COLUMN FORM */}
           <div className="lg:col-span-3">
 
-            <div className="bg-white rounded-2xl border border-sage-100 shadow-sm p-8">
+            <div
+              className="rounded-2xl border shadow-sm p-8"
+              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
+            >
 
               {submitted ? (
                 <div className="text-center py-16">

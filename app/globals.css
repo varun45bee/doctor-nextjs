@@ -4,23 +4,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── LIGHT THEME (default) ─────────────────────────────── */
 :root {
   --sage-light: #e6ede6;
-  --sage-mid: #5a7f5a;
-  --cream: #faf3e6;
-  --teal: #3a9e8c;
-  --text-dark: #1e2820;
+  --sage-mid:   #5a7f5a;
+  --cream:      #faf3e6;
+  --teal:       #3a9e8c;
+  --text-dark:  #1e2820;
+
+  /* Semantic tokens */
+  --bg-base:        #faf3e6;
+  --bg-surface:     #ffffff;
+  --bg-surface-alt: #f4f7f4;
+  --bg-subtle:      rgba(255,255,255,0.85);
+  --bg-muted:       #f8fdf8;
+
+  --text-primary:   #1e2820;
+  --text-secondary: #466546;
+  --text-muted:     #7d9f7d;
+
+  --border-color:   #e6ede6;
+  --border-mid:     #cddccd;
+  --border-light:   #f0f5f0;
+
+  --nav-bg:         rgba(253,250,245,0.97);
+  --nav-shadow:     0 1px 20px rgba(0,0,0,0.05);
+  --nav-border:     #e6ede6;
+
+  --dropdown-bg:    #ffffff;
+  --card-bg:        #ffffff;
+
+  --scrollbar-track: #faf3e6;
+  --scrollbar-thumb: #a8c0a8;
+
+  --grain-opacity: 0.4;
 }
 
+/* ─── DARK THEME ─────────────────────────────────────────── */
+.dark {
+  --sage-light: #2a3d2a;
+  --sage-mid:   #7aab7a;
+  --cream:      #131a13;
+  --teal:       #4db6a4;
+  --text-dark:  #e8f0e8;
+
+  /* Semantic tokens */
+  --bg-base:        #0f1a0f;
+  --bg-surface:     #1a2a1a;
+  --bg-surface-alt: #1f2f1f;
+  --bg-subtle:      rgba(26,42,26,0.92);
+  --bg-muted:       #1a2a1a;
+
+  --text-primary:   #e8f0e8;
+  --text-secondary: #a8c8a8;
+  --text-muted:     #6a8f6a;
+
+  --border-color:   #2a3d2a;
+  --border-mid:     #3a5a3a;
+  --border-light:   #243424;
+
+  --nav-bg:         rgba(15,26,15,0.97);
+  --nav-shadow:     0 1px 20px rgba(0,0,0,0.3);
+  --nav-border:     #2a3d2a;
+
+  --dropdown-bg:    #1a2a1a;
+  --card-bg:        #1a2a1a;
+
+  --scrollbar-track: #0f1a0f;
+  --scrollbar-thumb: #3a5a3a;
+
+  --grain-opacity: 0.15;
+}
+
+/* ─── BASE ───────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--cream);
-  color: var(--text-dark);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 /* Grain overlay */
@@ -31,11 +97,12 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.4;
+  opacity: var(--grain-opacity);
+  transition: opacity 0.35s ease;
 }
 
 .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
-.font-sans { font-family: 'DM Sans', sans-serif; }
+.font-sans  { font-family: 'DM Sans', sans-serif; }
 
 /* Decorative leaf divider */
 .leaf-divider {
@@ -48,10 +115,10 @@ body::before {
   content: '';
   height: 1px;
   width: 80px;
-  background: linear-gradient(to right, transparent, #5a7f5a);
+  background: linear-gradient(to right, transparent, var(--sage-mid));
 }
 .leaf-divider::after {
-  background: linear-gradient(to left, transparent, #5a7f5a);
+  background: linear-gradient(to left, transparent, var(--sage-mid));
 }
 
 /* Smooth page reveal */
@@ -61,7 +128,7 @@ body::before {
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Section reveal on scroll */
@@ -76,6 +143,269 @@ body::before {
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--cream); }
-::-webkit-scrollbar-thumb { background: #a8c0a8; border-radius: 3px; }
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+/* ─── THEME TOGGLE BUTTON ────────────────────────────────── */
+.theme-toggle {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--border-mid);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+.dark .theme-toggle {
+  background: var(--sage-mid);
+}
+.theme-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+.dark .theme-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL DARK MODE OVERRIDES
+   These rules override hardcoded Tailwind classes and
+   common inline style patterns used across ALL pages.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Background overrides ── */
+.dark .bg-white,
+.dark [style*="background-color: #fff"],
+.dark [style*="background-color: white"],
+.dark [style*="backgroundColor: \"#ffffff\""],
+.dark [style*="backgroundColor: \"white\""] {
+  background-color: var(--bg-surface) !important;
+}
+
+/* Section backgrounds */
+.dark section.bg-white,
+.dark section[style*="background-color: #fff"] {
+  background-color: var(--bg-surface) !important;
+}
+
+/* Sage-50 surfaces */
+.dark .bg-sage-50,
+.dark .hover\:bg-sage-50:hover {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+/* Sage-100 surfaces (tag/badge backgrounds) */
+.dark .bg-sage-100 {
+  background-color: #2a3d2a !important;
+}
+
+/* White/light card borders */
+.dark .border-sage-50 {
+  border-color: var(--border-color) !important;
+}
+.dark .border-sage-100 {
+  border-color: var(--border-color) !important;
+}
+.dark .border-sage-200 {
+  border-color: var(--border-mid) !important;
+}
+
+/* ── Hero gradient sections ──────────────────────────────── */
+/* Pattern: style="background: linear-gradient(135deg, #f4f7f4, #faf3e6)" */
+.dark [style*="linear-gradient(135deg, #f4f7f4"] {
+  background: linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base)) !important;
+}
+.dark [style*="linear-gradient(135deg, #f4f7f4, #faf3e6)"] {
+  background: linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base)) !important;
+}
+
+/* ── Inline background colors ────────────────────────────── */
+.dark [style*="background-color: #f4f7f4"],
+.dark [style*="backgroundColor: \"#f4f7f4\""] {
+  background-color: var(--bg-surface-alt) !important;
+}
+.dark [style*="background-color: #f8fdf8"],
+.dark [style*="backgroundColor: \"#f8fdf8\""] {
+  background-color: var(--bg-muted) !important;
+}
+.dark [style*="background-color: #faf3e6"],
+.dark [style*="backgroundColor: \"#faf3e6\""] {
+  background-color: var(--bg-base) !important;
+}
+.dark [style*="background-color: #fff"],
+.dark [style*="backgroundColor: \"#fff\""] {
+  background-color: var(--bg-surface) !important;
+}
+
+/* ── Text color overrides ────────────────────────────────── */
+/* Hardcoded dark text colors used in style= attributes */
+.dark [style*="color: #1e2820"],
+.dark [style*="color: \"#1e2820\""] {
+  color: var(--text-primary) !important;
+}
+.dark [style*="color: \"#1e2820\""] {
+  color: var(--text-primary) !important;
+}
+
+/* Tailwind text utilities */
+.dark .text-sage-900 { color: var(--text-primary) !important; }
+.dark .text-sage-800 { color: #d0e8d0 !important; }
+.dark .text-sage-700 { color: var(--text-secondary) !important; }
+.dark .text-sage-600 { color: var(--text-secondary) !important; }
+.dark .text-sage-500 { color: var(--sage-mid) !important; }
+.dark .text-sage-400 { color: var(--text-muted) !important; }
+
+/* ── Border colors ───────────────────────────────────────── */
+.dark .border-sage-50  { border-color: var(--border-color) !important; }
+.dark .border-sage-100 { border-color: var(--border-color) !important; }
+.dark .border-sage-200 { border-color: var(--border-mid) !important; }
+.dark .border-cream-200 { border-color: var(--border-color) !important; }
+
+/* ── Form inputs ─────────────────────────────────────────── */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--bg-surface-alt) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-mid) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+.dark select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* ── Breadcrumb (DiseasePage) ────────────────────────────── */
+.dark .bg-white.border-b,
+.dark [class*="border-b"].bg-white {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ── Stats cards (DiseasePage hero) ─────────────────────── */
+/* "bg-white/80 backdrop-blur" pattern */
+.dark [class*="bg-white\/"] {
+  background-color: rgba(26,42,26,0.85) !important;
+}
+.dark [style*="background-color: #e6ede6"] {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+/* ── Remedy list cards inside bg-sage-50 boxes ──────────── */
+.dark .bg-sage-50 li.bg-white,
+.dark .bg-sage-50 .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+/* ── FAQ accordion (DiseasePage) ────────────────────────── */
+.dark details {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+}
+.dark details summary {
+  color: var(--text-primary) !important;
+}
+.dark details summary:hover {
+  background-color: var(--bg-surface-alt) !important;
+}
+.dark details > div {
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ── Case study color-coded header strips ────────────────── */
+/* Pastel strips that are light pink/green/etc — make them darker */
+.dark [style*="background-color: #fdf4f7"] { background-color: #2a1a20 !important; }
+.dark [style*="background-color: #f0fdf4"] { background-color: #1a2a1a !important; }
+.dark [style*="background-color: #fdf8f0"] { background-color: #2a2010 !important; }
+.dark [style*="background-color: #f5f0fd"] { background-color: #20102a !important; }
+.dark [style*="background-color: #fdf0f5"] { background-color: #2a101a !important; }
+.dark [style*="background-color: #f0f5ff"] { background-color: #10152a !important; }
+/* Blog card colored tops */
+.dark [style*="background-color: #fdf4f7"],
+.dark [style*="background-color: #f0f8ff"],
+.dark [style*="background-color: #fdf8f0"],
+.dark [style*="background-color: #fff8f5"],
+.dark [style*="background-color: #fdf0f5"] {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+/* ── Blog/Conditions grid card bottoms ──────────────────── */
+.dark .group .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+/* ── Outcome box (case studies) ─────────────────────────── */
+.dark .bg-sage-50.rounded-xl {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+/* ── Myth/Truth boxes (why-homeopathy) ──────────────────── */
+.dark .bg-red-50 {
+  background-color: #2a1515 !important;
+}
+.dark .bg-red-50 .text-red-800 {
+  color: #f87171 !important;
+}
+.dark .bg-green-50 {
+  background-color: #152a15 !important;
+}
+.dark .bg-green-50 .text-green-800 {
+  color: #86efac !important;
+}
+
+/* ── Comparison table (why-homeopathy) ──────────────────── */
+.dark .bg-white.rounded-2xl.overflow-hidden.shadow-sm {
+  background-color: var(--bg-surface) !important;
+}
+.dark [class*="bg-sage-50\/30"] {
+  background-color: rgba(42,61,42,0.3) !important;
+}
+
+/* ── Dashed empty-state box ─────────────────────────────── */
+.dark .border-dashed.border-sage-100 {
+  border-color: var(--border-color) !important;
+}
+
+/* ── Contact: success state ─────────────────────────────── */
+.dark .bg-green-50 {
+  background-color: #152a15 !important;
+}
+
+/* ── Conditions list page ───────────────────────────────── */
+.dark .bg-white\/70 {
+  background-color: rgba(26,42,26,0.7) !important;
+}
+
+/* ── Patient journey / services pages ───────────────────── */
+.dark [style*="background-color: #f4f7f4"] {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+/* ── Smooth transition for all themed elements ───────────── */
+section,
+div[class],
+div[style],
+header,
+nav,
+aside,
+main,
+article {
+  transition: background-color 0.35s ease, border-color 0.25s ease, color 0.25s ease;
+}

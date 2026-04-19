@@ -23,32 +23,41 @@ export default function BlogPage() {
 
   return (
     <div className="pt-24 overflow-hidden">
-      <section className="py-20 px-6 text-center" style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}>
+      <section className="py-20 px-6 text-center" style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}>
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-sage-100 text-sage-700 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6">
+          <div
+            className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6"
+            style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
+          >
             {locale === "hi" ? "ज्ञान है शक्ति" : locale === "mr" ? "ज्ञान हीच शक्ती" : "Knowledge Is Healing"}
           </div>
-          <h1 className="font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}>
+          <h1 className="font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}>
             {t.blog.title}
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed">{t.blog.subtitle}</p>
+          <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t.blog.subtitle}</p>
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-white">
+      <section className="py-16 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-7xl mx-auto">
           {/* Featured */}
-          <div className="rounded-2xl p-8 md:p-12 mb-10 hover:shadow-md transition-all" style={{ backgroundColor: "#f4f7f4" }}>
+          <div
+            className="rounded-2xl p-8 md:p-12 mb-10 hover:shadow-md transition-all"
+            style={{ backgroundColor: "var(--bg-surface-alt)" }}
+          >
             <span className="inline-block bg-sage-500 text-white text-xs px-3 py-1 rounded-full mb-4">{t.blog.featured}</span>
             <div className="text-5xl mb-4">🌸</div>
-            <h2 className="font-serif text-3xl md:text-4xl mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}>
+            <h2 className="font-serif text-3xl md:text-4xl mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}>
               {getTitle(posts[0])}
             </h2>
-            <p className="text-sage-700 leading-relaxed mb-6 max-w-2xl">{getExcerpt(posts[0])}</p>
-            <div className="flex items-center gap-6 text-sm text-sage-500 mb-6">
+            <p className="leading-relaxed mb-6 max-w-2xl" style={{ color: "var(--text-secondary)" }}>{getExcerpt(posts[0])}</p>
+            <div className="flex items-center gap-6 text-sm mb-6" style={{ color: "var(--text-muted)" }}>
               <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{posts[0].date}</span>
               <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{posts[0].readTime} {readTimeLabel}</span>
-              <span className="bg-sage-100 text-sage-600 px-3 py-0.5 rounded-full">{getCategory(posts[0])}</span>
+              <span
+                className="px-3 py-0.5 rounded-full text-xs"
+                style={{ backgroundColor: "var(--bg-surface)", color: "var(--text-secondary)" }}
+              >{getCategory(posts[0])}</span>
             </div>
             <Link href={`/blog/${posts[0].slug}`} className="inline-flex items-center gap-2 bg-sage-500 text-white px-6 py-3 rounded-full font-medium hover:bg-sage-600 transition-all">
               {t.blog.allArticles} <ArrowRight className="w-4 h-4" />
@@ -58,21 +67,21 @@ export default function BlogPage() {
           {/* Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.slice(1).map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group rounded-2xl overflow-hidden border border-sage-100 hover:shadow-md transition-all hover:-translate-y-1">
-                <div className="p-6" style={{ backgroundColor: post.color }}>
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="group rounded-2xl overflow-hidden border hover:shadow-md transition-all hover:-translate-y-1" style={{ borderColor: "var(--border-color)" }}>
+                <div className="p-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
                   <div className="text-4xl mb-3">{post.emoji}</div>
                 </div>
-                <div className="p-6 bg-white">
+                <div className="p-6" style={{ backgroundColor: "var(--bg-surface)" }}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs text-sage-500 bg-sage-50 px-2 py-0.5 rounded-full">{getCategory(post)}</span>
-                    <span className="text-xs text-sage-400 flex items-center gap-1"><Clock className="w-3 h-3" />{post.readTime} {readTimeLabel}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-muted)" }}>{getCategory(post)}</span>
+                    <span className="text-xs flex items-center gap-1" style={{ color: "var(--text-muted)" }}><Clock className="w-3 h-3" />{post.readTime} {readTimeLabel}</span>
                   </div>
-                  <h3 className="font-serif text-xl mb-3 group-hover:text-sage-600 transition-colors" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}>
+                  <h3 className="font-serif text-xl mb-3 group-hover:text-sage-600 transition-colors" style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}>
                     {getTitle(post)}
                   </h3>
-                  <p className="text-sage-600 text-sm leading-relaxed line-clamp-3 mb-4">{getExcerpt(post)}</p>
+                  <p className="text-sm leading-relaxed line-clamp-3 mb-4" style={{ color: "var(--text-secondary)" }}>{getExcerpt(post)}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-sage-400">{post.date}</span>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{post.date}</span>
                     <span className="text-sage-500 text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                       {t.common.readMore} <ArrowRight className="w-3.5 h-3.5" />
                     </span>

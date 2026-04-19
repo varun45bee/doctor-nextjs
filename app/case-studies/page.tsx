@@ -115,10 +115,13 @@ export default function CaseStudiesPage() {
       {/* HERO */}
       <section
         className="py-20 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-sage-100 text-sage-700 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6">
+          <div
+            className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6"
+            style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
+          >
             Patient Experiences
           </div>
           <h1
@@ -126,16 +129,16 @@ export default function CaseStudiesPage() {
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(2.5rem, 5vw, 3.8rem)",
-              color: "#1e2820",
+              color: "var(--text-primary)",
             }}
           >
             Case Studies From Practice
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed">
-            A selection of anonymized patient experiences from Dr. Pratima Agale’s
+          <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            A selection of anonymized patient experiences from Dr. Pratima Agale's
             homeopathy practice in Kalyan, Andheri, and Mumbai.
           </p>
-          <p className="text-xs text-sage-400 mt-4">
+          <p className="text-xs mt-4" style={{ color: "var(--text-muted)" }}>
             * Patient identities and personal details have been modified to
             protect privacy.
           </p>
@@ -143,31 +146,32 @@ export default function CaseStudiesPage() {
       </section>
 
       {/* CASE LIST */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto space-y-10">
           {cases.map((c) => (
             <div
               key={c.id}
-              className="rounded-2xl border border-sage-100 overflow-hidden shadow-sm hover:shadow-md transition-all"
+              className="rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all"
+              style={{ borderColor: "var(--border-color)" }}
             >
               <div
-                className="px-7 py-4 flex items-center justify-between border-b border-sage-50"
-                style={{ backgroundColor: c.color }}
+                className="px-7 py-4 flex items-center justify-between border-b"
+                style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-xs font-medium text-sage-500 bg-white/70 px-3 py-1 rounded-full">
+                  <span
+                    className="text-xs font-medium px-3 py-1 rounded-full"
+                    style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}
+                  >
                     {c.id}
                   </span>
-                  <span className="text-sm font-medium text-sage-700">
+                  <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
                     {c.tag}
                   </span>
                 </div>
                 <div className="flex">
                   {[...Array(c.stars)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
-                    />
+                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
               </div>
@@ -176,14 +180,11 @@ export default function CaseStudiesPage() {
                 <div className="mb-5">
                   <h2
                     className="font-serif text-2xl mb-1"
-                    style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      color: "#1e2820",
-                    }}
+                    style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                   >
                     {c.title}
                   </h2>
-                  <div className="flex gap-3 text-xs text-sage-500">
+                  <div className="flex gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
                     <span>{c.patient}</span>
                     <span>·</span>
                     <span>{c.location}</span>
@@ -192,15 +193,16 @@ export default function CaseStudiesPage() {
                   </div>
                 </div>
 
-                <p className="text-sage-700 text-sm leading-relaxed mb-5">
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-secondary)" }}>
                   {c.story}
                 </p>
 
-                <div className="bg-sage-50 rounded-xl p-4 flex items-start gap-3">
-                  <span className="text-sage-500 font-semibold text-sm whitespace-nowrap">
-                    Outcome:
-                  </span>
-                  <span className="text-sage-700 text-sm">{c.outcome}</span>
+                <div
+                  className="rounded-xl p-4 flex items-start gap-3"
+                  style={{ backgroundColor: "var(--bg-surface-alt)" }}
+                >
+                  <span className="text-sage-500 font-semibold text-sm whitespace-nowrap">Outcome:</span>
+                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{c.outcome}</span>
                 </div>
               </div>
             </div>

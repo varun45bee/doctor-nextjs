@@ -7,15 +7,16 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import Image from "next/image";
+
 const conditions = [
-  { icon: "🌸", title: "PCOD / PCOS", href: "/services/womens-health", color: "#fdf0f5" },
-  { icon: "🦋", title: "Thyroid Disorders", href: "/services/womens-health", color: "#f0f5fd" },
-  { icon: "🌿", title: "Child Immunity", href: "/services/pediatric", color: "#f0fdf4" },
-  { icon: "🧠", title: "ADHD in Children", href: "/services/pediatric", color: "#fdf8f0" },
-  { icon: "💆", title: "Migraines", href: "/services/chronic-disease", color: "#fdf0f0" },
-  { icon: "🫁", title: "Respiratory Issues", href: "/services/chronic-disease", color: "#f0fdf4" },
-  { icon: "🦴", title: "Arthritis", href: "/services/chronic-disease", color: "#fdf5f0" },
-  { icon: "✨", title: "Skin Disorders", href: "/services/womens-health", color: "#fdf0fb" },
+  { icon: "🌸", title: "PCOD / PCOS", href: "/services/womens-health" },
+  { icon: "🦋", title: "Thyroid Disorders", href: "/services/womens-health" },
+  { icon: "🌿", title: "Child Immunity", href: "/services/pediatric" },
+  { icon: "🧠", title: "ADHD in Children", href: "/services/pediatric" },
+  { icon: "💆", title: "Migraines", href: "/services/chronic-disease" },
+  { icon: "🫁", title: "Respiratory Issues", href: "/services/chronic-disease" },
+  { icon: "🦴", title: "Arthritis", href: "/services/chronic-disease" },
+  { icon: "✨", title: "Skin Disorders", href: "/services/womens-health" },
 ];
 
 const testimonials = [
@@ -97,25 +98,16 @@ export default function HomePage() {
       {/* ── HERO ── */}
       <section
         className="relative min-h-screen flex items-center justify-center"
-        style={{
-          background:
-            "linear-gradient(135deg, #f4f7f4 0%, #faf3e6 40%, #f0f5f0 100%)",
-        }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--bg-base) 40%, var(--bg-surface-alt) 100%)" }}
       >
         {/* Background botanical decorations */}
         <div
           className="absolute top-0 right-0 w-[600px] h-[600px] opacity-10"
-          style={{
-            background:
-              "radial-gradient(circle, #5a7f5a 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, #5a7f5a 0%, transparent 70%)" }}
         />
         <div
           className="absolute bottom-0 left-0 w-[400px] h-[400px] opacity-8"
-          style={{
-            background:
-              "radial-gradient(circle, #6b9e8a 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, #6b9e8a 0%, transparent 70%)" }}
         />
 
         {/* Floating leaves decoration */}
@@ -142,7 +134,10 @@ export default function HomePage() {
         <div className="relative max-w-7xl mx-auto px-6 pt-28 pb-16 grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — text */}
           <div className="page-enter">
-            <div className="inline-flex items-center gap-2 bg-sage-100 text-sage-700 text-xs font-medium tracking-widest uppercase px-4 py-2 rounded-full mb-6">
+            <div
+              className="inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase px-4 py-2 rounded-full mb-6"
+              style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
+            >
               <Leaf className="w-3.5 h-3.5" />
               Homeopathy Clinic · Kalyan, Maharashtra
             </div>
@@ -152,45 +147,39 @@ export default function HomePage() {
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "clamp(2.8rem, 5vw, 4.2rem)",
-                color: "#1e2820",
+                color: "var(--text-primary)",
                 lineHeight: 1.15,
               }}
             >
               {t.hero.tagline}
               <span
                 className="block italic"
-                style={{ color: "#5a7f5a" }}
+                style={{ color: "var(--sage-mid)" }}
               >
                 {t.hero.subtitle}
               </span>
             </h1>
 
-            <p className="text-sage-700 text-lg leading-relaxed mb-8 max-w-xl">
+            <p style={{ color: "var(--text-secondary)" }} className="text-lg leading-relaxed mb-8 max-w-xl">
               {t.hero.description}
             </p>
 
             <div className="flex flex-wrap gap-4">
-             <a
-  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-2 bg-sage-500 text-white px-7 py-3.5 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-lg hover:-translate-y-0.5"
->
-  {/* WhatsApp Icon */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 32 32"
-    fill="white"
-    className="w-5 h-5"
-  >
-    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.90-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.6.08-.91.4-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55.17.23 2.42 3.7 5.87 5.19c.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.02-.82 2.31-1.62.28-.8.28-1.48.2-1.62-.08-.14-.3-.22-.64-.39z" />
-  </svg>
-
-  {t.hero.cta}
-</a>
+              <a
+                href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-sage-500 text-white px-7 py-3.5 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="white" className="w-5 h-5">
+                  <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.9-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.6.08-.91.4-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55c.17.23 2.42 3.7 5.87 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.02-.82 2.31-1.62.28-.8.28-1.48.2-1.62-.08-.14-.3-.22-.64-.39z" />
+                </svg>
+                {t.hero.cta}
+              </a>
               <Link
                 href="/why-homeopathy"
-                className="flex items-center gap-2 border-2 border-sage-300 text-sage-700 px-7 py-3.5 rounded-full font-medium hover:bg-sage-50 transition-all"
+                className="flex items-center gap-2 border-2 border-sage-300 px-7 py-3.5 rounded-full font-medium hover:bg-sage-50 dark:hover:bg-sage-900 transition-all"
+                style={{ color: "var(--text-secondary)" }}
               >
                 {t.hero.ctaLearn}
                 <ChevronRight className="w-4 h-4" />
@@ -208,11 +197,11 @@ export default function HomePage() {
                 <div key={s.l} className="text-center">
                   <div
                     className="font-serif text-2xl font-semibold"
-                    style={{ color: "#5a7f5a", fontFamily: "'Cormorant Garamond', serif" }}
+                    style={{ color: "var(--sage-mid)", fontFamily: "'Cormorant Garamond', serif" }}
                   >
                     {s.n}
                   </div>
-                  <div className="text-xs text-sage-600 mt-0.5">{s.l}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.l}</div>
                 </div>
               ))}
             </div>
@@ -220,68 +209,44 @@ export default function HomePage() {
 
           {/* Right — doctor card */}
           <div
-  className="relative flex justify-center items-center page-enter"
-  style={{ animationDelay: "0.2s" }}
->
-  {/* Doctor image card */}
-  <div
-    className="relative w-[340px] h-[420px] rounded-[2rem] overflow-hidden shadow-2xl"
-    style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
-  >
-    {/* Background Image */}
-    <Image
-      src="/desk.jpeg"
-      alt="Dr. Pratima Agale"
-      fill
-      className="object-cover w-full h-full scale-110"
-    />
-
-    {/* Gradient Overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-    {/* Text Content */}
-    <div className="absolute bottom-20 left-0 right-0 px-6 text-center">
-      <h2
-        className="font-serif text-2xl text-white mb-1"
-        style={{ fontFamily: "'Cormorant Garamond', serif" }}
-      >
-        Dr. Pratima Agale
-      </h2>
-
-      <p className="text-white/80 text-sm font-medium">
-        BHMS, MD (Homeopathy)
-      </p>
-
-      <p className="text-white/60 text-xs mt-2">
-        With 4 years of dedicated experience in Homeopathy, I provide
-        compassionate, individualized care for patients of all ages.
-      </p>
-    </div>
-
-    {/* Floating badge */}
-    <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-2 whitespace-nowrap">
-      <div className="flex">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-        ))}
-      </div>
-      <span className="text-xs font-medium text-gray-700">500+ Patients Healed</span>
-    </div>
-  </div>
-
-  {/* Decorative spinning ring */}
-  <div
-    className="absolute -z-10 w-[380px] h-[380px] rounded-full border-2 border-dashed border-sage-200 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-    style={{ animation: "spin 30s linear infinite" }}
-  />
-</div>
+            className="relative flex justify-center items-center page-enter"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div
+              className="relative w-[340px] h-[420px] rounded-[2rem] overflow-hidden shadow-2xl"
+              style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
+            >
+              <Image src="/desk.jpeg" alt="Dr. Pratima Agale" fill className="object-cover w-full h-full scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute bottom-20 left-0 right-0 px-6 text-center">
+                <h2 className="font-serif text-2xl text-white mb-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  Dr. Pratima Agale
+                </h2>
+                <p className="text-white/80 text-sm font-medium">BHMS, MD (Homeopathy)</p>
+                <p className="text-white/60 text-xs mt-2">
+                  With 4 years of dedicated experience in Homeopathy, I provide
+                  compassionate, individualized care for patients of all ages.
+                </p>
+              </div>
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-2 whitespace-nowrap">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <span className="text-xs font-medium text-gray-700">500+ Patients Healed</span>
+              </div>
+            </div>
+            <div
+              className="absolute -z-10 w-[380px] h-[380px] rounded-full border-2 border-dashed border-sage-200 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{ animation: "spin 30s linear infinite" }}
+            />
+          </div>
         </div>
-
-         
       </section>
 
       {/* ── CONDITIONS GRID ── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#fff" }}>
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 reveal">
             <div className="leaf-divider mb-4">
@@ -291,11 +256,11 @@ export default function HomePage() {
             </div>
             <h2
               className="font-serif text-4xl md:text-5xl"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
             >
               {t.home.conditionsTitle}
             </h2>
-            <p className="text-sage-600 mt-4 max-w-xl mx-auto">
+            <p className="mt-4 max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
               Comprehensive homeopathic solutions for 50+ health conditions — all natural, all safe.
             </p>
           </div>
@@ -305,17 +270,17 @@ export default function HomePage() {
               <Link
                 key={c.title}
                 href={c.href}
-                className="reveal group p-6 rounded-2xl text-center hover:shadow-md transition-all hover:-translate-y-1 border border-transparent hover:border-sage-100"
+                className="reveal group p-6 rounded-2xl text-center hover:shadow-md transition-all hover:-translate-y-1 border border-transparent hover:border-sage-100 dark:hover:border-sage-800"
                 style={{
-                  backgroundColor: c.color,
+                  backgroundColor: "var(--bg-surface-alt)",
                   animationDelay: `${i * 0.08}s`,
                 }}
               >
                 <div className="text-4xl mb-3">{c.icon}</div>
-                <div className="font-medium text-sage-900 text-sm group-hover:text-sage-600 transition-colors">
+                <div className="font-medium text-sm transition-colors" style={{ color: "var(--text-primary)" }}>
                   {c.title}
                 </div>
-                <div className="mt-2 text-xs text-sage-400 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="mt-2 text-xs flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--text-muted)" }}>
                   Learn more <ChevronRight className="w-3 h-3" />
                 </div>
               </Link>
@@ -325,7 +290,8 @@ export default function HomePage() {
           <div className="text-center mt-8">
             <Link
               href="/services/chronic-disease"
-              className="inline-flex items-center gap-2 text-sage-600 hover:text-sage-800 font-medium text-sm transition-colors"
+              className="inline-flex items-center gap-2 font-medium text-sm transition-colors hover:text-sage-800 dark:hover:text-sage-300"
+              style={{ color: "var(--text-secondary)" }}
             >
               View all conditions <ArrowRight className="w-4 h-4" />
             </Link>
@@ -336,9 +302,7 @@ export default function HomePage() {
       {/* ── WHY HOMEOPATHY TEASER ── */}
       <section
         className="py-20 px-6 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #f4f7f4, #faf3e6)",
-        }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -350,17 +314,17 @@ export default function HomePage() {
               </div>
               <h2
                 className="font-serif text-4xl md:text-5xl mb-6"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
               >
                 Why Homeopathy
                 <span className="block italic text-sage-500">Works Differently</span>
               </h2>
-              <p className="text-sage-700 leading-relaxed mb-6">
+              <p className="leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
                 Unlike conventional medicine that targets symptoms, homeopathy treats the
                 whole person — physical, mental, and emotional. It stimulates your body's
                 own healing intelligence to resolve disease at its root.
               </p>
-              <p className="text-sage-700 leading-relaxed mb-8">
+              <p className="leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
                 Over 200 years of practice, validated by millions worldwide, proven safe
                 for infants, pregnant women, and the elderly. No dependency. No side effects.
               </p>
@@ -380,14 +344,15 @@ export default function HomePage() {
                 { emoji: "👶", title: "Safe for All Ages", desc: "Newborns to elders, all welcome" },
                 { emoji: "🧬", title: "Personalized", desc: "Unique to your constitution & symptoms" },
                 { emoji: "♾️", title: "Long-lasting", desc: "Results that endure beyond treatment" },
-              ].map((item, i) => (
+              ].map((item) => (
                 <div
                   key={item.title}
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-sage-50 hover:shadow-md transition-all"
+                  className="rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border"
+                  style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
                 >
                   <div className="text-2xl mb-2">{item.emoji}</div>
-                  <div className="font-semibold text-sage-900 text-sm mb-1">{item.title}</div>
-                  <div className="text-xs text-sage-500 leading-relaxed">{item.desc}</div>
+                  <div className="font-semibold text-sm mb-1" style={{ color: "var(--text-primary)" }}>{item.title}</div>
+                  <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -396,7 +361,7 @@ export default function HomePage() {
       </section>
 
       {/* ── WHY CHOOSE US ── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#fff" }}>
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14 reveal">
             <div className="leaf-divider mb-4">
@@ -406,7 +371,7 @@ export default function HomePage() {
             </div>
             <h2
               className="font-serif text-4xl md:text-5xl"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
             >
               {t.home.whyTitle}
             </h2>
@@ -416,14 +381,17 @@ export default function HomePage() {
             {whyUs.map((item, i) => (
               <div
                 key={item.title}
-                className="reveal group p-7 rounded-2xl border border-sage-100 hover:border-sage-200 hover:shadow-lg transition-all hover:-translate-y-1"
-                style={{ animationDelay: `${i * 0.1}s` }}
+                className="reveal group p-7 rounded-2xl border hover:shadow-lg transition-all hover:-translate-y-1"
+                style={{ borderColor: "var(--border-color)", animationDelay: `${i * 0.1}s` }}
               >
-                <div className="w-12 h-12 rounded-xl bg-sage-50 flex items-center justify-center mb-4 group-hover:bg-sage-100 transition-colors">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors"
+                  style={{ backgroundColor: "var(--bg-surface-alt)" }}
+                >
                   <item.icon className="w-6 h-6 text-sage-600" />
                 </div>
-                <h3 className="font-semibold text-sage-900 mb-2">{item.title}</h3>
-                <p className="text-sage-600 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="font-semibold mb-2" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{item.desc}</p>
               </div>
             ))}
           </div>
@@ -477,7 +445,7 @@ export default function HomePage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#faf3e6" }}>
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14 reveal">
             <div className="leaf-divider mb-4">
@@ -487,7 +455,7 @@ export default function HomePage() {
             </div>
             <h2
               className="font-serif text-4xl md:text-5xl"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
             >
               {t.home.testimonialTitle}
             </h2>
@@ -497,15 +465,19 @@ export default function HomePage() {
             {testimonials.map((t2, i) => (
               <div
                 key={i}
-                className="reveal bg-white rounded-2xl p-7 shadow-sm border border-cream-200 hover:shadow-md transition-all"
-                style={{ animationDelay: `${i * 0.15}s` }}
+                className="reveal rounded-2xl p-7 shadow-sm hover:shadow-md transition-all border"
+                style={{
+                  backgroundColor: "var(--bg-surface)",
+                  borderColor: "var(--border-color)",
+                  animationDelay: `${i * 0.15}s`,
+                }}
               >
-                <Quote className="w-8 h-8 text-sage-200 mb-4" />
-                <p className="text-sage-700 text-sm leading-relaxed mb-6 italic">{`"${t2.text}"`}</p>
+                <Quote className="w-8 h-8 mb-4" style={{ color: "var(--border-mid)" }} />
+                <p className="text-sm leading-relaxed mb-6 italic" style={{ color: "var(--text-secondary)" }}>{`"${t2.text}"`}</p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-sage-900">{t2.name}</div>
-                    <div className="text-xs text-sage-500">{t2.location} · {t2.condition}</div>
+                    <div className="font-semibold" style={{ color: "var(--text-primary)" }}>{t2.name}</div>
+                    <div className="text-xs" style={{ color: "var(--text-muted)" }}>{t2.location} · {t2.condition}</div>
                   </div>
                   <div className="flex">
                     {[...Array(t2.rating)].map((_, j) => (
@@ -520,7 +492,8 @@ export default function HomePage() {
           <div className="text-center mt-10">
             <Link
               href="/case-studies"
-              className="inline-flex items-center gap-2 text-sage-600 hover:text-sage-800 font-medium transition-colors"
+              className="inline-flex items-center gap-2 font-medium transition-colors hover:text-sage-800 dark:hover:text-sage-300"
+              style={{ color: "var(--text-secondary)" }}
             >
               Read all patient stories <ArrowRight className="w-4 h-4" />
             </Link>
@@ -545,17 +518,14 @@ export default function HomePage() {
             Serving patients in Kalyan, Andheri, and across Mumbai.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-           <a
-  href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
-  target="_blank"
-  rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-lg hover:-translate-y-0.5"
->
-  {/* WhatsApp Icon */}
-  
-
-  Book Appointment
-</a>
+            <a
+              href="https://wa.me/919087234577?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-lg hover:-translate-y-0.5"
+            >
+              Book Appointment
+            </a>
             <a
               href="tel:+91XXXXXXXXXX"
               className="border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"

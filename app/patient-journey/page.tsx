@@ -15,7 +15,7 @@ const steps = [
     title: "Initial Consultation (45–60 min)",
     desc: "Your first visit is a deep conversation. Dr. Agale listens — not just to your chief complaint, but to your complete story. Physical symptoms, emotional state, sleep patterns, food preferences, life history, stress triggers. Everything matters in homeopathy.",
     details: ["Detailed health history review", "Physical and mental symptom mapping", "Lifestyle and diet discussion", "Previous medical records review (if any)", "No judgment — every detail helps"],
-    color: "#f4f7f4",
+    color: "var(--bg-surface-alt)",
   },
   {
     icon: Leaf,
@@ -23,7 +23,7 @@ const steps = [
     title: "Case Analysis & Remedy Selection",
     desc: "After your consultation, Dr. Agale carefully analyzes your case using classical homeopathic methodology — finding the remedy that best matches your complete 'symptom picture.' This is individualized medicine at its finest.",
     details: ["Constitutional remedy identification", "Potency selection based on sensitivity", "Treatment plan design", "Dietary & lifestyle recommendations", "Timeline estimation"],
-    color: "#faf3e6",
+    color: "var(--bg-base)",
   },
   {
     icon: Clock,
@@ -31,7 +31,7 @@ const steps = [
     title: "Beginning Treatment",
     desc: "You receive your personalized remedy along with clear instructions. Homeopathic remedies are gentle, pleasant to take, and safe for all ages. You begin at your own pace, in the comfort of your home.",
     details: ["Remedy dispensed (pills, drops, or powder)", "Dosage and frequency guidance", "What to expect — including initial aggravation", "Foods and substances to temporarily avoid", "Emergency contact access"],
-    color: "#f0fdf4",
+    color: "var(--bg-surface-alt)",
   },
   {
     icon: TrendingUp,
@@ -39,7 +39,7 @@ const steps = [
     title: "Follow-up & Monitoring",
     desc: "Regular follow-ups (typically every 4–6 weeks) allow Dr. Agale to track your progress, adjust remedies, and ensure the healing is on track. Homeopathy is dynamic — your remedy may change as you improve.",
     details: ["Progress evaluation", "Remedy adjustment if needed", "Continuing lifestyle guidance", "Lab result review (if applicable)", "Celebrating milestones together"],
-    color: "#fdf8f0",
+    color: "var(--bg-base)",
   },
 ];
 
@@ -57,17 +57,17 @@ export default function PatientJourneyPage() {
     <div className="pt-24">
       <section
         className="py-20 px-6 text-center"
-        style={{ background: "linear-gradient(135deg, #f4f7f4, #faf3e6)" }}
+        style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
           <h1
             className="font-serif mb-4"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
             Your Healing Journey
             <span className="block italic text-sage-500">Step by Step</span>
           </h1>
-          <p className="text-sage-700 text-lg leading-relaxed">
+          <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             Starting homeopathic treatment is an act of trust in your body's own healing power.
             Here's exactly what to expect when you begin care with Dr. Pratima Agale in Kalyan.
           </p>
@@ -75,7 +75,7 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* Steps */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto">
           {steps.map((step, i) => (
             <div
@@ -96,18 +96,18 @@ export default function PatientJourneyPage() {
                 </div>
                 <h2
                   className="font-serif text-2xl mb-3"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                 >
                   {step.title}
                 </h2>
-                <p className="text-sage-700 text-sm leading-relaxed">{step.desc}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{step.desc}</p>
               </div>
 
               <div className="md:w-1/2">
                 <ul className="space-y-4">
                   {step.details.map((d) => (
-                    <li key={d} className="flex items-start gap-3 text-sage-700 text-sm">
-                      <div className="w-5 h-5 rounded-full bg-sage-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <li key={d} className="flex items-start gap-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
                         <div className="w-1.5 h-1.5 rounded-full bg-sage-500" />
                       </div>
                       {d}
@@ -129,29 +129,29 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* Timeline expectations */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#faf3e6" }}>
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
           >
             Typical Treatment Timelines
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { type: "Acute Conditions", time: "Days to 2 weeks", examples: "Cold, Fever, Injury, Acute infection, Stomach upset", color: "#f0fdf4" },
-              { type: "Sub-acute Conditions", time: "1–3 months", examples: "Allergies, Skin flares, Anxiety episodes, Menstrual irregularities", color: "#fdf8f0" },
-              { type: "Chronic Conditions", time: "6–18 months", examples: "PCOD, Thyroid, Arthritis, ADHD, Eczema, Autoimmune", color: "#fdf4f7" },
+              { type: "Acute Conditions", time: "Days to 2 weeks", examples: "Cold, Fever, Injury, Acute infection, Stomach upset", color: "var(--bg-surface-alt)" },
+              { type: "Sub-acute Conditions", time: "1–3 months", examples: "Allergies, Skin flares, Anxiety episodes, Menstrual irregularities", color: "var(--bg-surface)" },
+              { type: "Chronic Conditions", time: "6–18 months", examples: "PCOD, Thyroid, Arthritis, ADHD, Eczema, Autoimmune", color: "var(--bg-surface-alt)" },
             ].map((t) => (
-              <div key={t.type} className="rounded-2xl p-6 border border-sage-100" style={{ backgroundColor: t.color }}>
+              <div key={t.type} className="rounded-2xl p-6 border" style={{ backgroundColor: t.color, borderColor: "var(--border-color)" }}>
                 <div
                   className="font-serif text-xl mb-2"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
                 >
                   {t.type}
                 </div>
                 <div className="text-sage-500 font-semibold text-sm mb-3">⏱ {t.time}</div>
-                <p className="text-sage-600 text-xs leading-relaxed">{t.examples}</p>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t.examples}</p>
               </div>
             ))}
           </div>
@@ -159,11 +159,11 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* FAQs */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-3xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1e2820" }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
           >
             Frequently Asked Questions
           </h2>
@@ -171,13 +171,14 @@ export default function PatientJourneyPage() {
             {faqs.map((faq) => (
               <details
                 key={faq.q}
-                className="group rounded-2xl border border-sage-100 overflow-hidden"
+                className="group rounded-2xl border overflow-hidden"
+                style={{ borderColor: "var(--border-color)" }}
               >
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-semibold text-sage-900 hover:bg-sage-50 transition-colors list-none">
+                <summary className="flex items-center justify-between p-6 cursor-pointer font-semibold transition-colors list-none" style={{ color: "var(--text-primary)" }}>
                   {faq.q}
                   <span className="text-sage-400 group-open:rotate-180 transition-transform text-lg">↓</span>
                 </summary>
-                <div className="px-6 pb-6 text-sage-600 text-sm leading-relaxed border-t border-sage-50 pt-4">
+                <div className="px-6 pb-6 text-sm leading-relaxed border-t pt-4" style={{ color: "var(--text-secondary)", borderColor: "var(--border-color)" }}>
                   {faq.a}
                 </div>
               </details>
