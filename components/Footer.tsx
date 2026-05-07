@@ -38,8 +38,8 @@ export default function Footer() {
         style={{ background: "linear-gradient(to right, #5a7f5a, #3a9e8c, #5a7f5a)" }}
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
 
           {/* Brand column */}
           <div className="lg:col-span-1">
@@ -194,7 +194,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-sage-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div className="border-t border-sage-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-3 text-center md:text-left">
           <p className="text-sage-600 text-xs">
             © {new Date().getFullYear()} Dr. Pratima Agale Homeopathy. {t.footer.rights}
           </p>

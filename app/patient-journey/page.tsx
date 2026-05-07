@@ -56,7 +56,7 @@ export default function PatientJourneyPage() {
   return (
     <div className="pt-24">
       <section
-        className="py-20 px-6 text-center"
+        className="py-16 sm:py-20 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
@@ -75,7 +75,7 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* Steps */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto">
           {steps.map((step, i) => (
             <div
@@ -85,7 +85,7 @@ export default function PatientJourneyPage() {
               }`}
             >
               <div
-                className="md:w-1/2 rounded-2xl p-8 min-h-48"
+                className="md:w-1/2 rounded-2xl p-5 sm:p-8 min-h-48"
                 style={{ backgroundColor: step.color }}
               >
                 <div className="flex items-center gap-3 mb-4">
@@ -129,7 +129,7 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* Timeline expectations */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-base)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
@@ -137,7 +137,7 @@ export default function PatientJourneyPage() {
           >
             Typical Treatment Timelines
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {[
               { type: "Acute Conditions", time: "Days to 2 weeks", examples: "Cold, Fever, Injury, Acute infection, Stomach upset", color: "var(--bg-surface-alt)" },
               { type: "Sub-acute Conditions", time: "1–3 months", examples: "Allergies, Skin flares, Anxiety episodes, Menstrual irregularities", color: "var(--bg-surface)" },
@@ -159,7 +159,7 @@ export default function PatientJourneyPage() {
       </section>
 
       {/* FAQs */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-3xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
@@ -174,11 +174,11 @@ export default function PatientJourneyPage() {
                 className="group rounded-2xl border overflow-hidden"
                 style={{ borderColor: "var(--border-color)" }}
               >
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-semibold transition-colors list-none" style={{ color: "var(--text-primary)" }}>
+                <summary className="flex items-center justify-between gap-3 p-5 sm:p-6 cursor-pointer font-semibold transition-colors list-none" style={{ color: "var(--text-primary)" }}>
                   {faq.q}
                   <span className="text-sage-400 group-open:rotate-180 transition-transform text-lg">↓</span>
                 </summary>
-                <div className="px-6 pb-6 text-sm leading-relaxed border-t pt-4" style={{ color: "var(--text-secondary)", borderColor: "var(--border-color)" }}>
+                <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-sm leading-relaxed border-t pt-4" style={{ color: "var(--text-secondary)", borderColor: "var(--border-color)" }}>
                   {faq.a}
                 </div>
               </details>
@@ -187,7 +187,7 @@ export default function PatientJourneyPage() {
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-sage-500 text-center">
+      <section className="py-16 px-4 sm:px-6 bg-sage-500 text-center">
         <div className="max-w-xl mx-auto">
           <h2 className="font-serif text-3xl text-white mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Ready to Begin?
@@ -197,7 +197,7 @@ export default function PatientJourneyPage() {
   href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20my%20first%20consultation%20with%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
 >
    
 

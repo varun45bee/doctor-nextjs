@@ -193,7 +193,7 @@ export default function WhyHomeopathyPage() {
     <div className="pt-24 overflow-hidden">
       {/* HERO */}
       <section
-        className="py-20 px-6 text-center"
+        className="py-16 sm:py-20 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
@@ -231,7 +231,7 @@ export default function WhyHomeopathyPage() {
       </section>
 
       {/* PRINCIPLES */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-7xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-14"
@@ -244,7 +244,7 @@ export default function WhyHomeopathyPage() {
               : "Core Principles of Homeopathy"}
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 num: "01",
@@ -313,7 +313,7 @@ export default function WhyHomeopathyPage() {
       </section>
 
       {/* COMPARISON */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-base)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
@@ -367,7 +367,7 @@ export default function WhyHomeopathyPage() {
       </section>
 
       {/* MYTHS */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-serif text-4xl text-center mb-12"
@@ -401,7 +401,7 @@ export default function WhyHomeopathyPage() {
 
       {/* TREATS */}
       <section
-        className="py-20 px-6"
+        className="py-16 sm:py-20 px-4 sm:px-6"
         style={{ background: "linear-gradient(135deg, #263727, #3a5a3a)" }}
       >
         <div className="max-w-5xl mx-auto text-center">
@@ -416,7 +416,7 @@ export default function WhyHomeopathyPage() {
               : "Conditions Commonly Addressed"}
           </h2>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-4">
             {treats.map((cond) => (
               <div
                 key={cond}
@@ -430,7 +430,7 @@ export default function WhyHomeopathyPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6 text-center" style={{ backgroundColor: "var(--bg-base)" }}>
+      <section className="py-16 px-4 sm:px-6 text-center" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-xl mx-auto">
           <h2
             className="font-serif text-3xl mb-4"

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import MotionProvider from "@/components/animations/MotionProvider";
+import PageTransition from "@/components/animations/PageTransition";
+import ScrollProgressBar from "@/components/animations/ScrollProgressBar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -59,6 +62,22 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
 };
+
+const themeScript = `
+  (function() {
+    try {
+      var saved = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var theme = saved || (prefersDark ? "dark" : "light");
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      document.documentElement.style.colorScheme = theme;
+    } catch (error) {}
+  })();
+`;
 
 const localBusinessSchema = {
   "@context": "https://schema.org",
@@ -121,6 +140,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@300;400;500&display=swap"
           rel="stylesheet"
         />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -130,9 +150,13 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
+          <MotionProvider />
+          <ScrollProgressBar />
           <LanguageProvider>
             <Navbar />
-            <main>{children}</main>
+            <main>
+              <PageTransition>{children}</PageTransition>
+            </main>
             <Footer />
           </LanguageProvider>
         </ThemeProvider>

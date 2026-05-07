@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
@@ -17,15 +18,36 @@ const localeLabels: Record<Locale, string> = {
 export default function Navbar() {
   const { t, locale, setLocale } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenu]);
+
+  // Close menus on navigation
+  useEffect(() => {
+    setOpenMenu(null);
+    setMenuOpen(false);
+  }, [pathname]);
 
   const menuSections = [
     {
@@ -88,7 +110,17 @@ export default function Navbar() {
 
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
+          <div
+            className="relative w-12 h-12 rounded-full overflow-hidden border shadow-sm"
+            style={{
+              backgroundColor: theme === "dark" ? "rgba(255,255,255,0.92)" : "var(--bg-surface)",
+              borderColor: "var(--border-color)",
+              boxShadow:
+                theme === "dark"
+                  ? "0 10px 24px rgba(0,0,0,0.35)"
+                  : "0 6px 16px rgba(10,16,10,0.08)",
+            }}
+          >
             <Image
               src="/logo.png"
               alt="Dr. Pratima Agale"
@@ -112,10 +144,11 @@ export default function Navbar() {
           {/* SERVICES MENU */}
           <div
             className="relative"
-            onMouseEnter={() => setOpenMenu("services")}
-            onMouseLeave={() => setOpenMenu(null)}
           >
-            <button className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors">
+            <button 
+              onClick={() => setOpenMenu(openMenu === "services" ? null : "services")}
+              className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors"
+            >
               {t.nav.services}
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform ${
@@ -126,6 +159,7 @@ export default function Navbar() {
 
             {openMenu === "services" && (
               <div
+                ref={dropdownRef}
                 className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] rounded-2xl shadow-2xl border"
                 style={{ backgroundColor: "var(--dropdown-bg)", borderColor: "var(--border-color)" }}
               >
@@ -144,6 +178,7 @@ export default function Navbar() {
                             <Link
                               href={item.href}
                               className="text-xs text-sage-600 hover:text-sage-900 transition-colors"
+                              onClick={() => setOpenMenu(null)}
                             >
                               {item.label}
                             </Link>
