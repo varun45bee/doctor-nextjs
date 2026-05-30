@@ -16,6 +16,7 @@ export default function Footer() {
     { href: "/why-homeopathy", label: t.nav.whyHomeopathy },
     { href: "/case-studies", label: t.nav.caseStudies },
     { href: "/blog", label: t.nav.blog },
+    { href: "/check-appointment", label: "Check Appointment" },
   ];
 
   const skinConditions = [

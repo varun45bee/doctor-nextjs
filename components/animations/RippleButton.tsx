@@ -16,6 +16,7 @@ type RippleButtonProps = {
   target?: string;
   rel?: string;
   onClick?: () => void;
+  type?: "button" | "submit";
 };
 
 export default function RippleButton({
@@ -25,10 +26,13 @@ export default function RippleButton({
   target,
   rel,
   onClick,
+  type = "button",
 }: RippleButtonProps) {
   const [ripples, setRipples] = useState<Ripple[]>([]);
 
-  const spawnRipple = (event: MouseEvent<HTMLAnchorElement>) => {
+  const spawnRipple = (
+    event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>
+  ) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height) * 1.2;
     const ripple = {
@@ -47,14 +51,8 @@ export default function RippleButton({
     onClick?.();
   };
 
-  return (
-    <a
-      href={href}
-      target={target}
-      rel={rel}
-      onClick={spawnRipple}
-      className={`ripple-button ${className ?? ""}`}
-    >
+  const rippleContent = (
+    <>
       <span className="ripple-button-label">{children}</span>
       {ripples.map((ripple) => (
         <span
@@ -68,6 +66,30 @@ export default function RippleButton({
           }}
         />
       ))}
-    </a>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={rel}
+        onClick={spawnRipple}
+        className={`ripple-button ${className ?? ""}`}
+      >
+        {rippleContent}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      type={type}
+      onClick={spawnRipple}
+      className={`ripple-button ${className ?? ""}`}
+    >
+      {rippleContent}
+    </button>
   );
 }

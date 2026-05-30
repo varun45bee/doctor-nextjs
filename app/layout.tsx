@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
+import { AppointmentProvider } from "@/lib/appointment-context";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import MotionProvider from "@/components/animations/MotionProvider";
 import PageTransition from "@/components/animations/PageTransition";
 import ScrollProgressBar from "@/components/animations/ScrollProgressBar";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import WhatsAppButton from "@/components/WhatsAppButton";
+import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pratimaagale.in"),
@@ -152,20 +152,16 @@ export default function RootLayout({
         <ThemeProvider>
           <MotionProvider />
           <ScrollProgressBar />
-          <LanguageProvider>
-            <Navbar />
-            <main>
-              <PageTransition>{children}</PageTransition>
-            </main>
-            <Footer />
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <AppointmentProvider>
+                <SiteChrome>
+                  <PageTransition>{children}</PageTransition>
+                </SiteChrome>
+              </AppointmentProvider>
+            </LanguageProvider>
+          </AuthProvider>
         </ThemeProvider>
-        {/* WhatsApp floating button — sits above the Chatbase bubble */}
-
-        {/* Chatbase chatbot widget */}
-         
-        <WhatsAppButton />
-
       </body>
     </html>
   );

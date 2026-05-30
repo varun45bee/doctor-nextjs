@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, CheckCircle, TrendingUp, ArrowLeft } from "lucide-react";
+import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 
 export interface DiseasePageData {
@@ -29,6 +30,7 @@ export interface DiseasePageData {
 }
 
 export default function DiseasePage({ data }: { data: DiseasePageData }) {
+  const { openAppointment } = useAppointment();
   const { t, locale } = useLanguage();
 
   const titleInLocale =
@@ -99,14 +101,13 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
               {data.tagline}
             </p>
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center justify-center md:justify-start">
-              <a
-                href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => openAppointment({ condition: data.title })}
                 className="flex w-full sm:w-auto justify-center items-center gap-2 text-white px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:-translate-y-0.5 bg-sage-500 hover:bg-sage-600"
               >
                 {t.common.bookConsultation}
-              </a>
+              </button>
               <a
                 href="tel:+919359875511"
                 className="flex w-full sm:w-auto justify-center items-center gap-2 border-2 border-sage-400 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50 dark:hover:bg-sage-900"
@@ -416,14 +417,13 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
           </h2>
           <p className="text-sage-100 mb-6">{t.common.servedAreas}</p>
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
-            <a
-              href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => openAppointment({ condition: data.title })}
               className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
             >
               {t.common.bookNow}
-            </a>
+            </button>
             <a
               href="tel:+919359875511"
               className="inline-flex w-full sm:w-auto justify-center items-center border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
