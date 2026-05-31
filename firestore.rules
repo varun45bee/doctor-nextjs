@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isDoctor() {
+      return request.auth != null
+        && request.auth.token.email.lower() == 'varun45j@gmail.com';
+    }
+
+    match /doctors/{doctorId} {
+      allow read: if isDoctor();
+      allow write: if false;
+    }
+
+    match /appointments/{appointmentId} {
+      allow create: if true;
+      allow read, update: if isDoctor();
+      allow delete: if false;
+    }
+
+    match /appointment_lookup/{phone} {
+      allow read: if true;
+      allow create: if request.resource.data.status == 'Pending';
+      allow update: if isDoctor();
+      allow delete: if false;
+    }
+  }
+}

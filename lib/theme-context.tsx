@@ -6,11 +6,13 @@ type Theme = "light" | "dark";
 
 const ThemeContext = createContext<{
   theme: Theme;
+  mounted: boolean;
   toggleTheme: () => void;
-}>({ theme: "light", toggleTheme: () => {} });
+}>({ theme: "light", mounted: false, toggleTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   // On mount: read saved preference or system preference
   useEffect(() => {
@@ -20,6 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       setTheme("dark");
     }
+    setMounted(true);
   }, []);
 
   // Apply / remove the `dark` class on <html>
@@ -30,6 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
+    root.style.colorScheme = theme;
     localStorage.setItem("theme", theme);
   }, [theme]);
 
@@ -37,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, mounted, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -111,7 +111,7 @@ export default function ConditionsPage() {
     <div className="pt-24 overflow-hidden">
       {/* Hero */}
       <section
-        className="py-16 px-6 text-center"
+        className="py-16 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
@@ -134,7 +134,7 @@ export default function ConditionsPage() {
               होम्योपैथी से इलाज · होमिओपॅथीने उपचार
             </span>
           </h1>
-          <p className="leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
+          <p className="leading-relaxed mb-8 text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
             Click any condition to learn what it is, how homeopathy treats it,
             and how Dr. Pratima Agale can help you in Kalyan, Mumbai.
           </p>
@@ -156,7 +156,7 @@ export default function ConditionsPage() {
 
       {/* Search results */}
       {filtered && (
-        <section className="py-10 px-6 border-b" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
+        <section className="py-10 px-4 sm:px-6 border-b" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
           <div className="max-w-5xl mx-auto">
             <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
             <div className="flex flex-wrap gap-3">
@@ -180,7 +180,7 @@ export default function ConditionsPage() {
 
       {/* Category groups */}
       {!filtered && (
-        <section className="py-16 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <section className="py-16 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
           <div className="max-w-6xl mx-auto space-y-14">
             {conditionGroups.map((group) => (
               <div key={group.categoryKey}>
@@ -199,12 +199,12 @@ export default function ConditionsPage() {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {group.conditions.map((cond) => (
                     <Link
                       key={cond.href}
                       href={cond.href}
-                      className="group flex items-center justify-between p-4 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
+                      className="group flex items-center justify-between gap-3 p-4 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
                       style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
                     >
                       <div>
@@ -227,7 +227,7 @@ export default function ConditionsPage() {
       )}
 
       {/* Not listed CTA */}
-      <section className="py-12 px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
+      <section className="py-12 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
         <div className="max-w-2xl mx-auto text-center">
           <h3
             className="font-serif text-2xl mb-3"
@@ -243,7 +243,7 @@ export default function ConditionsPage() {
   href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20consult%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 bg-sage-500 text-white px-7 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"
+  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-sage-500 text-white px-7 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"
 >
   {/* WhatsApp Icon */}
   <svg

@@ -114,7 +114,7 @@ export default function CaseStudiesPage() {
     <div className="pt-24">
       {/* HERO */}
       <section
-        className="py-20 px-6 text-center"
+        className="py-16 sm:py-20 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
@@ -146,7 +146,7 @@ export default function CaseStudiesPage() {
       </section>
 
       {/* CASE LIST */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto space-y-10">
           {cases.map((c) => (
             <div
@@ -155,7 +155,7 @@ export default function CaseStudiesPage() {
               style={{ borderColor: "var(--border-color)" }}
             >
               <div
-                className="px-7 py-4 flex items-center justify-between border-b"
+                className="px-5 sm:px-7 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b"
                 style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
               >
                 <div className="flex items-center gap-4">
@@ -176,7 +176,7 @@ export default function CaseStudiesPage() {
                 </div>
               </div>
 
-              <div className="p-7">
+                <div className="p-5 sm:p-7">
                 <div className="mb-5">
                   <h2
                     className="font-serif text-2xl mb-1"
@@ -184,7 +184,7 @@ export default function CaseStudiesPage() {
                   >
                     {c.title}
                   </h2>
-                  <div className="flex gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: "var(--text-muted)" }}>
                     <span>{c.patient}</span>
                     <span>·</span>
                     <span>{c.location}</span>
@@ -211,7 +211,7 @@ export default function CaseStudiesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6 bg-sage-500 text-center">
+      <section className="py-16 px-4 sm:px-6 bg-sage-500 text-center">
         <div className="max-w-xl mx-auto">
           <h2
             className="font-serif text-3xl text-white mb-4"
@@ -227,7 +227,7 @@ export default function CaseStudiesPage() {
   href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
 >
   {/* WhatsApp Icon */}
  

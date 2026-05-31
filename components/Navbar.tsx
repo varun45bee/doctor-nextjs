@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
+import DoctorLoginButton from "@/components/DoctorLoginButton";
+import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
 import { Locale } from "@/lib/translations";
@@ -15,17 +18,39 @@ const localeLabels: Record<Locale, string> = {
 };
 
 export default function Navbar() {
+  const { openAppointment } = useAppointment();
   const { t, locale, setLocale } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenu]);
+
+  // Close menus on navigation
+  useEffect(() => {
+    setOpenMenu(null);
+    setMenuOpen(false);
+  }, [pathname]);
 
   const menuSections = [
     {
@@ -88,7 +113,17 @@ export default function Navbar() {
 
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-transparent">
+          <div
+            className="relative w-12 h-12 rounded-full overflow-hidden border shadow-sm"
+            style={{
+              backgroundColor: theme === "dark" ? "rgba(255,255,255,0.92)" : "var(--bg-surface)",
+              borderColor: "var(--border-color)",
+              boxShadow:
+                theme === "dark"
+                  ? "0 10px 24px rgba(0,0,0,0.35)"
+                  : "0 6px 16px rgba(10,16,10,0.08)",
+            }}
+          >
             <Image
               src="/logo.png"
               alt="Dr. Pratima Agale"
@@ -112,10 +147,11 @@ export default function Navbar() {
           {/* SERVICES MENU */}
           <div
             className="relative"
-            onMouseEnter={() => setOpenMenu("services")}
-            onMouseLeave={() => setOpenMenu(null)}
           >
-            <button className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors">
+            <button 
+              onClick={() => setOpenMenu(openMenu === "services" ? null : "services")}
+              className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors"
+            >
               {t.nav.services}
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform ${
@@ -126,6 +162,7 @@ export default function Navbar() {
 
             {openMenu === "services" && (
               <div
+                ref={dropdownRef}
                 className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] rounded-2xl shadow-2xl border"
                 style={{ backgroundColor: "var(--dropdown-bg)", borderColor: "var(--border-color)" }}
               >
@@ -144,6 +181,7 @@ export default function Navbar() {
                             <Link
                               href={item.href}
                               className="text-xs text-sage-600 hover:text-sage-900 transition-colors"
+                              onClick={() => setOpenMenu(null)}
                             >
                               {item.label}
                             </Link>
@@ -207,27 +245,15 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* WhatsApp Icon Button */}
-          
+          <DoctorLoginButton />
 
-     <a
-  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-2 bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors"
->
-  {/* WhatsApp Icon */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 32 32"
-    fill="white"
-    className="w-4 h-4"
-  >
-    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.9-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.6.08-.91.4-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55c.17.23 2.42 3.7 5.87 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.02-.82 2.31-1.62.28-.8.28-1.48.2-1.62-.08-.14-.3-.22-.64-.39z" />
-  </svg>
-
-  {t.hero.cta}
-</a>
+          <button
+            type="button"
+            onClick={() => openAppointment()}
+            className="flex items-center gap-2 bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors"
+          >
+            {t.hero.cta}
+          </button>
         </div>
 
         {/* MOBILE TOGGLE */}
@@ -267,25 +293,17 @@ export default function Navbar() {
             <Link href="/blog" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Blog</Link>
 
             <div className="pt-3 flex flex-col gap-3">
-             
-           <a
-  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
-  target="_blank"
-  rel="noopener noreferrer"
-  onClick={() => setMenuOpen(false)}
-  className="flex items-center justify-center gap-2 w-full bg-sage-500 text-white py-3 rounded-full font-medium text-sm"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 32 32"
-    fill="white"
-    className="w-5 h-5"
-  >
-    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.9-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.6.08-.91.4-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55c.17.23 2.42 3.7 5.87 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.02-.82 2.31-1.62.28-.8.28-1.48.2-1.62-.08-.14-.3-.22-.64-.39z" />
-  </svg>
-
-  {t.hero.cta}
-</a>
+              <DoctorLoginButton />
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openAppointment();
+                }}
+                className="flex items-center justify-center gap-2 w-full bg-sage-500 text-white py-3 rounded-full font-medium text-sm"
+              >
+                {t.hero.cta}
+              </button>
             </div>
 
 

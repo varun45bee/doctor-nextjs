@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, CheckCircle, TrendingUp, ArrowLeft } from "lucide-react";
+import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 
 export interface DiseasePageData {
@@ -29,6 +30,7 @@ export interface DiseasePageData {
 }
 
 export default function DiseasePage({ data }: { data: DiseasePageData }) {
+  const { openAppointment } = useAppointment();
   const { t, locale } = useLanguage();
 
   const titleInLocale =
@@ -42,10 +44,10 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
     <div className="pt-24 overflow-hidden">
       {/* Breadcrumb */}
       <div
-        className="border-b px-6 py-3"
+        className="border-b px-4 sm:px-6 py-3"
         style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
       >
-        <div className="max-w-5xl mx-auto flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" style={{ color: "var(--text-muted)" }}>
           <Link href="/" className="hover:text-sage-600 transition-colors">
             {locale === "hi" ? "होम" : locale === "mr" ? "मुखपृष्ठ" : "Home"}
           </Link>
@@ -62,20 +64,20 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
 
       {/* Hero */}
       <section
-        className="py-16 px-6"
+        className="py-14 sm:py-16 px-4 sm:px-6"
         style={{
           background: `linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))`,
         }}
       >
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 sm:gap-10 items-center">
+          <div className="text-center md:text-left">
             <div
-              className="inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase px-4 py-2 rounded-full mb-5"
+              className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-medium tracking-[0.18em] sm:tracking-widest uppercase px-3.5 sm:px-4 py-2 rounded-full mb-5"
               style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--sage-mid)" }}
             >
               {data.category}
             </div>
-            <div className="text-5xl mb-4" role="img" aria-label="Condition Icon">{data.emoji}</div>
+            <div className="text-4xl sm:text-5xl mb-4" role="img" aria-label="Condition Icon">{data.emoji}</div>
             <h1
               className="font-serif mb-3"
               style={{
@@ -95,21 +97,20 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
                 </span>
               )}
             </h1>
-            <p className="text-lg italic mb-6" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-base sm:text-lg italic mb-6 max-w-2xl mx-auto md:mx-0" style={{ color: "var(--text-secondary)" }}>
               {data.tagline}
             </p>
-            <div className="flex flex-wrap gap-4">
-              <a
-                href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-white px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:-translate-y-0.5 bg-sage-500 hover:bg-sage-600"
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center justify-center md:justify-start">
+              <button
+                type="button"
+                onClick={() => openAppointment({ condition: data.title })}
+                className="flex w-full sm:w-auto justify-center items-center gap-2 text-white px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:-translate-y-0.5 bg-sage-500 hover:bg-sage-600"
               >
                 {t.common.bookConsultation}
-              </a>
+              </button>
               <a
                 href="tel:+919359875511"
-                className="flex items-center gap-2 border-2 border-sage-400 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50 dark:hover:bg-sage-900"
+                className="flex w-full sm:w-auto justify-center items-center gap-2 border-2 border-sage-400 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50 dark:hover:bg-sage-900"
                 style={{ color: "var(--text-secondary)" }}
               >
                 {t.common.callNow}
@@ -117,7 +118,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4">
             {[
               { label: t.common.duration, value: data.treatmentDuration, emoji: "⏱" },
               { label: t.common.successRate, value: data.successRate, emoji: "✅" },
@@ -154,7 +155,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="backdrop-blur rounded-2xl p-5 border shadow-sm"
+                className="backdrop-blur rounded-2xl p-4 sm:p-5 border shadow-sm"
                 style={{
                   backgroundColor: "var(--bg-subtle)",
                   borderColor: "var(--border-color)",
@@ -174,7 +175,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       </section>
 
       {/* Overview */}
-      <section className="py-14 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-12 sm:py-14 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-serif text-3xl mb-4"
@@ -199,10 +200,10 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       </section>
 
       {/* Causes & Symptoms */}
-      <section className="py-14 px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+      <section className="py-12 sm:py-14 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6 sm:gap-10">
           <div
-            className="rounded-2xl p-7 border shadow-sm"
+            className="rounded-2xl p-5 sm:p-7 border shadow-sm"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
           >
             <h2
@@ -233,7 +234,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
             </ul>
           </div>
           <div
-            className="rounded-2xl p-7 border shadow-sm"
+            className="rounded-2xl p-5 sm:p-7 border shadow-sm"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
           >
             <h2
@@ -258,9 +259,9 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       </section>
 
       {/* Homeopathy Treatment */}
-      <section className="py-14 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-12 sm:py-14 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-start">
             <div>
               <div
                 className="inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
@@ -290,7 +291,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
               </ul>
             </div>
             <div
-              className="rounded-2xl p-7 border"
+              className="rounded-2xl p-5 sm:p-7 border"
               style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
             >
               <h3
@@ -333,7 +334,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       </section>
 
       {/* FAQs */}
-      <section className="py-14 px-6" style={{ backgroundColor: "var(--bg-base)" }}>
+      <section className="py-12 sm:py-14 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-3xl mx-auto">
           <h2
             className="font-serif text-3xl text-center mb-10"
@@ -349,7 +350,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
                 style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
               >
                 <summary
-                  className="flex items-center justify-between p-6 cursor-pointer font-medium transition-colors list-none"
+                  className="flex items-center justify-between gap-3 p-5 sm:p-6 cursor-pointer font-medium transition-colors list-none"
                   style={{ color: "var(--text-primary)" }}
                 >
                   {faq.q}
@@ -358,7 +359,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
                   </span>
                 </summary>
                 <div
-                  className="px-6 pb-6 text-sm leading-relaxed pt-4"
+                  className="px-5 sm:px-6 pb-5 sm:pb-6 text-sm leading-relaxed pt-4"
                   style={{
                     color: "var(--text-secondary)",
                     borderTop: "1px solid var(--border-color)",
@@ -375,7 +376,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       {/* Related conditions */}
       {data.related.length > 0 && (
         <section
-          className="py-10 px-6 border-t"
+          className="py-10 px-4 sm:px-6 border-t"
           style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
         >
           <div className="max-w-5xl mx-auto">
@@ -402,7 +403,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
       )}
 
       {/* CTA */}
-      <section className="py-16 px-6 bg-sage-500 text-center">
+      <section className="py-16 px-4 sm:px-6 bg-sage-500 text-center">
         <div className="max-w-xl mx-auto">
           <h2
             className="font-serif text-3xl text-white mb-4"
@@ -415,18 +416,17 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
               : `Start Natural Treatment for ${data.title}`}
           </h2>
           <p className="text-sage-100 mb-6">{t.common.servedAreas}</p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <a
-              href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
+            <button
+              type="button"
+              onClick={() => openAppointment({ condition: data.title })}
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
             >
               {t.common.bookNow}
-            </a>
+            </button>
             <a
               href="tel:+919359875511"
-              className="border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
+              className="inline-flex w-full sm:w-auto justify-center items-center border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
             >
               {t.common.callNow}
             </a>
@@ -436,7 +436,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
 
       {/* Back nav */}
       <div
-        className="px-6 py-6 border-t"
+        className="px-4 sm:px-6 py-6 border-t"
         style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
       >
         <div className="max-w-5xl mx-auto">

@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { db } from "@/lib/firebase";
+import { createAppointmentLookup } from "@/lib/appointment-lookup";
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -43,10 +47,39 @@ export default function ContactPage() {
     setLoading(true);
     setError("");
 
-    try {
-      const payload = { ...form };
+    const email = form.email.trim();
+    if (!email) {
+      setError("Email is required.");
+      setLoading(false);
+      return;
+    }
 
-      // 1. Send Email via Formspree (Keep the user's ID or allow them to change it)
+    try {
+      const payload = { ...form, email };
+
+      // 1. Save to Firebase Firestore
+      const docRef = await addDoc(collection(db, "appointments"), {
+        patientName: form.name,
+        patientEmail: email,
+        patientPhone: form.phone,
+        appointmentDate: form.date,
+        appointmentTime: form.time,
+        status: "Pending",
+        condition: form.condition,
+        message: form.message,
+        lang: form.lang,
+        createdAt: serverTimestamp(),
+      });
+
+      await createAppointmentLookup({
+        patientPhone: form.phone,
+        patientName: form.name,
+        appointmentDate: form.date,
+        appointmentTime: form.time,
+        appointmentId: docRef.id,
+      });
+
+      // 2. Send Email via Formspree
       const emailRes = await fetch("https://formspree.io/f/xjgenbzw", {
         method: "POST",
         headers: {
@@ -59,7 +92,7 @@ export default function ContactPage() {
         throw new Error("Email submission failed. Please try again.");
       }
 
-      // 2. Format WhatsApp message
+      // 3. Format WhatsApp message
       const whatsappMsg = `*New Appointment Request*%0A*Name:* ${form.name}%0A*Phone:* ${form.phone}%0A*Condition:* ${form.condition}%0A*Date:* ${form.date}%0A*Time:* ${form.time}%0A*Message:* ${form.message}`;
       const whatsappUrl = `https://wa.me/919359875511?text=${whatsappMsg}`;
 
@@ -235,6 +268,19 @@ export default function ContactPage() {
                     {t.contact.successDesc}
                   </p>
 
+                  <p className="text-sage-500 text-sm mt-3 mb-4">
+                    You will receive an email when confirmed. Check
+                    status anytime with your phone number.
+                  </p>
+
+                  <Link
+                    href="/check-appointment"
+                    className="inline-block text-sage-600 text-sm underline mb-4"
+                  >
+                    Check appointment status
+                  </Link>
+
+                  <br />
                   <button
                     onClick={() => {
                       setSubmitted(false);
@@ -249,7 +295,7 @@ export default function ContactPage() {
                         lang: "en",
                       });
                     }}
-                    className="mt-6 text-sage-500 text-sm underline"
+                    className="mt-2 text-sage-500 text-sm underline"
                   >
                     Send another message
                   </button>
@@ -295,8 +341,9 @@ export default function ContactPage() {
 
                     {/* Email */}
                     <input
+                      required
                       type="email"
-                      placeholder="Email"
+                      placeholder="Email *"
                       value={form.email}
                       onChange={(e) =>
                         setForm({

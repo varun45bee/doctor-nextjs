@@ -12,12 +12,12 @@ export default function AboutPage() {
     <div className="pt-24 overflow-hidden">
       {/* HERO */}
       <section
-        className="py-20 px-6"
+        className="py-16 sm:py-20 px-4 sm:px-6"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* LEFT CONTENT */}
-          <div>
+          <div className="text-center lg:text-left">
             <div
               className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6"
               style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
@@ -40,7 +40,7 @@ export default function AboutPage() {
               </span>
             </h1>
 
-            <p className="text-lg leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-base sm:text-lg leading-relaxed mb-6 max-w-2xl mx-auto lg:mx-0" style={{ color: "var(--text-secondary)" }}>
               {t.about.intro} <em>{t.about.introItalic}</em>
             </p>
 
@@ -48,7 +48,7 @@ export default function AboutPage() {
               href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-sage-500 text-white px-6 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-sage-500 text-white px-6 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"
             >
               {t.common.bookConsultation}
               <ArrowRight className="w-4 h-4" />
@@ -56,8 +56,8 @@ export default function AboutPage() {
           </div>
 
           {/* RIGHT IMAGE GRID */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="relative row-span-2 rounded-2xl overflow-hidden min-h-[360px] bg-sage-100 shadow-sm">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 sm:gap-5">
+            <div className="relative min-[420px]:row-span-2 rounded-2xl overflow-hidden min-h-[320px] sm:min-h-[360px] bg-sage-100 shadow-sm">
               <Image src="/desk.jpeg" alt="Dr. Pratima Agale consulting a patient" fill className="object-cover" priority />
             </div>
             <div className="relative rounded-2xl overflow-hidden min-h-[170px] bg-sage-100 shadow-sm">
@@ -71,7 +71,7 @@ export default function AboutPage() {
       </section>
 
       {/* CREDENTIALS */}
-      <section className="py-16 px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+      <section className="py-16 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
           {[
             { icon: GraduationCap, title: "BHMS", desc: "Bachelor of Homeopathic Medicine & Surgery" },
@@ -102,7 +102,7 @@ export default function AboutPage() {
 
       {/* PHILOSOPHY */}
       <section
-        className="py-20 px-6 text-center"
+        className="py-16 sm:py-20 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, #263727, #3a5a3a)" }}
       >
         <div className="max-w-3xl mx-auto">
@@ -113,7 +113,7 @@ export default function AboutPage() {
             className="font-serif text-2xl md:text-3xl text-white italic leading-relaxed mb-8"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
           >
-            "{t.about.philosophy}"
+            &ldquo;{t.about.philosophy}&rdquo;
           </blockquote>
           <cite className="text-sage-300 text-sm">
             — {t.about.title}, {t.about.subtitle}
@@ -122,7 +122,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6 bg-sage-500 text-center">
+      <section className="py-16 px-4 sm:px-6 bg-sage-500 text-center">
         <div className="max-w-xl mx-auto">
           <h2
             className="font-serif text-3xl text-white mb-4"
@@ -135,7 +135,7 @@ export default function AboutPage() {
             href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20a%20consultation%20with%20Dr.%20Pratima%20Agale."
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
             {t.common.bookConsultation}
           </a>
