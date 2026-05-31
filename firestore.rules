@@ -4,7 +4,7 @@ service cloud.firestore {
 
     function isDoctor() {
       return request.auth != null
-        && request.auth.token.email.lower() == 'varun45j@gmail.com';
+        && request.auth.token.email.lower() == 'madhurmeetj@gmail.com';
     }
 
     match /doctors/{doctorId} {
