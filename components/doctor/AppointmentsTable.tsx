@@ -8,6 +8,7 @@ type AppointmentsTableProps = {
   appointments: Appointment[];
   updatingId: string | null;
   onStatusChange: (id: string, status: AppointmentStatus) => void;
+  onSelectAppointment?: (appt: Appointment) => void;
 };
 
 function formatDate(date: string) {
@@ -40,6 +41,7 @@ export default function AppointmentsTable({
   appointments,
   updatingId,
   onStatusChange,
+  onSelectAppointment,
 }: AppointmentsTableProps) {
   return (
     <>
@@ -67,7 +69,8 @@ export default function AppointmentsTable({
             {appointments.map((appt) => (
               <tr
                 key={appt.id}
-                className="border-b last:border-b-0 hover:bg-sage-50/50 dark:hover:bg-sage-900/20 transition-colors"
+                onClick={() => onSelectAppointment?.(appt)}
+                className="border-b last:border-b-0 hover:bg-sage-50/50 dark:hover:bg-sage-900/20 transition-colors cursor-pointer"
                 style={{ borderColor: "var(--border-color)" }}
               >
                 <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
@@ -85,7 +88,7 @@ export default function AppointmentsTable({
                 <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>
                   {formatTime(appt.appointmentTime)}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={appt.status} />
                     <StatusSelect
@@ -106,7 +109,8 @@ export default function AppointmentsTable({
         {appointments.map((appt) => (
           <div
             key={appt.id}
-            className="p-4 rounded-xl border"
+            onClick={() => onSelectAppointment?.(appt)}
+            className="p-4 rounded-xl border cursor-pointer hover:border-sage-300 transition-colors"
             style={{
               backgroundColor: "var(--bg-surface)",
               borderColor: "var(--border-color)",
@@ -121,17 +125,21 @@ export default function AppointmentsTable({
                   {formatDate(appt.appointmentDate)} · {formatTime(appt.appointmentTime)}
                 </p>
               </div>
-              <StatusBadge status={appt.status} />
+              <div onClick={(e) => e.stopPropagation()}>
+                <StatusBadge status={appt.status} />
+              </div>
             </div>
             <div className="space-y-1 text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
               {appt.patientEmail && <p>{appt.patientEmail}</p>}
               {appt.patientPhone && <p>{appt.patientPhone}</p>}
             </div>
-            <StatusSelect
-              value={appt.status}
-              disabled={updatingId === appt.id}
-              onChange={(status) => onStatusChange(appt.id, status)}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <StatusSelect
+                value={appt.status}
+                disabled={updatingId === appt.id}
+                onChange={(status) => onStatusChange(appt.id, status)}
+              />
+            </div>
           </div>
         ))}
       </div>

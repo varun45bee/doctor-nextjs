@@ -7,6 +7,11 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { createAppointmentLookup } from "@/lib/appointment-lookup";
 import { useLanguage } from "@/lib/language-context";
+import {
+  fetchAvailabilitySettings,
+  fetchBookedSlotsForDate,
+  type AvailabilitySettings,
+} from "@/lib/firestore/availability";
 
 const CONDITIONS = [
   "PCOD / PCOS",
@@ -51,6 +56,11 @@ export default function AppointmentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [availability, setAvailability] = useState<AvailabilitySettings | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotError, setSlotError] = useState("");
+
   useEffect(() => {
     if (isOpen) {
       setForm({
@@ -65,6 +75,15 @@ export default function AppointmentModal({
       });
       setSubmitted(false);
       setError("");
+      setBookedSlots([]);
+      setSlotError("");
+      
+      const getSettings = async () => {
+        const settings = await fetchAvailabilitySettings();
+        setAvailability(settings);
+      };
+      getSettings();
+
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -74,6 +93,35 @@ export default function AppointmentModal({
       document.body.style.overflow = "";
     };
   }, [isOpen, defaultCondition]);
+
+  const handleDateChange = async (selectedDateStr: string) => {
+    setForm((prev) => ({ ...prev, date: selectedDateStr, time: "" }));
+    setSlotError("");
+    setBookedSlots([]);
+
+    if (!selectedDateStr) return;
+
+    try {
+      // Validate active day of the week
+      const selectedDate = new Date(selectedDateStr + "T00:00:00");
+      const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+      if (availability && !availability.weeklyDays.includes(dayOfWeek)) {
+        const dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+        setSlotError(`Doctor is not available on ${dayNames[dayOfWeek]}.`);
+        return;
+      }
+
+      setLoadingSlots(true);
+      const booked = await fetchBookedSlotsForDate(selectedDateStr);
+      setBookedSlots(booked);
+    } catch (err) {
+      console.error("Error loading slots:", err);
+      setSlotError("Failed to check slot availability.");
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -274,24 +322,84 @@ export default function AppointmentModal({
                   )}
                 </select>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold block" style={{ color: "var(--text-secondary)" }}>
+                    Select Consultation Date *
+                  </label>
                   <input
                     required
                     type="date"
                     value={form.date}
                     min={new Date().toISOString().split("T")[0]}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    onChange={(e) => handleDateChange(e.target.value)}
                     className={inputClass}
                     style={inputStyle}
                   />
-                  <input
-                    required
-                    type="time"
-                    value={form.time}
-                    onChange={(e) => setForm({ ...form, time: e.target.value })}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold block" style={{ color: "var(--text-secondary)" }}>
+                    Select Available Time Slot *
+                  </label>
+                  {!form.date ? (
+                    <div className="text-xs p-3 border border-dashed rounded-xl text-center" style={{ color: "var(--text-muted)", borderColor: "var(--border-mid)" }}>
+                      Please select a date first to view slot availability.
+                    </div>
+                  ) : loadingSlots ? (
+                    <div className="text-xs p-3 text-center animate-pulse" style={{ color: "var(--text-secondary)" }}>
+                      Checking slot availability...
+                    </div>
+                  ) : slotError ? (
+                    <div className="text-xs p-3 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 rounded-xl text-center font-semibold">
+                      {slotError}
+                    </div>
+                  ) : availability && availability.slots.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {availability.slots.map((slot) => {
+                        const isBooked = bookedSlots.includes(slot);
+                        const isSelected = form.time === slot;
+
+                        // Format time to 12 hour AM/PM for neat display
+                        let displayTime = slot;
+                        try {
+                          const [h, m] = slot.split(":");
+                          const hours = parseInt(h, 10);
+                          const ampm = hours >= 12 ? "PM" : "AM";
+                          const h12 = hours % 12 || 12;
+                          displayTime = `${h12}:${m} ${ampm}`;
+                        } catch {}
+
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={isBooked}
+                            onClick={() => setForm({ ...form, time: slot })}
+                            className={`p-2 rounded-xl text-xs font-semibold border text-center transition-all ${
+                              isSelected
+                                ? "bg-sage-600 border-sage-600 text-white shadow-sm"
+                                : isBooked
+                                ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-800/10 dark:border-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed line-through"
+                                : "hover:border-sage-400 text-zinc-700 dark:text-zinc-300"
+                            }`}
+                            style={{
+                              backgroundColor: isSelected ? undefined : (isBooked ? undefined : "var(--bg-surface)"),
+                              borderColor: isSelected ? undefined : (isBooked ? undefined : "var(--border-color)")
+                            }}
+                          >
+                            <span>{displayTime}</span>
+                            {isBooked && <span className="block text-[8px] opacity-75 font-normal">Booked</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-xs p-3 border border-dashed rounded-xl text-center" style={{ color: "var(--text-muted)", borderColor: "var(--border-mid)" }}>
+                      No consultation slots configured by doctor.
+                    </div>
+                  )}
+                  {/* Keep hidden validation active */}
+                  <input type="hidden" required value={form.time} />
                 </div>
 
                 <textarea
