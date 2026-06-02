@@ -8,6 +8,10 @@ import { useLanguage } from "@/lib/language-context";
 import { db } from "@/lib/firebase";
 import { createAppointmentLookup } from "@/lib/appointment-lookup";
 import {
+  INDIAN_MOBILE_ERROR,
+  isValidIndianMobileNumber,
+} from "@/lib/phone-validation";
+import {
   fetchAvailabilitySettings,
   fetchBookedSlotsForDate,
   type AvailabilitySettings,
@@ -102,14 +106,21 @@ export default function ContactPage() {
       return;
     }
 
+    const phone = form.phone.trim();
+    if (!isValidIndianMobileNumber(phone)) {
+      setError(INDIAN_MOBILE_ERROR);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const payload = { ...form, email };
+      const payload = { ...form, email, phone };
 
       // 1. Save to Firebase Firestore
       const docRef = await addDoc(collection(db, "appointments"), {
         patientName: form.name,
         patientEmail: email,
-        patientPhone: form.phone,
+        patientPhone: phone,
         appointmentDate: form.date,
         appointmentTime: form.time,
         status: "Pending",
@@ -120,7 +131,7 @@ export default function ContactPage() {
       });
 
       await createAppointmentLookup({
-        patientPhone: form.phone,
+        patientPhone: phone,
         patientName: form.name,
         appointmentDate: form.date,
         appointmentTime: form.time,
@@ -141,7 +152,7 @@ export default function ContactPage() {
       }
 
       // 3. Format WhatsApp message
-      const whatsappMsg = `*New Appointment Request*%0A*Name:* ${form.name}%0A*Phone:* ${form.phone}%0A*Condition:* ${form.condition}%0A*Date:* ${form.date}%0A*Time:* ${form.time}%0A*Message:* ${form.message}`;
+      const whatsappMsg = `*New Appointment Request*%0A*Name:* ${form.name}%0A*Phone:* ${phone}%0A*Condition:* ${form.condition}%0A*Date:* ${form.date}%0A*Time:* ${form.time}%0A*Message:* ${form.message}`;
       const whatsappUrl = `https://wa.me/919359875511?text=${whatsappMsg}`;
 
       setSubmitted(true);
@@ -376,6 +387,9 @@ export default function ContactPage() {
                     <input
                       required
                       type="tel"
+                      inputMode="numeric"
+                      pattern="(?:\+?91[\s-]?)?[6-9][0-9\s-]{9,12}"
+                      title={INDIAN_MOBILE_ERROR}
                       placeholder="+91 XXXXX XXXXX"
                       value={form.phone}
                       onChange={(e) =>

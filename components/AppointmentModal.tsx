@@ -6,6 +6,10 @@ import { X, Send, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { createAppointmentLookup } from "@/lib/appointment-lookup";
+import {
+  INDIAN_MOBILE_ERROR,
+  isValidIndianMobileNumber,
+} from "@/lib/phone-validation";
 import { useLanguage } from "@/lib/language-context";
 import {
   fetchAvailabilitySettings,
@@ -143,11 +147,18 @@ export default function AppointmentModal({
       return;
     }
 
+    const phone = form.phone.trim();
+    if (!isValidIndianMobileNumber(phone)) {
+      setError(INDIAN_MOBILE_ERROR);
+      setLoading(false);
+      return;
+    }
+
     try {
       const docRef = await addDoc(collection(db, "appointments"), {
         patientName: form.name,
         patientEmail: email,
-        patientPhone: form.phone,
+        patientPhone: phone,
         appointmentDate: form.date,
         appointmentTime: form.time,
         status: "Pending",
@@ -159,7 +170,7 @@ export default function AppointmentModal({
       });
 
       await createAppointmentLookup({
-        patientPhone: form.phone,
+        patientPhone: phone,
         patientName: form.name,
         appointmentDate: form.date,
         appointmentTime: form.time,
@@ -187,7 +198,7 @@ export default function AppointmentModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto overscroll-contain p-4 sm:flex sm:items-center sm:justify-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="appointment-modal-title"
@@ -198,7 +209,7 @@ export default function AppointmentModal({
       />
 
       <div
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border shadow-2xl"
+        className="relative mx-auto my-4 w-full max-w-lg max-h-[calc(100dvh-2rem)] scroll-pb-8 overflow-y-auto rounded-2xl border shadow-2xl [-webkit-overflow-scrolling:touch] sm:my-0"
         style={{
           backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border-color)",
@@ -212,7 +223,7 @@ export default function AppointmentModal({
           <X className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
         </button>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-6 pb-10 sm:p-8 sm:pb-12">
           {submitted ? (
             <div className="text-center py-10">
               <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
@@ -276,6 +287,9 @@ export default function AppointmentModal({
                   <input
                     required
                     type="tel"
+                    inputMode="numeric"
+                    pattern="(?:\+?91[\s-]?)?[6-9][0-9\s-]{9,12}"
+                    title={INDIAN_MOBILE_ERROR}
                     placeholder="Phone *"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -402,14 +416,14 @@ export default function AppointmentModal({
                   <input type="hidden" required value={form.time} />
                 </div>
 
-                <textarea
+                {/* <textarea
                   rows={3}
                   placeholder="Additional message (optional)"
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                   className={inputClass}
                   style={inputStyle}
-                />
+                /> */}
 
                 {error && (
                   <p className="text-red-500 text-sm text-center">{error}</p>
