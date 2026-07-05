@@ -13,6 +13,21 @@ export const APPOINTMENT_STATUSES: AppointmentStatus[] = [
   "Cancelled",
 ];
 
+export interface Prescription {
+  remedy: string;
+  potency: string;
+  dosage: string;
+  duration: string;
+  instructions: string;
+  prescribedAt: string;
+}
+
+export interface ProgressLog {
+  rating: number;
+  notes: string;
+  loggedAt: string;
+}
+
 export interface Appointment {
   id: string;
   patientName: string;
@@ -26,6 +41,8 @@ export interface Appointment {
   age?: string;
   message?: string;
   lang?: string;
+  prescription?: Prescription;
+  progressLogs?: ProgressLog[];
 }
 
 export interface AppointmentWrite {
@@ -39,6 +56,8 @@ export interface AppointmentWrite {
   age?: string;
   message?: string;
   lang?: string;
+  prescription?: Prescription;
+  progressLogs?: ProgressLog[];
 }
 
 type RawAppointment = Record<string, unknown> & { id: string };
@@ -65,5 +84,7 @@ export function normalizeAppointment(doc: RawAppointment): Appointment {
     age: data.age ? String(data.age) : undefined,
     message: data.message ? String(data.message) : undefined,
     lang: data.lang ? String(data.lang) : undefined,
+    prescription: data.prescription ? (data.prescription as Prescription) : undefined,
+    progressLogs: data.progressLogs ? (data.progressLogs as ProgressLog[]) : undefined,
   };
 }

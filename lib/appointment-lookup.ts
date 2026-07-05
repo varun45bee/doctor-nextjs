@@ -60,5 +60,6 @@ export async function getAppointmentByPhone(phone: string) {
     appointmentDate: String(data.appointmentDate ?? ""),
     appointmentTime: String(data.appointmentTime ?? ""),
     status: (data.status as AppointmentStatus) ?? "Pending",
+    appointmentId: String(data.appointmentId ?? ""),
   };
 }

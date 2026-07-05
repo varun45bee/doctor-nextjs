@@ -12,10 +12,12 @@ import {
   Copy,
   Calendar,
   Check,
+  Save,
   Briefcase,
   AlertCircle
 } from "lucide-react";
 import type { Appointment } from "@/lib/types/appointment";
+import { saveAppointmentPrescription } from "@/lib/firestore/appointments";
 
 type PatientDrawerProps = {
   appointment: Appointment | null;
@@ -33,15 +35,26 @@ export default function PatientDrawer({ appointment, onClose }: PatientDrawerPro
   const [dosage, setDosage] = useState("4 globules, twice daily");
   const [duration, setDuration] = useState("7 days");
   const [instructions, setInstructions] = useState("Avoid raw onion, garlic, or strong perfumes 30 minutes before/after taking the remedy.");
+  
+  const [savingPrescription, setSavingPrescription] = useState(false);
+  const [prescriptionSaved, setPrescriptionSaved] = useState(false);
 
   useEffect(() => {
     if (appointment) {
       setIsOpen(true);
-      // Reset prescription inputs for a new patient
-      setRemedy("");
-      setPotency("30C");
-      setDosage("4 globules, twice daily");
-      setDuration("7 days");
+      if (appointment.prescription) {
+        setRemedy(appointment.prescription.remedy);
+        setPotency(appointment.prescription.potency);
+        setDosage(appointment.prescription.dosage);
+        setDuration(appointment.prescription.duration);
+        setInstructions(appointment.prescription.instructions);
+      } else {
+        setRemedy("");
+        setPotency("30C");
+        setDosage("4 globules, twice daily");
+        setDuration("7 days");
+        setInstructions("Avoid raw onion, garlic, or strong perfumes 30 minutes before/after taking the remedy.");
+      }
     } else {
       setIsOpen(false);
     }
@@ -84,6 +97,31 @@ Homeopathy Clinic`;
     const phone = appointment.patientPhone.replace(/[^0-9]/g, "");
     const formattedPhone = phone.length === 10 ? `91${phone}` : phone; // Assume Indian country code if 10 digits
     window.open(`https://wa.me/${formattedPhone}?text=${text}`, "_blank");
+  };
+
+  const handleSavePrescription = async () => {
+    if (!remedy) return;
+    setSavingPrescription(true);
+    setPrescriptionSaved(false);
+    try {
+      const rx = {
+        remedy,
+        potency,
+        dosage,
+        duration,
+        instructions,
+        prescribedAt: new Date().toISOString(),
+      };
+      await saveAppointmentPrescription(appointment.id, rx);
+      setPrescriptionSaved(true);
+      // Sync local state reference
+      appointment.prescription = rx;
+      setTimeout(() => setPrescriptionSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save prescription:", err);
+    } finally {
+      setSavingPrescription(false);
+    }
   };
 
   return (
@@ -234,7 +272,7 @@ Homeopathy Clinic`;
               {appointment.message && (
                 <div className="space-y-2">
                   <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                    Patient Description & Modalties
+                    Patient Description & Modalities
                   </h4>
                   <div
                     className="p-4 rounded-xl border border-dashed text-sm italic"
@@ -265,7 +303,7 @@ Homeopathy Clinic`;
           {activeSubTab === "prescription" && (
             <div className="space-y-5 page-enter">
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Compose remedy information below to create a direct medical prescription printable and shareable format.
+                Compose remedy information below to create a direct medical prescription.
               </p>
 
               {/* Remedy Search */}
@@ -278,7 +316,7 @@ Homeopathy Clinic`;
                   placeholder="e.g., Nux Vomica, Arsenicum Album"
                   value={remedy}
                   onChange={(e) => setRemedy(e.target.value)}
-                  className="w-full text-sm px-3 py-2 rounded-lg border focus:outline-none focus:ring-1 focus:ring-sage-500"
+                  className="w-full text-sm px-3 py-2 rounded-lg border focus:outline-none focus:ring-1 focus:ring-sage-500 animate-none"
                 />
               </div>
 
@@ -343,6 +381,26 @@ Homeopathy Clinic`;
                 />
               </div>
 
+              {/* Save & Issue button */}
+              <button
+                type="button"
+                onClick={handleSavePrescription}
+                disabled={savingPrescription || !remedy}
+                className="w-full flex items-center justify-center gap-2 text-sm py-2.5 px-4 rounded-xl bg-sage-700 hover:bg-sage-800 disabled:opacity-60 text-white font-semibold transition-colors shadow-sm"
+              >
+                {prescriptionSaved ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-400" />
+                    <span>Prescription Saved & Issued!</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{savingPrescription ? "Saving..." : "Save & Issue Prescription"}</span>
+                  </>
+                )}
+              </button>
+
               {/* Preview Box */}
               <div className="space-y-1.5">
                 <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
@@ -388,11 +446,36 @@ Homeopathy Clinic`;
           {activeSubTab === "history" && (
             <div className="space-y-6 page-enter">
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Chronological list of patient's visits, remedies prescribed, and clinical notes over time.
+                Chronological list of patient's visits, remedies, and clinical/progress notes.
               </p>
 
               {/* Timeline Container */}
               <div className="relative border-l-2 ml-3 space-y-6 pl-5" style={{ borderColor: "var(--border-color)" }}>
+                {/* Real Progress Logs Submitted By Patient */}
+                {appointment.progressLogs && appointment.progressLogs.length > 0 ? (
+                  appointment.progressLogs.map((log, idx) => (
+                    <div key={`progress-${idx}`} className="relative border-b pb-3 border-dashed last:border-b-0" style={{ borderColor: "var(--border-color)" }}>
+                      <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-teal-600 border-2 border-white dark:border-zinc-900"></span>
+                      <div className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                        Patient Progress Rating
+                      </div>
+                      <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                        {new Date(log.loggedAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </div>
+                      <div className="mt-1 text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
+                        <p>📉 Symptom Severity: <strong className="font-semibold text-red-500">{log.rating}/10</strong></p>
+                        <p className="italic text-zinc-500 dark:text-zinc-400">"{log.notes}"</p>
+                      </div>
+                    </div>
+                  ))
+                ) : null}
+
                 {/* Timeline Item Current */}
                 <div className="relative">
                   <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-sage-600 border-2 border-white dark:border-zinc-900"></span>
@@ -409,7 +492,7 @@ Homeopathy Clinic`;
 
                 {/* Timeline Item 2 Mock */}
                 <div className="relative">
-                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-700 border-2 border-white dark:border-zinc-900"></span>
+                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-750 border-2 border-white dark:border-zinc-900"></span>
                   <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                     Follow-Up Consultation
                   </div>
@@ -424,7 +507,7 @@ Homeopathy Clinic`;
 
                 {/* Timeline Item 3 Mock */}
                 <div className="relative">
-                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-700 border-2 border-white dark:border-zinc-900"></span>
+                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-750 border-2 border-white dark:border-zinc-900"></span>
                   <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                     Initial Consultation & Case Taking
                   </div>
@@ -433,7 +516,7 @@ Homeopathy Clinic`;
                   </div>
                   <div className="mt-2 text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
                     <p>💊 <strong className="font-semibold text-xs">Arsenicum Album 30C</strong> (twice daily for 1 week)</p>
-                    <p className="italic text-zinc-500 mt-0.5">"Severe itching and dry skin patches. Modalities: agg. from cold application, amel. by warm wraps. Thirst for small quantities frequently."</p>
+                    <p className="italic text-zinc-500 mt-0.5">"Severe itching and dry skin patches. Modalities: agg. from cold application, amel. by warm wraps."</p>
                   </div>
                 </div>
               </div>

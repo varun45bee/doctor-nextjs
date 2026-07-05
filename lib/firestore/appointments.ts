@@ -2,9 +2,11 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   orderBy,
   query,
   updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import { updateAppointmentLookup } from "@/lib/appointment-lookup";
 import { db } from "@/lib/firebase";
@@ -12,6 +14,8 @@ import {
   normalizeAppointment,
   type Appointment,
   type AppointmentStatus,
+  type Prescription,
+  type ProgressLog,
 } from "@/lib/types/appointment";
 
 export async function fetchAppointments(): Promise<Appointment[]> {
@@ -70,4 +74,28 @@ export async function updateAppointmentStatus(
   if (patientPhone) {
     await updateAppointmentLookup(patientPhone, status);
   }
+}
+
+export async function fetchAppointmentById(id: string): Promise<Appointment | null> {
+  const snapshot = await getDoc(doc(db, "appointments", id));
+  if (!snapshot.exists()) return null;
+  return normalizeAppointment({ id: snapshot.id, ...snapshot.data() });
+}
+
+export async function saveAppointmentPrescription(
+  id: string,
+  prescription: Prescription
+): Promise<void> {
+  await updateDoc(doc(db, "appointments", id), {
+    prescription,
+  });
+}
+
+export async function addPatientProgressLog(
+  id: string,
+  log: ProgressLog
+): Promise<void> {
+  await updateDoc(doc(db, "appointments", id), {
+    progressLogs: arrayUnion(log),
+  });
 }

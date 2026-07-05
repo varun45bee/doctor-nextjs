@@ -6,10 +6,6 @@ import { X, Send, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { createAppointmentLookup } from "@/lib/appointment-lookup";
-import {
-  INDIAN_MOBILE_ERROR,
-  isValidIndianMobileNumber,
-} from "@/lib/phone-validation";
 import { useLanguage } from "@/lib/language-context";
 import {
   fetchAvailabilitySettings,
@@ -81,7 +77,7 @@ export default function AppointmentModal({
       setError("");
       setBookedSlots([]);
       setSlotError("");
-      
+
       const getSettings = async () => {
         const settings = await fetchAvailabilitySettings();
         setAvailability(settings);
@@ -147,18 +143,11 @@ export default function AppointmentModal({
       return;
     }
 
-    const phone = form.phone.trim();
-    if (!isValidIndianMobileNumber(phone)) {
-      setError(INDIAN_MOBILE_ERROR);
-      setLoading(false);
-      return;
-    }
-
     try {
       const docRef = await addDoc(collection(db, "appointments"), {
         patientName: form.name,
         patientEmail: email,
-        patientPhone: phone,
+        patientPhone: form.phone,
         appointmentDate: form.date,
         appointmentTime: form.time,
         status: "Pending",
@@ -170,7 +159,7 @@ export default function AppointmentModal({
       });
 
       await createAppointmentLookup({
-        patientPhone: phone,
+        patientPhone: form.phone,
         patientName: form.name,
         appointmentDate: form.date,
         appointmentTime: form.time,
@@ -198,7 +187,7 @@ export default function AppointmentModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto overscroll-contain p-4 sm:flex sm:items-center sm:justify-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="appointment-modal-title"
@@ -209,7 +198,7 @@ export default function AppointmentModal({
       />
 
       <div
-        className="relative mx-auto my-4 w-full max-w-lg max-h-[calc(100dvh-2rem)] scroll-pb-8 overflow-y-auto rounded-2xl border shadow-2xl [-webkit-overflow-scrolling:touch] sm:my-0"
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border shadow-2xl"
         style={{
           backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border-color)",
@@ -223,7 +212,7 @@ export default function AppointmentModal({
           <X className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
         </button>
 
-        <div className="p-6 pb-10 sm:p-8 sm:pb-12">
+        <div className="p-6 sm:p-8">
           {submitted ? (
             <div className="text-center py-10">
               <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
@@ -287,9 +276,6 @@ export default function AppointmentModal({
                   <input
                     required
                     type="tel"
-                    inputMode="numeric"
-                    pattern="(?:\+?91[\s-]?)?[6-9][0-9\s-]{9,12}"
-                    title={INDIAN_MOBILE_ERROR}
                     placeholder="Phone *"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -356,15 +342,15 @@ export default function AppointmentModal({
                     Select Available Time Slot *
                   </label>
                   {!form.date ? (
-                    <div className="text-xs p-3 border border-dashed rounded-xl text-center" style={{ color: "var(--text-muted)", borderColor: "var(--border-mid)" }}>
+                    <div className="text-xs p-3 border border-dashed rounded-xl text-center text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800">
                       Please select a date first to view slot availability.
                     </div>
                   ) : loadingSlots ? (
-                    <div className="text-xs p-3 text-center animate-pulse" style={{ color: "var(--text-secondary)" }}>
+                    <div className="text-xs p-3 text-center animate-pulse text-zinc-400">
                       Checking slot availability...
                     </div>
                   ) : slotError ? (
-                    <div className="text-xs p-3 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 rounded-xl text-center font-semibold">
+                    <div className="text-xs p-3 bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 border border-red-100 dark:border-red-900/30 rounded-xl text-center font-semibold">
                       {slotError}
                     </div>
                   ) : availability && availability.slots.length > 0 ? (
@@ -393,7 +379,7 @@ export default function AppointmentModal({
                               isSelected
                                 ? "bg-sage-600 border-sage-600 text-white shadow-sm"
                                 : isBooked
-                                ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-800/10 dark:border-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed line-through"
+                                ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-800/10 dark:border-zinc-850 text-zinc-400 dark:text-zinc-600 cursor-not-allowed line-through"
                                 : "hover:border-sage-400 text-zinc-700 dark:text-zinc-300"
                             }`}
                             style={{
@@ -408,7 +394,7 @@ export default function AppointmentModal({
                       })}
                     </div>
                   ) : (
-                    <div className="text-xs p-3 border border-dashed rounded-xl text-center" style={{ color: "var(--text-muted)", borderColor: "var(--border-mid)" }}>
+                    <div className="text-xs p-3 border border-dashed rounded-xl text-center text-zinc-450 border-zinc-200 dark:border-zinc-800">
                       No consultation slots configured by doctor.
                     </div>
                   )}
@@ -416,14 +402,14 @@ export default function AppointmentModal({
                   <input type="hidden" required value={form.time} />
                 </div>
 
-                {/* <textarea
+                <textarea
                   rows={3}
                   placeholder="Additional message (optional)"
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                   className={inputClass}
                   style={inputStyle}
-                /> */}
+                />
 
                 {error && (
                   <p className="text-red-500 text-sm text-center">{error}</p>
