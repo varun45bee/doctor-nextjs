@@ -5,7 +5,6 @@ import {
 } from "@/lib/notifications/patient-message";
 import { sendStatusEmail } from "@/lib/notifications/send-email";
 import type { AppointmentStatus } from "@/lib/types/appointment";
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -52,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: result.error ?? "Could not send email. Check RESEND_API_KEY." },
+      { error: result.error ?? "Could not send email. Check BREVO_API_KEY." },
       { status: 500 }
     );
   } catch (err) {
