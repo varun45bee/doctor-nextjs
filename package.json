@@ -13,6 +13,7 @@
     "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
     "@tailwindcss/typography": "^0.5.13",
+    "@vercel/speed-insights": "^2.0.0",
     "firebase": "^12.14.0",
     "framer-motion": "^11.3.0",
     "groq-sdk": "^1.1.1",

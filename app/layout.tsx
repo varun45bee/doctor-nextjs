@@ -8,6 +8,7 @@ import MotionProvider from "@/components/animations/MotionProvider";
 import PageTransition from "@/components/animations/PageTransition";
 import ScrollProgressBar from "@/components/animations/ScrollProgressBar";
 import SiteChrome from "@/components/SiteChrome";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pratimaagale.in"),
@@ -331,6 +332,7 @@ export default function RootLayout({
             </LanguageProvider>
           </AuthProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
