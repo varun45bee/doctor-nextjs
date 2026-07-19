@@ -3,17 +3,43 @@ import { Star } from "lucide-react";
 import CaseStudyConsultationButton from "@/components/CaseStudyConsultationButton";
 
 export const metadata: Metadata = {
-  title: "Patient Case Studies | Homeopathy Practice | Kalyan & Mumbai",
+  title: "Homeopathy Case Studies Kalyan | PCOS, Thyroid, Child Immunity – Dr. Pratima Agale MD",
   description:
-    "Anonymized patient case summaries from Dr. Pratima Agale’s homeopathy practice in Kalyan and Mumbai. These cases reflect real clinical journeys and outcomes.",
+    "Real patient case studies from Dr. Pratima Agale’s homeopathy practice in Kalyan and Mumbai. These cases reflect real clinical journeys and outcomes.",
   keywords: [
-    "homeopathy case studies",
-    "homeopathy clinical experience",
-    "PCOD homeopathy case",
-    "thyroid homeopathy case",
-    "child immunity homeopathy",
-    "homeopathy kalyan mumbai",
+    "homeopathy case studies kalyan",
+    "PCOS homeopathy success kalyan",
+    "thyroid homeopathy case study",
+    "child immunity homeopathy case",
+    "eczema homeopathy success story kalyan",
+    "migraine homeopathy recovery kalyan",
+    "homeopathy results kalyan",
+    "Dr Pratima Agale patient review",
+    "homeopathy testimonials kalyan",
   ],
+  alternates: { canonical: "https://pratimaagale.in/case-studies" },
+};
+
+// ─── JSON-LD: MedicalWebPage for Case Studies ────────────────────────────────
+const caseStudiesSchema = {
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Homeopathy Case Studies – Dr. Pratima Agale Kalyan",
+  "description": "Real patient case studies from Dr. Pratima Agale's homeopathy practice in Kalyan — PCOS, thyroid, migraines, eczema, child immunity, ADHD & more.",
+  "url": "https://pratimaagale.in/case-studies",
+  "about": [
+    { "@type": "MedicalCondition", "name": "PCOS" },
+    { "@type": "MedicalCondition", "name": "Hypothyroidism" },
+    { "@type": "MedicalCondition", "name": "Migraine" },
+    { "@type": "MedicalCondition", "name": "Eczema" },
+    { "@type": "MedicalCondition", "name": "ADHD" },
+    { "@type": "MedicalCondition", "name": "Recurrent Infections" },
+  ],
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Pratima Agale",
+    "hasCredential": ["BHMS", "MD Homeopathy"],
+  },
 };
 
 const cases = [
@@ -112,6 +138,10 @@ const cases = [
 export default function CaseStudiesPage() {
   return (
     <div className="pt-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(caseStudiesSchema) }}
+      />
       {/* HERO */}
       <section
         className="py-16 sm:py-20 px-4 sm:px-6 text-center"
@@ -122,7 +152,7 @@ export default function CaseStudiesPage() {
             className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-2 rounded-full mb-6"
             style={{ backgroundColor: "var(--bg-surface-alt)", color: "var(--text-secondary)" }}
           >
-            Patient Experiences
+            Patient Experiences — Kalyan & Mumbai
           </div>
           <h1
             className="font-serif mb-4"
@@ -132,7 +162,8 @@ export default function CaseStudiesPage() {
               color: "var(--text-primary)",
             }}
           >
-            Case Studies From Practice
+            Homeopathy Case Studies
+            <span className="block italic text-sage-500">Real Clinical Journeys — Kalyan Practice</span>
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             A selection of anonymized patient experiences from Dr. Pratima Agale's

@@ -3,18 +3,91 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Women's Health Homeopathy | PCOD, Thyroid, Menopause Treatment Kalyan",
+  title: "Women's Homeopathy Doctor Kalyan | PCOS, Thyroid, Fertility – Dr. Pratima Agale MD",
   description:
-    "Expert homeopathic treatment for PCOD/PCOS, thyroid disorders, hormonal imbalance, menopause, infertility in Kalyan, Andheri, Mumbai. Dr. Pratima Agale BHMS MD.",
+    "Dr. Pratima Agale (BHMS, MD Homeopathy) — Kalyan's trusted lady homeopathy doctor for women's health. Expert treatment for PCOS, PCOD, thyroid, irregular periods, hormonal imbalance, fertility & menopause. Female homeopathy specialist serving Kalyan, Dombivli, Thane & Mumbai.",
   keywords: [
+    // Primary — women + location
+    "women homeopathy doctor kalyan",
+    "lady homeopathy doctor kalyan",
+    "female homeopathy doctor kalyan",
+    "women homeopathy specialist kalyan",
+    "lady doctor for PCOS kalyan",
+    "female homeopathy specialist thane",
+    "women homeopathy doctor near me",
+    "best lady homeopathy doctor kalyan",
+    "MD homeopathy doctor for women kalyan",
+
+    // PCOS / PCOD — most searched
+    "PCOS homeopathy treatment kalyan",
     "PCOD homeopathy kalyan",
-    "PCOS homeopathy mumbai",
-    "thyroid homeopathy treatment",
-    "menopause homeopathy",
-    "hormonal balance homeopathy",
-    "infertility homeopathy kalyan",
-    "women health doctor kalyan",
+    "PCOD natural treatment kalyan",
+    "homeopathy for irregular periods kalyan",
+    "PCOS treatment without hormones kalyan",
+    "PCOS homeopathy doctor near me",
+    "best homeopathy for PCOD mumbai",
+    "lady doctor PCOD kalyan",
+
+    // Thyroid
+    "thyroid homeopathy doctor kalyan",
+    "hypothyroidism homeopathy kalyan",
+    "thyroid homeopathy treatment mumbai",
+    "homeopathy for thyroid without medicine kalyan",
+    "weight gain thyroid homeopathy",
+
+    // Fertility & hormones
+    "fertility homeopathy treatment kalyan",
+    "homeopathy for getting pregnant kalyan",
+    "hormonal imbalance homeopathy kalyan",
+    "homeopathy for delayed periods kalyan",
+    "PMS homeopathy treatment kalyan",
+
+    // Menopause
+    "menopause homeopathy treatment kalyan",
+    "menopause doctor kalyan",
+    "hot flashes homeopathy treatment",
+
+    // Hair & skin (women)
+    "hair fall after delivery homeopathy kalyan",
+    "hair loss homeopathy doctor kalyan",
+    "acne PCOS homeopathy kalyan",
+
+    // Marathi / Hindi
+    "महिला होम्योपैथी डॉक्टर कल्याण",
+    "PCOD साठी होमिओपॅथी कल्याण",
+    "थायरॉईड होमिओपॅथी कल्याण",
+    "महिला होमिओपॅथ कल्याण",
   ],
+  openGraph: {
+    title: "Women's Homeopathy Doctor in Kalyan | PCOS, Thyroid, Fertility – Dr. Pratima Agale MD",
+    description:
+      "MD-qualified lady homeopathy doctor in Kalyan. Expert in PCOS, thyroid, hormonal imbalance, fertility & menopause. Book consultation today.",
+    url: "https://pratimaagale.in/services/womens-health",
+  },
+  alternates: { canonical: "https://pratimaagale.in/services/womens-health" },
+};
+
+// ─── JSON-LD: Women's Health Service ─────────────────────────────────────────
+const womensHealthSchema = {
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  name: "Women's Homeopathy Treatment – Dr. Pratima Agale Kalyan",
+  description:
+    "Homeopathic treatment for PCOS, thyroid disorders, hormonal imbalance, infertility, and menopause by MD-qualified lady homeopathy doctor in Kalyan.",
+  url: "https://pratimaagale.in/services/womens-health",
+  about: [
+    { "@type": "MedicalCondition", name: "PCOS" },
+    { "@type": "MedicalCondition", name: "PCOD" },
+    { "@type": "MedicalCondition", name: "Hypothyroidism" },
+    { "@type": "MedicalCondition", name: "Hormonal Imbalance" },
+    { "@type": "MedicalCondition", name: "Infertility" },
+    { "@type": "MedicalCondition", name: "Menopause" },
+  ],
+  author: {
+    "@type": "Physician",
+    name: "Dr. Pratima Agale",
+    hasCredential: ["BHMS", "MD Homeopathy"],
+  },
 };
 
 const conditions = [
@@ -58,6 +131,11 @@ const conditions = [
 export default function WomensHealthPage() {
   return (
     <div className="pt-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(womensHealthSchema) }}
+      />
+
       <section
         className="py-20 px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
@@ -68,13 +146,13 @@ export default function WomensHealthPage() {
             className="font-serif mb-4"
             style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
-            Women's Health
-            <span className="block italic text-sage-500">Holistic Homeopathic Care</span>
+            Women's Homeopathy Doctor in Kalyan
+            <span className="block italic text-sage-500">MD-Qualified Lady Homeopathy Specialist</span>
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            From adolescence to menopause, Dr. Pratima Agale provides compassionate,
-            effective homeopathic care for every stage of a woman's health journey.
-            Serving women across Kalyan, Andheri, and Mumbai.
+            Dr. Pratima Agale (BHMS, MD Homeopathy) — Kalyan's trusted female homeopathy doctor for
+            PCOS, thyroid, hormonal imbalance, fertility and every stage of a woman's health journey.
+            Serving women across Kalyan, Dombivli, Thane and Mumbai.
           </p>
         </div>
       </section>
@@ -84,8 +162,7 @@ export default function WomensHealthPage() {
           {conditions.map((cond, i) => (
             <div
               key={cond.title}
-              className={`grid md:grid-cols-2 gap-10 items-start ${i % 2 === 1 ? "md:flex-row-reverse" : ""
-                }`}
+              className={`grid md:grid-cols-2 gap-10 items-start ${i % 2 === 1 ? "md:flex-row-reverse" : ""}`}
             >
               <div>
                 <div className="text-5xl mb-4">{cond.emoji}</div>
@@ -126,10 +203,11 @@ export default function WomensHealthPage() {
       <section className="py-16 px-6 bg-sage-500 text-center">
         <div className="max-w-xl mx-auto">
           <h2 className="font-serif text-3xl text-white mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            Start Your Women's Health Journey
+            Consult Kalyan's Trusted Lady Homeopathy Doctor
           </h2>
           <p className="text-sage-100 mb-6">
-            Dr. Pratima Agale brings deep expertise and a woman-first approach to every consultation.
+            Dr. Pratima Agale (MD Homeopathy) brings deep expertise and a woman-first approach to every consultation.
+            Serving Kalyan, Dombivli, Thane & Mumbai.
           </p>
           <a
             href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20my%20consultation%20with%20Dr.%20Pratima%20Agale."
@@ -137,7 +215,6 @@ export default function WomensHealthPage() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
-
             Book Your Consultation
           </a>
         </div>

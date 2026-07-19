@@ -3,9 +3,20 @@ import Link from "next/link";
 import { ArrowRight, Clock, MessageCircle, Leaf, TrendingUp } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Patient Journey | What to Expect at Dr. Pratima Agale's Clinic Kalyan",
+  title: "Homeopathy Consultation Process Kalyan | What to Expect – Dr. Pratima Agale MD",
   description:
-    "Understand your complete homeopathic healing journey with Dr. Pratima Agale in Kalyan, Mumbai — from first consultation to lasting wellness. What to expect, how long treatment takes, and FAQs.",
+    "Understand your complete homeopathic healing journey with Dr. Pratima Agale (MD Homeopathy) in Kalyan — first consultation, remedy selection, follow-ups & FAQs. Know what to expect, how long treatment takes. Serving Kalyan, Thane & Mumbai.",
+  keywords: [
+    "homeopathy consultation kalyan",
+    "first homeopathy appointment kalyan",
+    "how homeopathy consultation works",
+    "homeopathy treatment duration kalyan",
+    "what to expect homeopathy kalyan",
+    "online homeopathy consultation kalyan",
+    "book homeopathy appointment kalyan",
+    "Dr Pratima Agale consultation",
+  ],
+  alternates: { canonical: "https://pratimaagale.in/patient-journey" },
 };
 
 const steps = [
@@ -52,9 +63,53 @@ const faqs = [
   { q: "What should I avoid during treatment?", a: "Coffee, strong mint (toothpaste, chewing gum), camphor, and some essential oils can antidote remedies. Dr. Agale will provide specific guidance based on your prescribed remedy." },
 ];
 
+// ─── JSON-LD: FAQPage for Patient Journey ─────────────────────────────────────
+const patientJourneyFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How long does homeopathic treatment take in Kalyan?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Acute conditions like cold or fever respond within days. Chronic conditions like PCOS, thyroid or arthritis typically need 6–18 months of consistent treatment.",
+      },
+    },
+    {
+      "@type": "Question",
+      "name": "Is homeopathy safe to take with allopathic medicines?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Homeopathy can be taken alongside conventional medicines.",
+      },
+    },
+    {
+      "@type": "Question",
+      "name": "Is homeopathy safe during pregnancy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Dr. Pratima Agale uses homeopathy safely during pregnancy.",
+      },
+    },
+    {
+      "@type": "Question",
+      "name": "How to book a homeopathy appointment with Dr. Pratima Agale in Kalyan?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Book at pratimaagale.in or WhatsApp +91-9359875511. In-person at Yogidham Phase 3, Kalyan or online.",
+      },
+    },
+  ],
+};
+
 export default function PatientJourneyPage() {
   return (
     <div className="pt-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(patientJourneyFaqSchema) }}
+      />
       <section
         className="py-16 sm:py-20 px-4 sm:px-6 text-center"
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
@@ -64,7 +119,7 @@ export default function PatientJourneyPage() {
             className="font-serif mb-4"
             style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "var(--text-primary)" }}
           >
-            Your Healing Journey
+            Your Homeopathy Journey in Kalyan
             <span className="block italic text-sage-500">Step by Step</span>
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>

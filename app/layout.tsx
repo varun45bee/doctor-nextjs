@@ -12,25 +12,79 @@ import SiteChrome from "@/components/SiteChrome";
 export const metadata: Metadata = {
   metadataBase: new URL("https://pratimaagale.in"),
   title: {
-    default: "Dr. Pratima Agale | Best Homeopathy Doctor in Kalyan, Mumbai",
-    template: "%s | Dr. Pratima Agale Homeopathy Kalyan",
+    default: "Dr. Pratima Agale | Best Women Homeopathy Doctor in Kalyan, Mumbai",
+    template: "%s | Dr. Pratima Agale – MD Homeopathy Kalyan",
   },
   description:
-    "Dr. Pratima Agale (BHMS, MD) — Expert homeopathic treatment in Kalyan, Andheri & Mumbai. Specializing in Women's Health, Pediatric Care, PCOD, Thyroid, Chronic Diseases. Book your consultation today.",
+    "Dr. Pratima Agale (BHMS, MD Homeopathy) — Kalyan's trusted lady homeopathy doctor. Expert in women's health, PCOS, thyroid, fertility & pediatric care. Female homeopathy specialist near you in Kalyan, Thane & Mumbai. Book consultation today.",
   keywords: [
-    "homeopathy doctor kalyan",
-    "best homeopathy doctor mumbai",
-    "homeopathy andheri",
-    "homeopathy doctor maharashtra",
-    "PCOD homeopathy treatment",
+    // Women doctor — high intent
+    "women homeopathy doctor near me",
+    "best women homeopathy doctor in kalyan",
+    "lady homeopathy doctor kalyan",
+    "female homeopathy doctor kalyan",
+    "female homeopathy specialist kalyan",
+    "lady doctor homeopathy mumbai",
+    "women homeopathy specialist thane",
+    "best lady homeopathy doctor near me",
+
+    // MD qualification — differentiator
+    "MD homeopathy doctor kalyan",
+    "MD homeopath kalyan",
+    "MD homeopathy doctor mumbai",
+    "homeopathy MD doctor near me",
+    "qualified homeopathy doctor kalyan",
+
+    // Women's health conditions
+    "PCOS homeopathy treatment kalyan",
+    "PCOD homeopathy treatment kalyan",
+    "homeopathy for irregular periods kalyan",
+    "hormonal imbalance homeopathy kalyan",
+    "fertility homeopathy treatment kalyan",
+    "menopause homeopathy treatment",
     "thyroid homeopathy kalyan",
-    "pediatric homeopathy mumbai",
+    "thyroid treatment homeopathy mumbai",
+    "homeopathy for weight loss kalyan",
+    "hair fall homeopathy treatment kalyan",
+
+    // Location-based
+    "homeopathy doctor kalyan west",
+    "homeopathy doctor kalyan east",
+    "homeopathy clinic kalyan",
+    "homeopathy doctor near kalyan station",
+    "homeopathy doctor dombivli",
+    "homeopathy doctor ulhasnagar",
+    "homeopathy doctor thane",
+    "homeopathic clinic mumbai",
+    "homeopathy doctor andheri",
+
+    // General + brand
+    "best homeopathy doctor in kalyan",
+    "best homeopathy doctor mumbai",
     "Dr Pratima Agale",
-    "homeopathic clinic kalyan",
+    "Pratima Agale homeopathy",
+    "pratimaagale.in",
+    "homeopathy doctor maharashtra",
+
+    // Pediatric
+    "child homeopathy doctor kalyan",
+    "pediatric homeopathy kalyan",
+    "homeopathy for kids kalyan",
+    "children homeopathy specialist mumbai",
+
+    // Chronic & skin
+    "skin disease homeopathy kalyan",
+    "eczema psoriasis homeopathy kalyan",
     "chronic disease homeopathy",
-    "women health homeopathy",
+    "arthritis homeopathy kalyan",
+    "migraine homeopathy treatment kalyan",
+    "acne skin homeopathy doctor kalyan",
+
+    // Multilingual
     "होम्योपैथी कल्याण",
     "होमिओपॅथी कल्याण",
+    "महिला होम्योपैथी डॉक्टर कल्याण",
+    "कल्याण होमिओपॅथी डॉक्टर",
   ],
   authors: [{ name: "Dr. Pratima Agale", url: "https://pratimaagale.in" }],
   creator: "Dr. Pratima Agale",
@@ -39,20 +93,20 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://pratimaagale.in",
     siteName: "Dr. Pratima Agale Homeopathy",
-    title: "Dr. Pratima Agale | Best Homeopathy Doctor in Kalyan, Mumbai",
+    title: "Dr. Pratima Agale | Best Women Homeopathy Doctor in Kalyan, Mumbai",
     description:
-      "Expert homeopathic treatment for women's health, pediatric care & chronic diseases. Serving Kalyan, Andheri, and all of Mumbai.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+      "MD-qualified lady homeopathy doctor in Kalyan. Expert in women's health, PCOS, thyroid, fertility, pediatric & chronic conditions. Serving Kalyan, Thane & Mumbai.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Dr. Pratima Agale - MD Homeopathy Doctor Kalyan" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dr. Pratima Agale | Homeopathy Doctor Kalyan",
-    description: "Expert homeopathic care in Kalyan, Mumbai. Book now.",
+    title: "Dr. Pratima Agale | Women's Homeopathy Doctor Kalyan",
+    description: "MD Homeopathy specialist for women's health, PCOS, thyroid & more. Serving Kalyan, Thane & Mumbai.",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://pratimaagale.in" },
   verification: {
-    google: "GOOGLE_VERIFICATION_ID_HERE", // User can replace this later
+    google: "GOOGLE_VERIFICATION_ID_HERE",
   },
   category: "Health",
 };
@@ -79,13 +133,14 @@ const themeScript = `
   })();
 `;
 
+// ─── Schema 1: Medical Business (Local SEO) ───────────────────────────────────
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
   "@id": "https://pratimaagale.in",
   name: "Dr. Pratima Agale Homeopathy Clinic",
   description:
-    "Expert homeopathic treatment in Kalyan, Mumbai by Dr. Pratima Agale (BHMS, MD)",
+    "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
   url: "https://pratimaagale.in",
   telephone: "+91-9359875511",
   priceRange: "₹₹",
@@ -118,8 +173,116 @@ const localBusinessSchema = {
     },
   ],
   medicalSpecialty: "Homeopathy",
-  hasMap: "https://maps.google.com/?q=Kalyan,Maharashtra",
+  hasMap: "https://maps.google.com/?q=Yogidham+Phase+3+Kalyan+Maharashtra",
   sameAs: [],
+};
+
+// ─── Schema 2: Doctor / Person (MD credentials) ──────────────────────────────
+const doctorSchema = {
+  "@context": "https://schema.org",
+  "@type": "Physician",
+  name: "Dr. Pratima Agale",
+  description:
+    "Dr. Pratima Agale is an MD-qualified lady homeopathy doctor in Kalyan, Mumbai. She specializes in women's health (PCOS, thyroid, hormonal imbalance, fertility), pediatric homeopathy, skin diseases and chronic conditions.",
+  url: "https://pratimaagale.in",
+  image: "https://pratimaagale.in/og-image.jpg",
+  telephone: "+91-9359875511",
+  jobTitle: "Homeopathic Physician",
+  hasCredential: [
+    {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "degree",
+      name: "BHMS (Bachelor of Homeopathic Medicine and Surgery)",
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "postgraduate degree",
+      name: "MD (Doctor of Medicine) – Homeopathy",
+    },
+  ],
+  medicalSpecialty: [
+    "Homeopathy",
+    "Women's Health",
+    "Pediatrics",
+    "Dermatology",
+    "Chronic Disease Management",
+  ],
+  worksFor: {
+    "@type": "MedicalBusiness",
+    name: "Dr. Pratima Agale Homeopathy Clinic",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Yogidham, Phase 3",
+      addressLocality: "Kalyan",
+      addressRegion: "Maharashtra",
+      postalCode: "421301",
+      addressCountry: "IN",
+    },
+  },
+  availableService: [
+    { "@type": "MedicalTherapy", name: "Women's Health & PCOS Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Thyroid Disorder Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Pediatric Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Skin Disease Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Chronic Disease Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Fertility & Hormonal Homeopathy" },
+  ],
+  areaServed: [
+    { "@type": "City", name: "Kalyan" },
+    { "@type": "City", name: "Dombivli" },
+    { "@type": "City", name: "Thane" },
+    { "@type": "City", name: "Ulhasnagar" },
+    { "@type": "City", name: "Mumbai" },
+    { "@type": "City", name: "Andheri" },
+  ],
+};
+
+// ─── Schema 3: FAQ (targets "near me" & question searches) ───────────────────
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Who is the best women homeopathy doctor in Kalyan?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Dr. Pratima Agale (BHMS, MD Homeopathy) is one of Kalyan's most trusted lady homeopathy doctors, specializing in women's health, PCOS, thyroid disorders, and hormonal imbalance. She is located at Yogidham Phase 3, Kalyan.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is there a female homeopathy doctor near me in Kalyan?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Dr. Pratima Agale is a qualified female (lady) homeopathy doctor in Kalyan, Maharashtra. She offers both in-person consultations in Kalyan and online consultations for patients across Mumbai and Thane.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can homeopathy treat PCOS and hormonal imbalance?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Dr. Pratima Agale specializes in homeopathic treatment for PCOS, PCOD, irregular periods, thyroid disorders, and hormonal imbalances with individualized, side-effect-free remedies.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the qualification of Dr. Pratima Agale?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Dr. Pratima Agale holds a BHMS (Bachelor of Homeopathic Medicine and Surgery) and an MD in Homeopathy, making her one of the few postgraduate-qualified homeopathy doctors in Kalyan.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does Dr. Pratima Agale offer online homeopathy consultations?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Dr. Pratima Agale offers online homeopathy consultations for patients in Mumbai, Thane, Dombivli, Ulhasnagar and across Maharashtra. Book at pratimaagale.in.",
+      },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -143,9 +306,15 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(localBusinessSchema),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(doctorSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       </head>
       <body>
