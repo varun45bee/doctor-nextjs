@@ -4,9 +4,9 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/_next/'],
+      allow: ['/', '/_next/static/', '/_next/image'],
+      disallow: ['/api/'],
     },
-    sitemap: 'https://pratimaagale.in/sitemap.xml',
+    sitemap: 'https://www.pratimaagale.in/sitemap.xml',
   }
 }
