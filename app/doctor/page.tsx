@@ -141,34 +141,54 @@ export default function DoctorDashboardPage() {
         style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
       >
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto">
-          {[
-            { id: "appointments", label: "Appointments", icon: List },
-            { id: "calendar", label: "Calendar Schedule", icon: CalendarIcon },
-            { id: "analytics", label: "Clinic Analytics", icon: BarChart2 },
-            { id: "availability", label: "Availability Settings", icon: Clock }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as "appointments" | "calendar" | "analytics" | "availability")}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all ${
-                  active
-                    ? "bg-sage-600 text-white shadow-sm"
-                    : "hover:bg-sage-50 dark:hover:bg-sage-900/30 text-zinc-600 dark:text-zinc-400"
-                }`}
-                style={{
-                  color: active ? "#ffffff" : "var(--text-secondary)"
-                }}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+       {/* Navigation Tabs */}
+<div className="flex flex-wrap gap-2 w-full sm:w-auto">
+  {[
+    { id: "appointments", label: "Appointments", icon: List },
+    { id: "calendar", label: "Calendar Schedule", icon: CalendarIcon },
+    { id: "analytics", label: "Clinic Analytics", icon: BarChart2 },
+    { id: "availability", label: "Availability Settings", icon: Clock },
+  ].map((tab) => {
+    const Icon = tab.icon;
+    const active = activeTab === tab.id;
+
+    return (
+      <button
+        key={tab.id}
+        onClick={() =>
+          setActiveTab(
+            tab.id as
+              | "appointments"
+              | "calendar"
+              | "analytics"
+              | "availability"
+          )
+        }
+        className={`
+          flex items-center justify-center gap-2
+          w-[calc(50%-4px)] sm:w-auto
+          sm:flex-none
+          px-4 py-3
+          rounded-xl
+          text-xs sm:text-sm
+          font-semibold
+          transition-all
+          ${
+            active
+              ? "bg-sage-600 text-white shadow-sm"
+              : "hover:bg-sage-50 dark:hover:bg-sage-900/30 text-zinc-600 dark:text-zinc-400"
+          }
+        `}
+        style={{
+          color: active ? "#fff" : "var(--text-secondary)",
+        }}
+      >
+        <Icon className="w-4 h-4 shrink-0" />
+        <span className="truncate">{tab.label}</span>
+      </button>
+    );
+  })}
+</div>
 
         {/* Global Toolbar Action buttons */}
         <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
