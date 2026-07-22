@@ -12,7 +12,6 @@ import {
   Heart,
   Activity,
   FileText,
-  LogOut,
   Sliders,
   CheckCircle,
   AlertCircle
@@ -225,10 +224,11 @@ export default function CheckAppointmentPage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl border border-red-200/50 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500 transition-all"
+                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl border hover:bg-sage-50 dark:hover:bg-sage-900/20 transition-all"
+                style={{ borderColor: "var(--border-color)", color: "var(--text-secondary)" }}
               >
-                <LogOut className="w-4 h-4" />
-                Sign Out
+                <ArrowLeft className="w-4 h-4" />
+                Back
               </button>
             </div>
 

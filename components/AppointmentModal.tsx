@@ -234,6 +234,7 @@ export default function AppointmentModal({
               <Link
                 href="/check-appointment"
                 className="inline-block mb-4 text-sage-600 text-sm underline"
+                onClick={onClose}
               >
                 Check appointment status
               </Link>
