@@ -35,3 +35,14 @@ export async function GET(req: NextRequest) {
     { status: 403 }
   );
 }
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+
+  console.log("Incoming WhatsApp Webhook");
+  console.log(JSON.stringify(body, null, 2));
+
+  return NextResponse.json({
+    success: true,
+  });
+}
