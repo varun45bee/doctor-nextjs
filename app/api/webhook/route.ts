@@ -1,19 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    
-    // TODO: Handle webhook logic here
-    console.log('Webhook received:', body);
-    
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
-  }
-}
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  return NextResponse.json({ message: 'Webhook endpoint' });
+  const mode = req.nextUrl.searchParams.get("hub.mode");
+  const token = req.nextUrl.searchParams.get("hub.verify_token");
+  const challenge = req.nextUrl.searchParams.get("hub.challenge");
+
+  if (
+    mode === "subscribe" &&
+    token === process.env.VERIFY_TOKEN
+  ) {
+    return new Response(challenge!, { status: 200 });
+  }
+
+  return NextResponse.json(
+    { error: "Verification failed" },
+    { status: 403 }
+  );
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+
+  console.log("Webhook:", body);
+
+  return NextResponse.json({ success: true });
 }
