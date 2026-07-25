@@ -123,8 +123,42 @@ Respond ONLY with valid JSON, no other text:
 }
 
 async function notifyDoctor(patientNumber: string, patientName: string, summary: string) {
-  const message = `🔔 New appointment request\n\nFrom: ${patientName}\nNumber: ${patientNumber}\nDetails: ${summary}\n\nPlease follow up to confirm.`;
-  await sendWhatsAppMessage(DOCTOR_NOTIFY_NUMBER, message);
+  const response = await fetch(
+    `https://graph.facebook.com/v21.0/${process.env.PHONE_NUMBER_ID}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: DOCTOR_NOTIFY_NUMBER,
+        type: "template",
+        template: {
+          name: "appointment_notification",
+          language: { code: "en" },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                { type: "text", text: patientName },
+                { type: "text", text: patientNumber },
+                { type: "text", text: summary },
+              ],
+            },
+          ],
+        },
+      }),
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    console.error("WhatsApp template send error:", data);
+  } else {
+    console.log("Doctor notified via template:", data);
+  }
 }
 
 async function getAIReply(userMessage: string): Promise<string> {
