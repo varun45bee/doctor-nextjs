@@ -15,9 +15,7 @@ export async function GET(req: NextRequest) {
   if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
     return new Response(challenge ?? "", {
       status: 200,
-      headers: {
-        "Content-Type": "text/plain",
-      },
+      headers: { "Content-Type": "text/plain" },
     });
   }
 
@@ -42,13 +40,12 @@ export async function POST(req: NextRequest) {
   try {
     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-    // Webhook also fires for status updates (delivered/read) — ignore those
     if (!message) {
       console.log("No message object found (likely a status update). Skipping.");
       return NextResponse.json({ success: true });
     }
 
-    const from = message.from; // sender's phone number
+    const from = message.from;
     const text = message.text?.body;
 
     if (!text) {
@@ -58,48 +55,44 @@ export async function POST(req: NextRequest) {
 
     console.log(`Message from ${from}: ${text}`);
 
-    // 1. Get a reply from Gemini
-    const geminiReply = await getGeminiReply(text);
-
-    // 2. Send the reply back via WhatsApp
-    await sendWhatsAppMessage(from, geminiReply);
+    const aiReply = await getAIReply(text);
+    await sendWhatsAppMessage(from, aiReply);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error processing webhook:", error);
-    // Still return 200 so Meta doesn't retry aggressively
     return NextResponse.json({ success: false, error: String(error) });
   }
 }
 
-async function getGeminiReply(userMessage: string): Promise<string> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: userMessage }],
-          },
-        ],
-      }),
-    }
-  );
+async function getAIReply(userMessage: string): Promise<string> {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful WhatsApp assistant for Dr. Pratima Agale's homeopathy clinic. Keep replies concise, warm, and clear. You are not a substitute for a real medical consultation — encourage booking an appointment for anything requiring diagnosis or treatment.",
+        },
+        { role: "user", content: userMessage },
+      ],
+    }),
+  });
 
   const data = await response.json();
 
   if (!response.ok) {
-    console.error("Gemini API error:", data);
+    console.error("Groq API error:", data);
     return "Sorry, I couldn't process that right now.";
   }
 
-  const reply =
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-    "Sorry, I didn't understand that.";
-
-  return reply;
+  return data?.choices?.[0]?.message?.content ?? "Sorry, I didn't understand that.";
 }
 
 async function sendWhatsAppMessage(to: string, text: string) {
