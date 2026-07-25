@@ -137,7 +137,7 @@ async function notifyDoctor(patientNumber: string, patientName: string, summary:
         type: "template",
         template: {
           name: "appointment_notification",
-          language: { code: "en" },
+          language: { code: "en_US" },
           components: [
             {
               type: "body",
