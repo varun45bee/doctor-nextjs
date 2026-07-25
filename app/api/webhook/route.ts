@@ -1,5 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const DOCTOR_NOTIFY_NUMBER = "919359875511";
+
+const SYSTEM_PROMPT = `You are the official WhatsApp assistant for Dr. Pratima Agale's Homeopathy Clinic.
+
+## VERIFIED FACTS (use ONLY these — never invent alternatives)
+- Clinic booking/contact number: +91 93598 75511
+- Official website: https://www.pratimaagale.in/
+- You are an AI assistant, not Dr. Agale herself — always be clear about this if asked.
+
+## CRITICAL RULES
+1. NEVER invent phone numbers, addresses, timings, prices, or website links. If you don't have a fact, direct the user to call +91 93598 75511 or visit https://www.pratimaagale.in/ instead of guessing.
+2. NEVER diagnose, prescribe remedies, or give specific medical/treatment advice. Discuss general homeopathy concepts only, and steer toward booking a real consultation for anything personal or symptom-related.
+3. For appointment booking: confirm you've noted their request and that the clinic will follow up to confirm timing — you don't book appointments directly, but their request has been forwarded.
+4. If a user describes a medical emergency (severe symptoms, chest pain, breathing difficulty, suicidal thoughts, etc.), immediately tell them to seek emergency medical care or call local emergency services.
+5. Keep replies SHORT for WhatsApp — 2-4 sentences max unless asked for detail.
+6. Tone: warm, respectful, reassuring — like a caring clinic receptionist.
+7. Never mention you are built on Groq, Llama, or any underlying AI provider/model.`;
+
 export async function GET(req: NextRequest) {
   const mode = req.nextUrl.searchParams.get("hub.mode");
   const token = req.nextUrl.searchParams.get("hub.verify_token");
@@ -20,13 +38,7 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json(
-    {
-      mode,
-      token,
-      challenge,
-      expectedToken: process.env.VERIFY_TOKEN,
-      error: "Verification failed",
-    },
+    { mode, token, challenge, expectedToken: process.env.VERIFY_TOKEN, error: "Verification failed" },
     { status: 403 }
   );
 }
@@ -55,6 +67,17 @@ export async function POST(req: NextRequest) {
 
     console.log(`Message from ${from}: ${text}`);
 
+    const contactName =
+      body?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name ?? "Unknown";
+
+    // Check if this message is a booking request
+    const booking = await detectBookingIntent(text);
+    if (booking.isBooking) {
+      console.log("Booking intent detected:", booking.summary);
+      await notifyDoctor(from, contactName, booking.summary);
+    }
+
+    // Generate and send the AI reply to the patient
     const aiReply = await getAIReply(text);
     await sendWhatsAppMessage(from, aiReply);
 
@@ -65,27 +88,44 @@ export async function POST(req: NextRequest) {
   }
 }
 
-const SYSTEM_PROMPT = `You are the official WhatsApp assistant for Dr. Pratima Agale's Homeopathy Clinic.
+async function detectBookingIntent(
+  userMessage: string
+): Promise<{ isBooking: boolean; summary: string }> {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `Analyze if this WhatsApp message is a request to book/schedule an appointment with the doctor.
+Respond ONLY with valid JSON, no other text:
+{"isBooking": true or false, "summary": "brief one-line summary, e.g. 'wants morning appointment', or empty string if not a booking"}`,
+        },
+        { role: "user", content: userMessage },
+      ],
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+    }),
+  });
 
-## VERIFIED FACTS (use ONLY these — never invent alternatives)
-- Clinic booking/contact number: +91 93598 75511
-- Official website: https://www.pratimaagale.in/
-- You are an AI assistant, not Dr. Agale herself — always be clear about this if asked.
+  const data = await response.json();
+  try {
+    const parsed = JSON.parse(data?.choices?.[0]?.message?.content ?? "{}");
+    return { isBooking: !!parsed.isBooking, summary: parsed.summary ?? "" };
+  } catch {
+    return { isBooking: false, summary: "" };
+  }
+}
 
-## CRITICAL RULES
-1. NEVER invent phone numbers, addresses, timings, prices, or website links. If you don't have a fact, direct the user to call +91 93598 75511 or visit https://www.pratimaagale.in/ instead of guessing.
-2. NEVER diagnose, prescribe remedies, or give specific medical/treatment advice. You may discuss general homeopathy concepts, but always steer toward booking a real consultation for anything personal or symptom-related.
-3. For appointment booking: tell the user to call +91 93598 75511 or visit https://www.pratimaagale.in/ — you cannot book appointments directly yet.
-4. If a user describes a medical emergency (severe symptoms, chest pain, breathing difficulty, suicidal thoughts, etc.), immediately tell them to seek emergency medical care or call local emergency services — do not try to handle this yourself.
-5. Keep replies SHORT for WhatsApp — 2-4 sentences max unless the user asks for detail. No long paragraphs.
-6. Tone: warm, respectful, reassuring — like a caring clinic receptionist, not a generic chatbot.
-7. If unsure or the question is outside your knowledge, say so honestly and point to the clinic contact instead of guessing.
-8. Never mention you are built on Groq, Llama, or any underlying AI provider/model. Just present as "Dr. Pratima Agale's clinic assistant."
-
-## EXAMPLE GOOD RESPONSES
-User: "hi" → "Hello! Welcome to Dr. Pratima Agale's Homeopathy Clinic. How can I help you today — booking an appointment, or do you have a question about our services?"
-User: "book appointment" → "You can book an appointment by calling us at +91 93598 75511 or visiting https://www.pratimaagale.in/. Would you like help with anything else?"
-User: "what do you treat" → "Dr. Agale's clinic offers homeopathic care for a range of conditions including skin issues, hormonal imbalance, chronic illness, and more. For guidance specific to your situation, I'd recommend booking a consultation at +91 93598 75511."`;
+async function notifyDoctor(patientNumber: string, patientName: string, summary: string) {
+  const message = `🔔 New appointment request\n\nFrom: ${patientName}\nNumber: ${patientNumber}\nDetails: ${summary}\n\nPlease follow up to confirm.`;
+  await sendWhatsAppMessage(DOCTOR_NOTIFY_NUMBER, message);
+}
 
 async function getAIReply(userMessage: string): Promise<string> {
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
