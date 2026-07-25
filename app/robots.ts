@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/_next/static/', '/_next/image'],
+      allow: ['/', '/privacy-policy', '/_next/static/', '/_next/image'],
       disallow: ['/api/'],
     },
     host: 'https://pratimaagale.in',
