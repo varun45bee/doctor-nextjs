@@ -109,7 +109,7 @@ export default function DiseasePage({ data }: { data: DiseasePageData }) {
                 {t.common.bookConsultation}
               </button>
               <a
-                href="tel:+917045532232"
+                href="tel:+919359875511"
                 className="flex w-full sm:w-auto justify-center items-center gap-2 border-2 border-sage-400 px-6 py-3 rounded-full font-medium transition-all hover:bg-sage-50 dark:hover:bg-sage-900"
                 style={{ color: "var(--text-secondary)" }}
               >

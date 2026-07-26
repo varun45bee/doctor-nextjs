@@ -422,7 +422,7 @@ export default function BlogPostPage() {
   Book Appointment
 </a>
               <a
-                href="tel:+91XXXXXXXXXX"
+                href="tel:+919359875511"
                 className="block text-center border border-white/30 text-white py-2.5 rounded-xl font-medium text-sm mt-2 hover:bg-white/10 transition-all"
               >
                 Call Now

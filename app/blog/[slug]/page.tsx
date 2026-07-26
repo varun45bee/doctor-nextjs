@@ -291,10 +291,10 @@ export default function BlogPostPage({ params }: PageProps) {
                 Book Appointment
               </a>
               <a
-                href="tel:+917045532232"
+                href="tel:+919359875511"
                 className="block text-center border border-white/30 text-white py-2.5 rounded-xl font-medium text-sm mt-2 hover:bg-white/10 transition-all"
               >
-                Call +91 70455 32232
+                Call +91 93598 75511
               </a>
             </div>
 

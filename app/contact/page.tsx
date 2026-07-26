@@ -175,8 +175,8 @@ export default function ContactPage() {
                 {
                   icon: Phone,
                   label: t.contact.phoneLabel,
-                  value: "+91 70455 32232",
-                  href: "tel:+917045532232",
+                  value: "+91 93598 75511",
+                  href: "tel:+919359875511",
                 },
                 {
                   icon: Mail,
