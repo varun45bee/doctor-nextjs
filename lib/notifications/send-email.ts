@@ -4,8 +4,8 @@ export async function sendStatusEmail(
   message: string
 ): Promise<{ success: boolean; error?: string }> {
   const apiKey = process.env.BREVO_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  const fromName = process.env.EMAIL_FROM_NAME || "Your Clinic";
+  const from = process.env.EMAIL_FROM?.trim();
+  const fromName = process.env.EMAIL_FROM_NAME?.trim() || "Your Clinic";
 
   if (!apiKey || !from) {
     return {
@@ -16,6 +16,9 @@ export async function sendStatusEmail(
   }
 
   try {
+    console.log("EMAIL_FROM value:", JSON.stringify(from));
+    console.log("EMAIL_FROM_NAME value:", JSON.stringify(fromName));
+
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
