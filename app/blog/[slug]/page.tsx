@@ -275,7 +275,7 @@ export default function BlogPostPage({ params }: PageProps) {
                 Book a consultation with Dr. Pratima Agale in Kalyan.
               </p>
               <a
-                href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
+                href="https://wa.me/917045532232?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Pratima%20Agale."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 text-center bg-white text-sage-700 py-2.5 rounded-xl font-semibold text-sm hover:bg-cream-50 transition-all hover:shadow-md"
@@ -291,10 +291,10 @@ export default function BlogPostPage({ params }: PageProps) {
                 Book Appointment
               </a>
               <a
-                href="tel:+919359875511"
+                href="tel:+917045532232"
                 className="block text-center border border-white/30 text-white py-2.5 rounded-xl font-medium text-sm mt-2 hover:bg-white/10 transition-all"
               >
-                Call +91 93598 75511
+                Call +91 70455 32232
               </a>
             </div>
 

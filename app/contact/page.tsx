@@ -94,7 +94,7 @@ export default function ContactPage() {
 
       // 3. Format WhatsApp message
       const whatsappMsg = `*New Appointment Request*%0A*Name:* ${form.name}%0A*Phone:* ${form.phone}%0A*Condition:* ${form.condition}%0A*Date:* ${form.date}%0A*Time:* ${form.time}%0A*Message:* ${form.message}`;
-      const whatsappUrl = `https://wa.me/919359875511?text=${whatsappMsg}`;
+      const whatsappUrl = `https://wa.me/917045532232?text=${whatsappMsg}`;
 
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -175,8 +175,8 @@ export default function ContactPage() {
                 {
                   icon: Phone,
                   label: t.contact.phoneLabel,
-                  value: "+91 9359875511",
-                  href: "tel:+919359875511",
+                  value: "+91 70455 32232",
+                  href: "tel:+917045532232",
                 },
                 {
                   icon: Mail,

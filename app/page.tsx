@@ -700,7 +700,7 @@ export default function HomePage() {
               Book Appointment
             </RippleButton>
             <RippleButton
-              href="tel:+919359875511"
+              href="tel:+917045532232"
               className="w-full sm:w-auto border-2 border-white/40 text-white px-8 py-3.5 rounded-full font-medium hover:bg-white/10 transition-all"
             >
               Call Now

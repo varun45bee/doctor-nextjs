@@ -240,7 +240,7 @@ export default function ConditionsPage() {
             contact Dr. Pratima Agale — she'll let you know if homeopathy can help.
           </p>
        <a
-  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20consult%20Dr.%20Pratima%20Agale."
+  href="https://wa.me/917045532232?text=Hello%2C%20I%20would%20like%20to%20consult%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
   className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-sage-500 text-white px-7 py-3 rounded-full font-medium hover:bg-sage-600 transition-all hover:shadow-md hover:-translate-y-0.5"

@@ -147,7 +147,7 @@ const localBusinessSchema = {
   description:
     "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
   url: "https://pratimaagale.in",
-  telephone: "+91-9359875511",
+  telephone: "+91-7045532232",
   priceRange: "₹₹",
   image: "https://pratimaagale.in/og-image.jpg",
   address: {
@@ -191,7 +191,7 @@ const doctorSchema = {
     "Dr. Pratima Agale is an MD-qualified lady homeopathy doctor in Kalyan, Mumbai. She specializes in women's health (PCOS, thyroid, hormonal imbalance, fertility), pediatric homeopathy, skin diseases and chronic conditions.",
   url: "https://pratimaagale.in",
   image: "https://pratimaagale.in/og-image.jpg",
-  telephone: "+91-9359875511",
+  telephone: "+91-7045532232",
   jobTitle: "Homeopathic Physician",
   hasCredential: [
     {

@@ -97,7 +97,7 @@ const patientJourneyFaqSchema = {
       "name": "How to book a homeopathy appointment with Dr. Pratima Agale in Kalyan?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Book at pratimaagale.in or WhatsApp +91-9359875511. In-person at Yogidham Phase 3, Kalyan or online.",
+        "text": "Book at pratimaagale.in or WhatsApp +91-7045532232. In-person at Yogidham Phase 3, Kalyan or online.",
       },
     },
   ],
@@ -249,7 +249,7 @@ export default function PatientJourneyPage() {
           </h2>
           <p className="text-sage-100 mb-6">Take the first step toward natural, lasting health.</p>
           <a
-  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20book%20my%20first%20consultation%20with%20Dr.%20Pratima%20Agale."
+  href="https://wa.me/917045532232?text=Hello%2C%20I%20would%20like%20to%20book%20my%20first%20consultation%20with%20Dr.%20Pratima%20Agale."
   target="_blank"
   rel="noopener noreferrer"
   className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-white text-sage-700 px-8 py-3.5 rounded-full font-semibold hover:bg-cream-50 transition-all hover:shadow-md hover:-translate-y-0.5"

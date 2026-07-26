@@ -89,11 +89,11 @@ export default function PrivacyPolicyPage() {
             <p className="leading-relaxed">
               For any privacy-related questions, contact us at{" "}
               <a 
-                href="tel:+919359875511" 
+                href="tel:+917045532232" 
                 className="font-medium hover:underline"
                 style={{ color: "var(--teal)" }}
               >
-                +91 93598 75511
+                +91 70455 32232
               </a>{" "}
               or visit{" "}
               <a 

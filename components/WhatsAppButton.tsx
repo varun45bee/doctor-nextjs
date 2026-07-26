@@ -5,7 +5,7 @@
 // ── Change this to the doctor's actual number ──────────────────
 // Format: country code + number (no + or spaces)
 // Example: India 91 + 9876543210 = "919876543210"
-const WHATSAPP_PHONE = "919359875511";
+const WHATSAPP_PHONE = "917045532232";
 const WHATSAPP_MESSAGE =
   "Hello Dr. Pratima Agale, I would like to book a homeopathy consultation.";
 // ───────────────────────────────────────────────────────────────

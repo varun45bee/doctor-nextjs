@@ -195,7 +195,7 @@ export default function CheckAppointmentPage() {
                   No active consultation file found for this number. Check details or contact the clinic.
                 </p>
                 <a
-                  href="https://wa.me/919359875511?text=Hello%2C%20I%20would%20like%20to%20access%20the%20Patient%20Portal."
+                  href="https://wa.me/917045532232?text=Hello%2C%20I%20would%20like%20to%20access%20the%20Patient%20Portal."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block mt-4 text-sage-600 text-sm underline"
