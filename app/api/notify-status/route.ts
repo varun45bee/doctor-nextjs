@@ -4,6 +4,7 @@ import {
   buildPatientStatusMessage,
 } from "@/lib/notifications/patient-message";
 import { sendStatusEmail } from "@/lib/notifications/send-email";
+import { sendWhatsAppMessage } from "@/lib/notifications/send-whatsapp";
 import type { AppointmentStatus } from "@/lib/types/appointment";
 export async function POST(req: NextRequest) {
   try {
@@ -11,12 +12,14 @@ export async function POST(req: NextRequest) {
     const {
       patientName,
       patientEmail,
+      patientPhone,
       appointmentDate,
       appointmentTime,
       status,
     } = body as {
       patientName: string;
       patientEmail?: string;
+      patientPhone?: string;
       appointmentDate: string;
       appointmentTime: string;
       status: AppointmentStatus;
@@ -30,9 +33,11 @@ export async function POST(req: NextRequest) {
     }
 
     const email = patientEmail?.trim();
-    if (!email) {
+    const phone = patientPhone?.trim();
+
+    if (!email && !phone) {
       return NextResponse.json(
-        { error: "Patient has no email on file" },
+        { error: "Patient has no email or phone number on file" },
         { status: 400 }
       );
     }
@@ -45,13 +50,32 @@ export async function POST(req: NextRequest) {
     });
     const subject = buildPatientStatusEmailSubject(status);
 
-    const result = await sendStatusEmail(email, subject, message);
-    if (result.success) {
-      return NextResponse.json({ success: true });
+    const results: {
+      email?: { success: boolean; error?: string };
+      whatsapp?: { success: boolean; error?: unknown };
+    } = {};
+
+    if (email) {
+      results.email = await sendStatusEmail(email, subject, message);
+    }
+
+    if (phone) {
+      const plainTextMessage = message.replace(/<[^>]+>/g, "").trim();
+      results.whatsapp = await sendWhatsAppMessage(phone, plainTextMessage);
+    }
+
+    const emailOk = !email || results.email?.success;
+    const whatsappOk = !phone || results.whatsapp?.success;
+
+    if (emailOk && whatsappOk) {
+      return NextResponse.json({ success: true, results });
     }
 
     return NextResponse.json(
-      { error: result.error ?? "Could not send email. Check BREVO_API_KEY." },
+      {
+        error: "One or more notifications failed",
+        results,
+      },
       { status: 500 }
     );
   } catch (err) {

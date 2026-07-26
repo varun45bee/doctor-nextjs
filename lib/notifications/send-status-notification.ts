@@ -3,6 +3,7 @@ import type { AppointmentStatus } from "@/lib/types/appointment";
 type NotifyInput = {
   patientName: string;
   patientEmail: string;
+  patientPhone?: string;
   appointmentDate: string;
   appointmentTime: string;
   status: AppointmentStatus;

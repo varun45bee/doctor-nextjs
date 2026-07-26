@@ -87,6 +87,7 @@ export default function DoctorDashboardPage() {
         const result = await sendPatientStatusNotification({
           patientName: appt.patientName,
           patientEmail: appt.patientEmail,
+          patientPhone: appt.patientPhone,
           appointmentDate: appt.appointmentDate,
           appointmentTime: appt.appointmentTime,
           status,
