@@ -183,12 +183,12 @@ async function getAIReply(userMessage: string): Promise<string> {
 
   if (!response.ok) {
     console.error("Groq API error:", data);
-    return "Sorry, I'm having trouble responding right now. Please call us directly at +91 70455 32232.";
+    return "Sorry, I'm having trouble responding right now. Please call us directly at +91 93598 75511.";
   }
 
   return (
     data?.choices?.[0]?.message?.content ??
-    "Sorry, I didn't quite understand. You can reach the clinic at +91 70455 32232."
+    "Sorry, I didn't quite understand. You can reach the clinic at +91 93598 75511."
   );
 }
 
