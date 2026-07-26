@@ -45,14 +45,38 @@ export function buildPatientStatusMessage({
 
   switch (status) {
     case "Confirmed":
-      return `Hello ${patientName}, your appointment with Dr. Pratima Agale is CONFIRMED for ${slot}. We look forward to seeing you at the clinic. For queries, call us or reply to this email.`;
+      return `Hello ${patientName}, your appointment with Dr. Pratima Agale is CONFIRMED for ${slot}. We look forward to connecting with you. For queries, call us or reply to this email.`;
     case "Cancelled":
-      return `Hello ${patientName}, your appointment request for ${slot} could not be confirmed at this time. Please contact us to reschedule. Dr. Pratima Agale Homeopathy Clinic.`;
+      return `Hello ${patientName}, your appointment request for ${slot} could not be confirmed at this time. Please contact us to reschedule.`;
     case "Completed":
       return `Hello ${patientName}, thank you for visiting Dr. Pratima Agale. We hope your consultation on ${slot} was helpful. Take care!`;
     default:
-      return `Hello ${patientName}, we received your appointment request for ${slot}. Status: ${status}. Dr. Pratima Agale Homeopathy Clinic.`;
+      return `Hello ${patientName}, we received your appointment request for ${slot}. Status: ${status}.`;
   }
+}
+
+export function buildWhatsAppMessage({
+  patientName,
+  appointmentDate,
+  appointmentTime,
+  status,
+}: MessageInput): string {
+  const date = formatDate(appointmentDate);
+  const time = formatTime(appointmentTime);
+
+  return `*Dr. Pratima Agale's Homeopathy Clinic* 🌿
+
+Hello ${patientName},
+
+Your appointment is now *${status.toUpperCase()}*
+
+📅 Date: ${date}
+🕒 Time: ${time}
+
+We look forward to connecting with you.
+
+📞 +91 93598 75511
+🌐 www.pratimaagale.in`;
 }
 
 export function buildPatientStatusEmailSubject(status: AppointmentStatus): string {

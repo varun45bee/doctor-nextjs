@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   buildPatientStatusEmailSubject,
   buildPatientStatusMessage,
+  buildWhatsAppMessage,
 } from "@/lib/notifications/patient-message";
 import { sendStatusEmail } from "@/lib/notifications/send-email";
 import { sendWhatsAppMessage } from "@/lib/notifications/send-whatsapp";
@@ -60,8 +61,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (phone) {
-      const plainTextMessage = message.replace(/<[^>]+>/g, "").trim();
-      results.whatsapp = await sendWhatsAppMessage(phone, plainTextMessage);
+      const whatsappText = buildWhatsAppMessage({
+        patientName,
+        appointmentDate,
+        appointmentTime,
+        status,
+      });
+      results.whatsapp = await sendWhatsAppMessage(phone, whatsappText);
     }
 
     const emailOk = !email || results.email?.success;
