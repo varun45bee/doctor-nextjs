@@ -199,6 +199,8 @@ export default function AppointmentModal({
 
       <div
         className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border shadow-2xl"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
         style={{
           backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border-color)",
