@@ -19,8 +19,9 @@ export const metadata: Metadata = {
   description:
     "Dr. Pratima Agale (BHMS, MD Homeopathy) — Kalyan's trusted lady homeopathy doctor. Expert in women's health, PCOS, thyroid, fertility & pediatric care. Female homeopathy specialist near you in Kalyan, Thane & Mumbai. Book consultation today.",
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   keywords: [
     // Women doctor — high intent
@@ -298,8 +299,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
-import { Leaf, Phone, MapPin, Mail, Clock, Instagram,Linkedin, Facebook, Youtube } from "lucide-react";
+import { Leaf, Phone, MapPin, Mail, Clock, Instagram,Linkedin, Facebook, Youtube, LogIn } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
 
 export default function Footer() {
   const { t, locale } = useLanguage();
+  const { user, isDoctor, loading, signInWithGoogle } = useAuth();
 
   const quickLinks = [
     { href: "/about", label: t.nav.about },
@@ -17,6 +19,7 @@ export default function Footer() {
     { href: "/case-studies", label: t.nav.caseStudies },
     { href: "/blog", label: t.nav.blog },
     { href: "/check-appointment", label: "Check Appointment" },
+    ...(user && isDoctor ? [{ href: "/doctor", label: "Dashboard" }] : []),
   ];
 
   const skinConditions = [
@@ -190,6 +193,18 @@ export default function Footer() {
                   <div className="text-sage-600">{t.contact.sun}</div>
                 </div>
               </li>
+              {!loading && !user && (
+                <li className="flex items-center gap-3">
+                  <LogIn className="w-4 h-4 text-sage-500 flex-shrink-0" />
+                  <button
+                    type="button"
+                    onClick={signInWithGoogle}
+                    className="text-sage-400 hover:text-sage-200 text-sm transition-colors"
+                  >
+                    Doctor Login
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>

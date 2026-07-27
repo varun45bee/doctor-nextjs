@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, Globe } from "lucide-react";
-import DoctorLoginButton from "@/components/DoctorLoginButton";
+import { Menu, X, ChevronDown, Globe, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
@@ -21,6 +21,7 @@ export default function Navbar() {
   const { openAppointment } = useAppointment();
   const { t, locale, setLocale } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { user, isDoctor, loading } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -245,7 +246,15 @@ export default function Navbar() {
             ))}
           </div>
 
-          <DoctorLoginButton />
+          {!loading && user && isDoctor && (
+            <Link
+              href="/doctor"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border border-sage-400 text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900 transition-colors font-medium"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+          )}
 
           <button
             type="button"
@@ -292,8 +301,17 @@ export default function Navbar() {
             <Link href="/case-studies" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Case Studies</Link>
             <Link href="/blog" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Blog</Link>
 
+            {!loading && user && isDoctor && (
+              <Link
+                href="/doctor"
+                className="block py-1 text-sage-800"
+                onClick={() => setMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+
             <div className="pt-3 flex flex-col gap-3">
-              <DoctorLoginButton />
               <button
                 type="button"
                 onClick={() => {
