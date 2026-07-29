@@ -17,6 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/services/chronic-disease',
     '/patient-journey',
     '/case-studies',
+    '/privacy-policy',
+    '/terms',
+    '/refund-policy',
+    '/cancellation-policy',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),

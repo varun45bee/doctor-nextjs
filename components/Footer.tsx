@@ -214,6 +214,20 @@ export default function Footer() {
           <p className="text-sage-600 text-xs">
             © {new Date().getFullYear()} Dr. Pratima Agale Homeopathy. {t.footer.rights}
           </p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <Link href="/privacy-policy" className="text-sage-600 hover:text-sage-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-sage-600 hover:text-sage-400 transition-colors">
+              Terms & Conditions
+            </Link>
+            <Link href="/refund-policy" className="text-sage-600 hover:text-sage-400 transition-colors">
+              Refund Policy
+            </Link>
+            <Link href="/cancellation-policy" className="text-sage-600 hover:text-sage-400 transition-colors">
+              Cancellation Policy
+            </Link>
+          </div>
           <p className="text-sage-700 text-xs">
             {locale === "hi"
               ? "कल्याण · अंधेरी · मुंबई · महाराष्ट्र में सेवा"

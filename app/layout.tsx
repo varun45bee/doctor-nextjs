@@ -143,14 +143,14 @@ const themeScript = `
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
-  "@id": "https://pratimaagale.in",
+  "@id": "https://pratimaagale.in#medicalbusiness",
   name: "Dr. Pratima Agale Homeopathy Clinic",
   description:
     "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
   url: "https://pratimaagale.in",
-  telephone: "+91-7045532232",
+  telephone: "+91-9359875511",
   priceRange: "₹₹",
-  image: "https://pratimaagale.in/og-image.jpg",
+  image: "https://pratimaagale.in/og-image.png",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Yogidham, Phase 3",
@@ -180,19 +180,34 @@ const localBusinessSchema = {
   ],
   medicalSpecialty: "Homeopathy",
   hasMap: "https://maps.google.com/?q=Yogidham+Phase+3+Kalyan+Maharashtra",
-  sameAs: [],
+  sameAs: [
+    "https://www.linkedin.com/in/pratima-agale-2a26101a4/",
+    "https://www.instagram.com/dr_pratimaagale/",
+  ],
+  areaServed: [
+    { "@type": "City", name: "Kalyan" },
+    { "@type": "City", name: "Dombivli" },
+    { "@type": "City", name: "Thane" },
+    { "@type": "City", name: "Ulhasnagar" },
+    { "@type": "City", name: "Mumbai" },
+    { "@type": "City", name: "Ambernath" },
+    { "@type": "City", name: "Badlapur" },
+    { "@type": "City", name: "Navi Mumbai" },
+  ],
 };
 
 // ─── Schema 2: Doctor / Person (MD credentials) ──────────────────────────────
 const doctorSchema = {
   "@context": "https://schema.org",
   "@type": "Physician",
+  "@id": "https://pratimaagale.in#physician",
   name: "Dr. Pratima Agale",
   description:
     "Dr. Pratima Agale is an MD-qualified lady homeopathy doctor in Kalyan, Mumbai. She specializes in women's health (PCOS, thyroid, hormonal imbalance, fertility), pediatric homeopathy, skin diseases and chronic conditions.",
   url: "https://pratimaagale.in",
-  image: "https://pratimaagale.in/og-image.jpg",
-  telephone: "+91-7045532232",
+  image: "https://pratimaagale.in/og-image.png",
+  telephone: "+91-9359875511",
+  gender: "Female",
   jobTitle: "Homeopathic Physician",
   hasCredential: [
     {
@@ -214,6 +229,7 @@ const doctorSchema = {
     "Chronic Disease Management",
   ],
   worksFor: {
+    "@id": "https://pratimaagale.in#medicalbusiness",
     "@type": "MedicalBusiness",
     name: "Dr. Pratima Agale Homeopathy Clinic",
     address: {
@@ -239,7 +255,13 @@ const doctorSchema = {
     { "@type": "City", name: "Thane" },
     { "@type": "City", name: "Ulhasnagar" },
     { "@type": "City", name: "Mumbai" },
-    { "@type": "City", name: "Andheri" },
+    { "@type": "City", name: "Ambernath" },
+    { "@type": "City", name: "Badlapur" },
+    { "@type": "City", name: "Navi Mumbai" },
+  ],
+  sameAs: [
+    "https://www.linkedin.com/in/pratima-agale-2a26101a4/",
+    "https://www.instagram.com/dr_pratimaagale/",
   ],
 };
 
