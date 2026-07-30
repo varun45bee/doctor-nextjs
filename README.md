@@ -4,8 +4,8 @@ A complete, SEO-optimized Next.js website for Dr. Pratima Agale's homeopathic pr
 
 ---
 
-## 🚀 Quick Start
-
+## 🚀 Q uick  Start
+ 
 ```bash
 # 1. Install dependencies
 npm install
