@@ -112,7 +112,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "https://pratimaagale.in" },
   verification: {
-    google: "GOOGLE_VERIFICATION_ID_HERE",
+    google: "rUFOpHprIt9o12JZzBLtWNzJomB2Y01Wy_ZSLwbg_lY",
   },
   category: "Health",
 };
