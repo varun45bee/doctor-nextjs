@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     "best homeopathy doctor mumbai",
     "Dr Pratima Agale",
     "Pratima Agale homeopathy",
-    "pratimaagale.in",
+    "www.pratimaagale.in",
     "homeopathy doctor maharashtra",
 
     // Pediatric
