@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw, List, Calendar as CalendarIcon, BarChart2, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { RefreshCw, List, Calendar as CalendarIcon, BarChart2, Clock, FileText } from "lucide-react";
 import AppointmentFilters from "@/components/doctor/AppointmentFilters";
 import AppointmentsTable from "@/components/doctor/AppointmentsTable";
 import EmptyState from "@/components/doctor/EmptyState";
@@ -21,6 +22,7 @@ import type { Appointment, AppointmentStatus } from "@/lib/types/appointment";
 import { APPOINTMENT_STATUSES } from "@/lib/types/appointment";
 
 export default function DoctorDashboardPage() {
+  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,7 +33,7 @@ export default function DoctorDashboardPage() {
   const [notifyMessage, setNotifyMessage] = useState("");
 
   // Premium dashboard tab controls
-  const [activeTab, setActiveTab] = useState<"appointments" | "calendar" | "analytics" | "availability">("appointments");
+  const [activeTab, setActiveTab] = useState<"appointments" | "calendar" | "analytics" | "availability" | "blog">("appointments");
   // EHR Drawer patient reference state
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
@@ -149,6 +151,7 @@ export default function DoctorDashboardPage() {
     { id: "calendar", label: "Calendar Schedule", icon: CalendarIcon },
     { id: "analytics", label: "Clinic Analytics", icon: BarChart2 },
     { id: "availability", label: "Availability Settings", icon: Clock },
+    { id: "blog", label: "Blog Management", icon: FileText },
   ].map((tab) => {
     const Icon = tab.icon;
     const active = activeTab === tab.id;
@@ -156,15 +159,20 @@ export default function DoctorDashboardPage() {
     return (
       <button
         key={tab.id}
-        onClick={() =>
-          setActiveTab(
-            tab.id as
-              | "appointments"
-              | "calendar"
-              | "analytics"
-              | "availability"
-          )
-        }
+        onClick={() => {
+          if (tab.id === "blog") {
+            router.push("/doctor/blog");
+          } else {
+            setActiveTab(
+              tab.id as
+                | "appointments"
+                | "calendar"
+                | "analytics"
+                | "availability"
+                | "blog"
+            );
+          }
+        }}
         className={`
           flex items-center justify-center gap-2
           w-[calc(50%-4px)] sm:w-auto
