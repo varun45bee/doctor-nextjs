@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, ArrowLeft, ArrowRight, Tag, Share2 } from "lucide-react";
-import { blogPosts, BlogPost } from "../blog-data";
+import { getBlogBySlug } from "@/lib/firestore/blogs";
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 interface PageProps {
   params: {
@@ -10,44 +12,48 @@ interface PageProps {
   };
 }
 
-// Generate static paths for all blog posts
-export async function generateStaticParams() {
-  return Object.keys(blogPosts).map((slug) => ({
-    slug: slug,
-  }));
-}
-
 // Dynamic metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = blogPosts[params.slug];
+  const blog = await getBlogBySlug(params.slug);
   
-  if (!post) {
+  if (!blog) {
     return {
-      title: "Post Not Found",
+      title: "Blog Post Not Found",
     };
   }
 
   return {
-    title: `${post.title} | Dr. Pratima Agale Homeopathy Kalyan`,
-    description: post.subtitle,
+    title: `${blog.title} | Dr. Pratima Agale Homeopathy Kalyan`,
+    description: blog.excerpt,
+    alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug}` },
     openGraph: {
-      title: post.title,
-      description: post.subtitle,
+      title: blog.title,
+      description: blog.excerpt,
       type: "article",
+      url: `https://www.pratimaagale.in/blog/${blog.slug}`,
+      images: blog.coverImage ? [{ url: blog.coverImage, width: 1200, height: 630 }] : [],
       authors: ["Dr. Pratima Agale"],
     },
   };
 }
 
-export default function BlogPostPage({ params }: PageProps) {
-  const post = blogPosts[params.slug];
+export default async function BlogPostPage({ params }: PageProps) {
+  const blog = await getBlogBySlug(params.slug);
 
-  if (!post) {
+  if (!blog) {
     notFound();
   }
 
   return (
     <article className="pt-24 pb-16 overflow-hidden">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Knowledge Hub", item: "https://www.pratimaagale.in/blog" },
+          { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug}` },
+        ]}
+      />
+      
       {/* Breadcrumb */}
       <div className="bg-white border-b border-sage-50 px-6 py-3 dark:bg-zinc-950 dark:border-zinc-800">
         <div className="max-w-4xl mx-auto flex items-center gap-2 text-xs text-sage-400">
@@ -55,7 +61,7 @@ export default function BlogPostPage({ params }: PageProps) {
           <span>/</span>
           <Link href="/blog" className="hover:text-sage-600 transition-colors">Knowledge Hub</Link>
           <span>/</span>
-          <span className="text-sage-700 font-medium line-clamp-1 dark:text-zinc-300">{post.title}</span>
+          <span className="text-sage-700 font-medium line-clamp-1 dark:text-zinc-300">{blog.title}</span>
         </div>
       </div>
 
@@ -65,18 +71,27 @@ export default function BlogPostPage({ params }: PageProps) {
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
-          <div className="text-5xl mb-5">{post.emoji}</div>
+          {blog.coverImage && (
+            <img
+              src={blog.coverImage}
+              alt={blog.title}
+              className="w-full h-64 object-cover rounded-2xl mb-6"
+            />
+          )}
 
           <div className="flex items-center justify-center gap-3 mb-5">
-            <span
-              className="px-3 py-1 rounded-full text-xs font-medium text-white"
-              style={{ backgroundColor: "var(--sage-500, #5a7f5a)" }}
-            >
-              {post.category}
-            </span>
+            {blog.tags.slice(0, 1).map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                style={{ backgroundColor: "var(--sage-500, #5a7f5a)" }}
+              >
+                {tag}
+              </span>
+            ))}
             <span className="flex items-center gap-1 text-xs text-sage-500">
-              <Clock className="w-3 h-3" />
-              {post.readTime} min read
+              <Calendar className="w-3 h-3" />
+              {blog.createdAt?.toLocaleDateString() || "Recently"}
             </span>
           </div>
 
@@ -88,30 +103,26 @@ export default function BlogPostPage({ params }: PageProps) {
               color: "var(--text-primary)",
             }}
           >
-            {post.title}
+            {blog.title}
           </h1>
 
-          {post.subtitle && (
-            <p className="text-sage-600 text-lg mb-6 dark:text-zinc-400">{post.subtitle}</p>
+          {blog.excerpt && (
+            <p className="text-sage-600 text-lg mb-6 dark:text-zinc-400">{blog.excerpt}</p>
           )}
 
           <div className="flex items-center justify-center gap-6 text-sm text-sage-500">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              {post.publishDate}
-            </span>
             <span>
               By{" "}
-              <Link href="/about" className="font-medium text-sage-700 hover:text-sage-500 transition-colors dark:text-zinc-300">
-                {post.author}, {post.authorCredentials}
-              </Link>
+              <span className="font-medium text-sage-700 dark:text-zinc-300">
+                {blog.author}
+              </span>
             </span>
           </div>
 
           {/* Tags */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             <Tag className="w-3.5 h-3.5 text-sage-400" />
-            {post.tags.map((tag) => (
+            {blog.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="px-2.5 py-1 rounded-full text-xs bg-white border border-sage-100 text-sage-600 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400"
@@ -128,114 +139,24 @@ export default function BlogPostPage({ params }: PageProps) {
         <div className="grid lg:grid-cols-3 gap-10">
           {/* Main content */}
           <div className="lg:col-span-2">
-            {/* Intro */}
             <div
-              className="prose prose-sage max-w-none mb-10 dark:prose-invert"
-              style={{ color: "var(--text-secondary)" }}
-              dangerouslySetInnerHTML={{ __html: post.intro }}
+              className="prose prose-sage max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
             />
-
-            {/* Key Points Highlight Box */}
-            {post.keyPoints.length > 0 && (
-              <div
-                className="rounded-2xl p-6 mb-10 border border-sage-100 dark:border-zinc-800"
-                style={{ backgroundColor: "var(--bg-surface-alt)" }}
-              >
-                <h3 className="font-semibold text-sage-900 mb-4 flex items-center gap-2 dark:text-zinc-100">
-                  <span className="w-6 h-6 bg-sage-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
-                  Key Takeaways
-                </h3>
-                <ul className="space-y-2">
-                  {post.keyPoints.map((point, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sage-700 text-sm dark:text-zinc-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sage-400 flex-shrink-0 mt-1.5" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Sections */}
-            {post.sections.map((section, i) => (
-              <div key={i} className="mb-10">
-                <h2
-                  className="font-serif text-2xl md:text-3xl mb-4"
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {section.heading}
-                </h2>
-                <div
-                  className="text-sage-700 leading-relaxed text-[0.97rem] dark:text-zinc-400"
-                  dangerouslySetInnerHTML={{ __html: section.content }}
-                />
-              </div>
-            ))}
-
-            {/* Conclusion */}
-            <div className="border-t border-sage-100 pt-8 mb-10 dark:border-zinc-800">
-              <h2
-                className="font-serif text-2xl mb-4"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
-              >
-                In Conclusion
-              </h2>
-              <div
-                className="text-sage-700 leading-relaxed dark:text-zinc-400"
-                dangerouslySetInnerHTML={{ __html: post.conclusion }}
-              />
-            </div>
-
-            {/* FAQs */}
-            {post.faqs.length > 0 && (
-              <div className="mb-10">
-                <h2
-                  className="font-serif text-2xl mb-6"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
-                >
-                  Frequently Asked Questions
-                </h2>
-                <div className="space-y-4">
-                  {post.faqs.map((faq, i) => (
-                    <details
-                      key={i}
-                      className="group rounded-xl border border-sage-100 overflow-hidden dark:border-zinc-800"
-                    >
-                      <summary className="flex items-center justify-between p-5 cursor-pointer font-medium text-sage-900 hover:bg-sage-50 transition-colors list-none dark:text-zinc-200 dark:hover:bg-zinc-900">
-                        {faq.q}
-                        <span className="text-sage-400 group-open:rotate-180 transition-transform ml-4 flex-shrink-0">↓</span>
-                      </summary>
-                      <div className="px-5 pb-5 pt-3 text-sage-600 text-sm leading-relaxed border-t border-sage-50 dark:text-zinc-400 dark:border-zinc-800">
-                        {faq.a}
-                      </div>
-                    </details>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Share */}
             <div className="flex items-center gap-3 py-6 border-t border-sage-100 dark:border-zinc-800">
               <Share2 className="w-4 h-4 text-sage-500" />
               <span className="text-sm text-sage-500 font-medium">Share this article:</span>
-              {[
-                { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent(post.title + " — Read at pratimaagale.in")}` },
-               
-              ].map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-full text-white text-xs font-medium hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: s.color }}
-                >
-                  {s.label}
-                </a>
-              ))}
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(blog.title + " — Read at www.pratimaagale.in")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-full text-white text-xs font-medium hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: "#25D366" }}
+              >
+                WhatsApp
+              </a>
             </div>
 
             {/* Author box */}
@@ -248,7 +169,7 @@ export default function BlogPostPage({ params }: PageProps) {
               </div>
               <div>
                 <div className="font-semibold text-sage-900 mb-1 dark:text-zinc-100">
-                  {post.author}, {post.authorCredentials}
+                  {blog.author}
                 </div>
                 <p className="text-sage-600 text-sm leading-relaxed dark:text-zinc-400">
                   Dr. Pratima Agale is a qualified homeopathic physician with over 10 years of experience
@@ -297,46 +218,6 @@ export default function BlogPostPage({ params }: PageProps) {
                 Call +91 93598 75511
               </a>
             </div>
-
-            {/* Related Conditions */}
-            {post.relatedConditions.length > 0 && (
-              <div className="rounded-2xl p-6 border border-sage-100 dark:border-zinc-800">
-                <h3 className="font-semibold text-sage-900 mb-4 dark:text-zinc-100">Related Conditions</h3>
-                <ul className="space-y-2">
-                  {post.relatedConditions.map((c) => (
-                    <li key={c.href}>
-                      <Link
-                        href={c.href}
-                        className="text-sage-600 hover:text-sage-800 text-sm flex items-center gap-2 transition-colors dark:text-zinc-400 dark:hover:text-zinc-200"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5 text-sage-300" />
-                        {c.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Related Articles */}
-            {post.relatedArticles.length > 0 && (
-              <div className="rounded-2xl p-6 border border-sage-100 dark:border-zinc-800">
-                <h3 className="font-semibold text-sage-900 mb-4 dark:text-zinc-100">Read Next</h3>
-                <ul className="space-y-2">
-                  {post.relatedArticles.map((a) => (
-                    <li key={a.href}>
-                      <Link
-                        href={a.href}
-                        className="text-sage-600 hover:text-sage-800 text-sm flex items-center gap-2 transition-colors dark:text-zinc-400 dark:hover:text-zinc-200"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5 text-sage-300" />
-                        {a.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </aside>
         </div>
 
