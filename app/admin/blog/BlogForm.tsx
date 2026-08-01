@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { createBlog, updateBlog } from "@/lib/firestore/blogs";
+import { uploadBlogImage } from "@/lib/storage/upload";
 import type { Blog } from "@/lib/types/blog";
-import { X, Save, Upload } from "lucide-react";
+import { X, Save, Upload, Image as ImageIcon } from "lucide-react";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
@@ -23,6 +24,7 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
   const [tags, setTags] = useState(blog?.tags.join(", ") || "");
   const [published, setPublished] = useState(blog?.published || false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,6 +36,36 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
       setSlug(generatedSlug);
     }
   }, [title, blog]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+
+    try {
+      const downloadURL = await uploadBlogImage(file);
+      setCoverImage(downloadURL);
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      setError("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,16 +200,64 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
                 htmlFor="coverImage"
                 className="block text-sm font-medium text-sage-700 dark:text-sage-300 mb-2"
               >
-                Cover Image URL
+                Cover Image
               </label>
-              <input
-                type="url"
-                id="coverImage"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
-                placeholder="https://example.com/image.jpg"
-              />
+              
+              <div className="space-y-3">
+                {/* File Upload Button */}
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-sage-100 dark:bg-sage-700 text-sage-700 dark:text-sage-300 rounded-lg cursor-pointer hover:bg-sage-200 dark:hover:bg-sage-600 transition-colors">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>{uploading ? "Uploading..." : "Upload Image"}</span>
+                    <input
+                      type="file"
+                      id="coverImage"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  {uploading && (
+                    <div className="text-sm text-sage-500 dark:text-sage-400">
+                      <Upload className="w-4 h-4 inline animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Preview */}
+                {coverImage && (
+                  <div className="relative">
+                    <img
+                      src={coverImage}
+                      alt="Cover preview"
+                      className="w-full h-48 object-cover rounded-lg border border-sage-300 dark:border-sage-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCoverImage("")}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* URL Input (fallback) */}
+                <div className="relative">
+                  <input
+                    type="url"
+                    id="coverImageUrl"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
+                    placeholder="Or paste image URL here"
+                  />
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-sage-500 dark:text-sage-400">
+                Upload an image (max 5MB) or paste a URL
+              </p>
             </div>
 
             <div>
