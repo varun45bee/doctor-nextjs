@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "homeopathy doctor kalyan west",
     "homeopathy doctor dombivli",
   ],
-  alternates: { canonical: "https://pratimaagale.in/conditions" },
+  alternates: { canonical: "https://www.pratimaagale.in/conditions" },
 }
 
 export default function ConditionsLayout({

@@ -56,9 +56,9 @@ export const metadata: Metadata = {
     title: "Pediatric Homeopathy Doctor Kalyan | Child Immunity, ADHD – Dr. Pratima Agale MD",
     description:
       "Safe, gentle homeopathic treatment for children in Kalyan. Expert in immunity, ADHD, allergies & recurrent infections. MD-qualified doctor.",
-    url: "https://pratimaagale.in/services/pediatric",
+    url: "https://www.pratimaagale.in/services/pediatric",
   },
-  alternates: { canonical: "https://pratimaagale.in/services/pediatric" },
+  alternates: { canonical: "https://www.pratimaagale.in/services/pediatric" },
 };
 
 // ─── JSON-LD: Pediatric Service ───────────────────────────────────────────────
@@ -68,7 +68,7 @@ const pediatricSchema = {
   name: "Pediatric Homeopathy Treatment – Dr. Pratima Agale Kalyan",
   description:
     "Safe, gentle homeopathic treatment for children in Kalyan — immunity building, ADHD, allergies, recurrent infections, behavioral issues and developmental support.",
-  url: "https://pratimaagale.in/services/pediatric",
+  url: "https://www.pratimaagale.in/services/pediatric",
   about: [
     { "@type": "MedicalCondition", name: "Recurrent Infections in Children" },
     { "@type": "MedicalCondition", name: "ADHD" },

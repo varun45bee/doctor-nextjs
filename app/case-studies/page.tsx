@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Dr Pratima Agale patient review",
     "homeopathy testimonials kalyan",
   ],
-  alternates: { canonical: "https://pratimaagale.in/case-studies" },
+  alternates: { canonical: "https://www.pratimaagale.in/case-studies" },
 };
 
 // ─── JSON-LD: MedicalWebPage for Case Studies ────────────────────────────────
@@ -26,7 +26,7 @@ const caseStudiesSchema = {
   "@type": "MedicalWebPage",
   name: "Homeopathy Case Studies – Dr. Pratima Agale Kalyan",
   description: "Real patient case studies from Dr. Pratima Agale's homeopathy practice in Kalyan — PCOS, thyroid, migraines, eczema, child immunity, ADHD & more.",
-  url: "https://pratimaagale.in/case-studies",
+  url: "https://www.pratimaagale.in/case-studies",
   about: [
     { "@type": "MedicalCondition", "name": "PCOS" },
     { "@type": "MedicalCondition", "name": "Hypothyroidism" },
@@ -47,8 +47,8 @@ const aggregateRatingSchema = {
   "@context": "https://schema.org",
   "@type": "Physician",
   name: "Dr. Pratima Agale",
-  image: "https://pratimaagale.in/og-image.jpg",
-  url: "https://pratimaagale.in",
+  image: "https://www.pratimaagale.in/og-image.jpg",
+  url: "https://www.pratimaagale.in",
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: "5",

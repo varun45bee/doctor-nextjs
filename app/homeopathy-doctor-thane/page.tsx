@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     "MD homeopathy doctor thane",
     "ठाणे होमिओपॅथी डॉक्टर",
   ],
-  alternates: { canonical: "https://pratimaagale.in/homeopathy-doctor-thane" },
+  alternates: { canonical: "https://www.pratimaagale.in/homeopathy-doctor-thane" },
   openGraph: {
     title: "Homeopathy Doctor in Thane | Dr. Pratima Agale MD – Lady Homeopath",
     description: "Best homeopathy doctor serving Thane. MD-qualified lady homeopathy specialist for women's health, PCOS, thyroid, pediatric care. Online and in-person consultations available.",
-    url: "https://pratimaagale.in/homeopathy-doctor-thane",
+    url: "https://www.pratimaagale.in/homeopathy-doctor-thane",
   },
 };
 
@@ -36,13 +36,13 @@ export const metadata: Metadata = {
 const thaneBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
-  "@id": "https://pratimaagale.in/homeopathy-doctor-thane",
+  "@id": "https://www.pratimaagale.in/homeopathy-doctor-thane",
   name: "Dr. Pratima Agale Homeopathy Clinic - Serving Thane",
   description: "MD-qualified lady homeopathy doctor serving Thane West & East, specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
-  url: "https://pratimaagale.in",
+  url: "https://www.pratimaagale.in",
   telephone: "+91-9359875511",
   priceRange: "₹₹",
-  image: "https://pratimaagale.in/og-image.jpg",
+  image: "https://www.pratimaagale.in/og-image.jpg",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Yogidham, Phase 3",
@@ -108,8 +108,8 @@ export default function HomeopathyDoctorThanePage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Homeopathy Doctor Thane", item: "https://pratimaagale.in/homeopathy-doctor-thane" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Homeopathy Doctor Thane", item: "https://www.pratimaagale.in/homeopathy-doctor-thane" },
         ]}
       />
       <script

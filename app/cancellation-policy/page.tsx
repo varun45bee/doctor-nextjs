@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Cancellation Policy | Dr. Pratima Agale Homeopathy",
   description: "Cancellation policy for Dr. Pratima Agale Homeopathy Clinic in Kalyan. Information about appointment cancellations, rescheduling, and cancellation charges.",
   alternates: {
-    canonical: "https://pratimaagale.in/cancellation-policy",
+    canonical: "https://www.pratimaagale.in/cancellation-policy",
   },
 };
 

@@ -62,9 +62,9 @@ export const metadata: Metadata = {
     title: "Women's Homeopathy Doctor in Kalyan | PCOS, Thyroid, Fertility – Dr. Pratima Agale MD",
     description:
       "MD-qualified lady homeopathy doctor in Kalyan. Expert in PCOS, thyroid, hormonal imbalance, fertility & menopause. Book consultation today.",
-    url: "https://pratimaagale.in/services/womens-health",
+    url: "https://www.pratimaagale.in/services/womens-health",
   },
-  alternates: { canonical: "https://pratimaagale.in/services/womens-health" },
+  alternates: { canonical: "https://www.pratimaagale.in/services/womens-health" },
 };
 
 // ─── JSON-LD: Women's Health Service ─────────────────────────────────────────
@@ -74,7 +74,7 @@ const womensHealthSchema = {
   name: "Women's Homeopathy Treatment – Dr. Pratima Agale Kalyan",
   description:
     "Homeopathic treatment for PCOS, thyroid disorders, hormonal imbalance, infertility, and menopause by MD-qualified lady homeopathy doctor in Kalyan.",
-  url: "https://pratimaagale.in/services/womens-health",
+  url: "https://www.pratimaagale.in/services/womens-health",
   about: [
     { "@type": "MedicalCondition", name: "PCOS" },
     { "@type": "MedicalCondition", name: "PCOD" },

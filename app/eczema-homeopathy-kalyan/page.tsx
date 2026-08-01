@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     "lady doctor eczema kalyan",
     "eczema homeopathy specialist thane",
   ],
-  alternates: { canonical: "https://pratimaagale.in/eczema-homeopathy-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/eczema-homeopathy-kalyan" },
   openGraph: {
     title: "Eczema Homeopathy Kalyan | Natural Treatment – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for eczema, psoriasis, skin allergies and itching by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/eczema-homeopathy-kalyan",
+    url: "https://www.pratimaagale.in/eczema-homeopathy-kalyan",
   },
 };
 
@@ -154,8 +154,8 @@ export default function EczemaHomeopathyPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Eczema Homeopathy Kalyan", item: "https://pratimaagale.in/eczema-homeopathy-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Eczema Homeopathy Kalyan", item: "https://www.pratimaagale.in/eczema-homeopathy-kalyan" },
         ]}
       />
       <script

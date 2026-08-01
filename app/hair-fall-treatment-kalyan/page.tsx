@@ -22,11 +22,11 @@ export const metadata: Metadata = {
     "hair fall natural treatment kalyan",
     "hair fall homeopathy specialist thane",
   ],
-  alternates: { canonical: "https://pratimaagale.in/hair-fall-treatment-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/hair-fall-treatment-kalyan" },
   openGraph: {
     title: "Hair Fall Treatment Kalyan | Natural Homeopathy – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for hair loss, alopecia, dandruff and scalp conditions by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/hair-fall-treatment-kalyan",
+    url: "https://www.pratimaagale.in/hair-fall-treatment-kalyan",
   },
 };
 
@@ -155,8 +155,8 @@ export default function HairFallTreatmentPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Hair Fall Treatment Kalyan", item: "https://pratimaagale.in/hair-fall-treatment-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Hair Fall Treatment Kalyan", item: "https://www.pratimaagale.in/hair-fall-treatment-kalyan" },
         ]}
       />
       <script

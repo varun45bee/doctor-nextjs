@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "book homeopathy appointment kalyan",
     "Dr Pratima Agale consultation",
   ],
-  alternates: { canonical: "https://pratimaagale.in/patient-journey" },
+  alternates: { canonical: "https://www.pratimaagale.in/patient-journey" },
 };
 
 const steps = [

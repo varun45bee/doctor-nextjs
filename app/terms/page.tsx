@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | Dr. Pratima Agale Homeopathy",
   description: "Terms and conditions for Dr. Pratima Agale Homeopathy Clinic in Kalyan. Information about appointments, consultations, payments, and patient responsibilities.",
   alternates: {
-    canonical: "https://pratimaagale.in/terms",
+    canonical: "https://www.pratimaagale.in/terms",
   },
 };
 

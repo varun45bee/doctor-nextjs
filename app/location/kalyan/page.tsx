@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     "pediatric homeopathy kalyan",
   ],
   alternates: {
-    canonical: "https://pratimaagale.in/location/kalyan",
+    canonical: "https://www.pratimaagale.in/location/kalyan",
   },
   openGraph: {
     title: "Homeopathy Doctor in Kalyan | Dr. Pratima Agale MD Homeopathy",
     description: "MD-qualified lady homeopathy doctor in Kalyan. Expert in women's health, PCOS, thyroid, fertility & pediatric care. Located at Yogidham Phase 3.",
-    url: "https://pratimaagale.in/location/kalyan",
+    url: "https://www.pratimaagale.in/location/kalyan",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Dr. Pratima Agale - Homeopathy Doctor Kalyan" }],
   },
 };

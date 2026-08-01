@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     "thyroid homeopathy specialist thane",
     "थायरॉईड होमिओपॅथी कल्याण",
   ],
-  alternates: { canonical: "https://pratimaagale.in/thyroid-homeopathy-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/thyroid-homeopathy-kalyan" },
   openGraph: {
     title: "Thyroid Homeopathy Kalyan | Natural Treatment – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for thyroid disorders, hypothyroidism, hyperthyroidism and related symptoms by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/thyroid-homeopathy-kalyan",
+    url: "https://www.pratimaagale.in/thyroid-homeopathy-kalyan",
   },
 };
 
@@ -153,8 +153,8 @@ export default function ThyroidHomeopathyPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Thyroid Homeopathy Kalyan", item: "https://pratimaagale.in/thyroid-homeopathy-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Thyroid Homeopathy Kalyan", item: "https://www.pratimaagale.in/thyroid-homeopathy-kalyan" },
         ]}
       />
       <script

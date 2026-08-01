@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     "MD homeopathy doctor mumbai",
     "मुंबई होमिओपॅथी डॉक्टर",
   ],
-  alternates: { canonical: "https://pratimaagale.in/homeopathy-doctor-mumbai" },
+  alternates: { canonical: "https://www.pratimaagale.in/homeopathy-doctor-mumbai" },
   openGraph: {
     title: "Homeopathy Doctor in Mumbai | Dr. Pratima Agale MD – Lady Homeopath",
     description: "Best homeopathy doctor serving Mumbai and Andheri. MD-qualified lady homeopathy specialist for women's health, PCOS, thyroid, pediatric care. Online consultations available.",
-    url: "https://pratimaagale.in/homeopathy-doctor-mumbai",
+    url: "https://www.pratimaagale.in/homeopathy-doctor-mumbai",
   },
 };
 
@@ -36,13 +36,13 @@ export const metadata: Metadata = {
 const mumbaiBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
-  "@id": "https://pratimaagale.in/homeopathy-doctor-mumbai",
+  "@id": "https://www.pratimaagale.in/homeopathy-doctor-mumbai",
   name: "Dr. Pratima Agale Homeopathy Clinic - Serving Mumbai",
   description: "MD-qualified lady homeopathy doctor serving Mumbai, Andheri, and suburbs, specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
-  url: "https://pratimaagale.in",
+  url: "https://www.pratimaagale.in",
   telephone: "+91-9359875511",
   priceRange: "₹₹",
-  image: "https://pratimaagale.in/og-image.jpg",
+  image: "https://www.pratimaagale.in/og-image.jpg",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Yogidham, Phase 3",
@@ -108,8 +108,8 @@ export default function HomeopathyDoctorMumbaiPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Homeopathy Doctor Mumbai", item: "https://pratimaagale.in/homeopathy-doctor-mumbai" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Homeopathy Doctor Mumbai", item: "https://www.pratimaagale.in/homeopathy-doctor-mumbai" },
         ]}
       />
       <script

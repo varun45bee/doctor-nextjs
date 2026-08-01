@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { blogPosts } from './blog/blog-data'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://pratimaagale.in'
+  const baseUrl = 'https://www.pratimaagale.in'
 
   // Static routes
   const staticRoutes = [

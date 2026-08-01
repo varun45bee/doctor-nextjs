@@ -11,7 +11,7 @@ import SiteChrome from "@/components/SiteChrome";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pratimaagale.in"),
+  metadataBase: new URL("https://www.pratimaagale.in"),
   title: {
     default: "Dr. Pratima Agale | Best Women Homeopathy Doctor in Kalyan, Mumbai",
     template: "%s | Dr. Pratima Agale – MD Homeopathy Kalyan",
@@ -92,12 +92,12 @@ export const metadata: Metadata = {
     "महिला होम्योपैथी डॉक्टर कल्याण",
     "कल्याण होमिओपॅथी डॉक्टर",
   ],
-  authors: [{ name: "Dr. Pratima Agale", url: "https://pratimaagale.in" }],
+  authors: [{ name: "Dr. Pratima Agale", url: "https://www.pratimaagale.in" }],
   creator: "Dr. Pratima Agale",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://pratimaagale.in",
+    url: "https://www.pratimaagale.in",
     siteName: "Dr. Pratima Agale Homeopathy",
     title: "Dr. Pratima Agale | Best Women Homeopathy Doctor in Kalyan, Mumbai",
     description:
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
     description: "MD Homeopathy specialist for women's health, PCOS, thyroid & more. Serving Kalyan, Thane & Mumbai.",
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://pratimaagale.in" },
+  alternates: { canonical: "https://www.pratimaagale.in" },
   verification: {
     google: "rUFOpHprIt9o12JZzBLtWNzJomB2Y01Wy_ZSLwbg_lY",
   },
@@ -143,14 +143,14 @@ const themeScript = `
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
-  "@id": "https://pratimaagale.in#medicalbusiness",
+  "@id": "https://www.pratimaagale.in#medicalbusiness",
   name: "Dr. Pratima Agale Homeopathy Clinic",
   description:
     "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
-  url: "https://pratimaagale.in",
+  url: "https://www.pratimaagale.in",
   telephone: "+91-9359875511",
   priceRange: "₹₹",
-  image: "https://pratimaagale.in/og-image.png",
+  image: "https://www.pratimaagale.in/og-image.png",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Yogidham, Phase 3",
@@ -200,12 +200,12 @@ const localBusinessSchema = {
 const doctorSchema = {
   "@context": "https://schema.org",
   "@type": "Physician",
-  "@id": "https://pratimaagale.in#physician",
+  "@id": "https://www.pratimaagale.in#physician",
   name: "Dr. Pratima Agale",
   description:
     "Dr. Pratima Agale is an MD-qualified lady homeopathy doctor in Kalyan, Mumbai. She specializes in women's health (PCOS, thyroid, hormonal imbalance, fertility), pediatric homeopathy, skin diseases and chronic conditions.",
-  url: "https://pratimaagale.in",
-  image: "https://pratimaagale.in/og-image.png",
+  url: "https://www.pratimaagale.in",
+  image: "https://www.pratimaagale.in/og-image.png",
   telephone: "+91-9359875511",
   gender: "Female",
   jobTitle: "Homeopathic Physician",
@@ -229,7 +229,7 @@ const doctorSchema = {
     "Chronic Disease Management",
   ],
   worksFor: {
-    "@id": "https://pratimaagale.in#medicalbusiness",
+    "@id": "https://www.pratimaagale.in#medicalbusiness",
     "@type": "MedicalBusiness",
     name: "Dr. Pratima Agale Homeopathy Clinic",
     address: {
@@ -317,18 +317,18 @@ const faqSchema = {
 const webSiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  url: "https://pratimaagale.in",
+  url: "https://www.pratimaagale.in",
   name: "Dr. Pratima Agale Homeopathy Clinic",
   description: "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://pratimaagale.in/search?q={search_term_string}",
+    target: "https://www.pratimaagale.in/search?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
   publisher: {
     "@type": "Organization",
     name: "Dr. Pratima Agale Homeopathy Clinic",
-    url: "https://pratimaagale.in",
+    url: "https://www.pratimaagale.in",
   },
 };
 
@@ -337,8 +337,8 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Dr. Pratima Agale Homeopathy Clinic",
-  url: "https://pratimaagale.in",
-  logo: "https://pratimaagale.in/logo.png",
+  url: "https://www.pratimaagale.in",
+  logo: "https://www.pratimaagale.in/logo.png",
   description: "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
   address: {
     "@type": "PostalAddress",

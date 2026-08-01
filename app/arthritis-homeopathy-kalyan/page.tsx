@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     "arthritis homeopathy specialist thane",
     "गठिया होमिओपॅथी कल्याण",
   ],
-  alternates: { canonical: "https://pratimaagale.in/arthritis-homeopathy-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/arthritis-homeopathy-kalyan" },
   openGraph: {
     title: "Arthritis Homeopathy Kalyan | Natural Treatment – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for arthritis, joint pain, osteoarthritis and rheumatoid arthritis by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/arthritis-homeopathy-kalyan",
+    url: "https://www.pratimaagale.in/arthritis-homeopathy-kalyan",
   },
 };
 
@@ -154,8 +154,8 @@ export default function ArthritisHomeopathyPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Arthritis Homeopathy Kalyan", item: "https://pratimaagale.in/arthritis-homeopathy-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Arthritis Homeopathy Kalyan", item: "https://www.pratimaagale.in/arthritis-homeopathy-kalyan" },
         ]}
       />
       <script

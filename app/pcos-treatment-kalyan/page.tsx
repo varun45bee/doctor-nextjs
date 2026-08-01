@@ -22,11 +22,11 @@ export const metadata: Metadata = {
     "PCOS homeopathy specialist mumbai",
     "PCOD साठी होमिओपॅथी कल्याण",
   ],
-  alternates: { canonical: "https://pratimaagale.in/pcos-treatment-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/pcos-treatment-kalyan" },
   openGraph: {
     title: "PCOS Treatment Kalyan | Natural Homeopathy – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for PCOS, PCOD, irregular periods and hormonal imbalance by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/pcos-treatment-kalyan",
+    url: "https://www.pratimaagale.in/pcos-treatment-kalyan",
   },
 };
 
@@ -154,8 +154,8 @@ export default function PCOSTreatmentPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "PCOS Treatment Kalyan", item: "https://pratimaagale.in/pcos-treatment-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "PCOS Treatment Kalyan", item: "https://www.pratimaagale.in/pcos-treatment-kalyan" },
         ]}
       />
       <script

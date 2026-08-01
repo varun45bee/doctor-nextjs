@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/', '/privacy-policy', '/_next/static/', '/_next/image'],
       disallow: ['/api/'],
     },
-    host: 'https://pratimaagale.in',
+    host: 'https://www.pratimaagale.in',
     sitemap: 'https://www.pratimaagale.in/sitemap.xml',
   }
 }

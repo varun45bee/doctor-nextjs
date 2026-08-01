@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Refund Policy | Dr. Pratima Agale Homeopathy",
   description: "Refund policy for Dr. Pratima Agale Homeopathy Clinic in Kalyan. Information about consultation fee refunds, medicine returns, and payment reversals.",
   alternates: {
-    canonical: "https://pratimaagale.in/refund-policy",
+    canonical: "https://www.pratimaagale.in/refund-policy",
   },
 };
 

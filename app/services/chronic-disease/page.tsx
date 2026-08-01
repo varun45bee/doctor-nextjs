@@ -72,9 +72,9 @@ export const metadata: Metadata = {
     title: "Chronic Disease Homeopathy in Kalyan | Arthritis, Migraine, Skin – Dr. Pratima Agale MD",
     description:
       "Natural homeopathic treatment for chronic diseases in Kalyan. Arthritis, migraine, IBS, psoriasis, anxiety & more. MD-qualified doctor.",
-    url: "https://pratimaagale.in/services/chronic-disease",
+    url: "https://www.pratimaagale.in/services/chronic-disease",
   },
-  alternates: { canonical: "https://pratimaagale.in/services/chronic-disease" },
+  alternates: { canonical: "https://www.pratimaagale.in/services/chronic-disease" },
 };
 
 // ─── JSON-LD: Chronic Disease Service ────────────────────────────────────────
@@ -84,7 +84,7 @@ const chronicSchema = {
   name: "Chronic Disease Homeopathy Treatment – Dr. Pratima Agale Kalyan",
   description:
     "Homeopathic treatment for arthritis, migraines, IBS, psoriasis, eczema, anxiety, asthma, and other chronic conditions in Kalyan, Thane and Mumbai.",
-  url: "https://pratimaagale.in/services/chronic-disease",
+  url: "https://www.pratimaagale.in/services/chronic-disease",
   about: [
     { "@type": "MedicalCondition", name: "Rheumatoid Arthritis" },
     { "@type": "MedicalCondition", name: "Migraine" },

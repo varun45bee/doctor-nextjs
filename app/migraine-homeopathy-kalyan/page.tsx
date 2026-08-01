@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     "migraine homeopathy specialist thane",
     "मायग्रेन होमिओपॅथी कल्याण",
   ],
-  alternates: { canonical: "https://pratimaagale.in/migraine-homeopathy-kalyan" },
+  alternates: { canonical: "https://www.pratimaagale.in/migraine-homeopathy-kalyan" },
   openGraph: {
     title: "Migraine Homeopathy Kalyan | Natural Treatment – Dr. Pratima Agale MD",
     description: "Natural homeopathic treatment for migraines, chronic headaches and pain relief by MD-qualified lady homeopathy doctor in Kalyan.",
-    url: "https://pratimaagale.in/migraine-homeopathy-kalyan",
+    url: "https://www.pratimaagale.in/migraine-homeopathy-kalyan",
   },
 };
 
@@ -154,8 +154,8 @@ export default function MigraineHomeopathyPage() {
     <div className="pt-24">
       <BreadcrumbSchema
         items={[
-          { name: "Home", item: "https://pratimaagale.in" },
-          { name: "Migraine Homeopathy Kalyan", item: "https://pratimaagale.in/migraine-homeopathy-kalyan" },
+          { name: "Home", item: "https://www.pratimaagale.in" },
+          { name: "Migraine Homeopathy Kalyan", item: "https://www.pratimaagale.in/migraine-homeopathy-kalyan" },
         ]}
       />
       <script

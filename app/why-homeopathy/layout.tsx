@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "homeopathy safe for children",
     "homeopathy safe during pregnancy",
   ],
-  alternates: { canonical: "https://pratimaagale.in/why-homeopathy" },
+  alternates: { canonical: "https://www.pratimaagale.in/why-homeopathy" },
 }
 
 export default function WhyHomeopathyLayout({
