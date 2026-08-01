@@ -1,13 +1,35 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
 import { getAllBlogs } from "@/lib/firestore/blogs";
 import type { Blog } from "@/lib/types/blog";
 
-export default async function BlogPage() {
-  console.log("=== Fetching blogs for public view ===");
-  const blogs = await getAllBlogs(true); // Only published blogs
-  console.log("Blogs fetched:", blogs.length);
-  console.log("Blog data:", blogs);
+export default function BlogPage() {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadBlogs();
+  }, []);
+
+  const loadBlogs = async () => {
+    console.log("=== Fetching blogs for public view ===");
+    const fetchedBlogs = await getAllBlogs(true);
+    console.log("Blogs fetched:", fetchedBlogs.length);
+    console.log("Blog data:", fetchedBlogs);
+    setBlogs(fetchedBlogs);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-sage-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-24 overflow-hidden">

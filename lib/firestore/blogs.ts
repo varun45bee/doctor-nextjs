@@ -13,7 +13,6 @@ import {
   type Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { revalidatePath } from "next/cache";
 import type { Blog } from "@/lib/types/blog";
 
 const BLOGS_COLLECTION = "blogs";
@@ -24,11 +23,6 @@ export async function createBlog(blog: Omit<Blog, "id" | "createdAt" | "updatedA
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  
-  // Revalidate blog pages to show new content immediately
-  revalidatePath("/blog");
-  revalidatePath(`/blog/${blog.slug}`);
-  
   return docRef.id;
 }
 
@@ -38,19 +32,10 @@ export async function updateBlog(id: string, blog: Partial<Blog>): Promise<void>
     ...blog,
     updatedAt: serverTimestamp(),
   });
-  
-  // Revalidate blog pages to show updated content immediately
-  revalidatePath("/blog");
-  if (blog.slug) {
-    revalidatePath(`/blog/${blog.slug}`);
-  }
 }
 
 export async function deleteBlog(id: string): Promise<void> {
   await deleteDoc(doc(db, BLOGS_COLLECTION, id));
-  
-  // Revalidate blog listing page to show updated content immediately
-  revalidatePath("/blog");
 }
 
 export async function getBlogById(id: string): Promise<Blog | null> {
