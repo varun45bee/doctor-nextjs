@@ -74,15 +74,22 @@ export async function getBlogBySlug(slug: string): Promise<Blog | null> {
 }
 
 export async function getAllBlogs(publishedOnly: boolean = true): Promise<Blog[]> {
+  console.log("=== getAllBlogs called ===");
+  console.log("publishedOnly:", publishedOnly);
+  
   const q = query(
     collection(db, BLOGS_COLLECTION),
     where("published", "==", publishedOnly),
     orderBy("createdAt", "desc")
   );
-  const querySnapshot = await getDocs(q);
   
-  return querySnapshot.docs.map((doc) => {
+  console.log("Query created, fetching...");
+  const querySnapshot = await getDocs(q);
+  console.log("Query snapshot size:", querySnapshot.size);
+  
+  const blogs = querySnapshot.docs.map((doc) => {
     const data = doc.data();
+    console.log("Blog document:", doc.id, data);
     return {
       id: doc.id,
       ...data,
@@ -90,6 +97,9 @@ export async function getAllBlogs(publishedOnly: boolean = true): Promise<Blog[]
       updatedAt: data.updatedAt ? (data.updatedAt as Timestamp).toDate() : undefined,
     } as Blog;
   });
+  
+  console.log("Final blogs array:", blogs);
+  return blogs;
 }
 
 export async function getAllBlogsForAdmin(): Promise<Blog[]> {

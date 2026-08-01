@@ -4,7 +4,10 @@ import { getAllBlogs } from "@/lib/firestore/blogs";
 import type { Blog } from "@/lib/types/blog";
 
 export default async function BlogPage() {
+  console.log("=== Fetching blogs for public view ===");
   const blogs = await getAllBlogs(true); // Only published blogs
+  console.log("Blogs fetched:", blogs.length);
+  console.log("Blog data:", blogs);
 
   return (
     <div className="pt-24 overflow-hidden">
