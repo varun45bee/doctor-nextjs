@@ -295,9 +295,6 @@ export default function HomePage() {
                     value={stat.n}
                     suffix={stat.suffix}
                     className="font-serif text-2xl font-semibold"
-                  />
-                  <div
-                    className="font-serif text-2xl font-semibold hidden"
                     style={{ color: "var(--sage-mid)", fontFamily: "'Cormorant Garamond', serif" }}
                   />
                   <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>

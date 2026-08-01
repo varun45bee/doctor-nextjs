@@ -24,10 +24,10 @@ export const metadata: Metadata = {
 const caseStudiesSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalWebPage",
-  "name": "Homeopathy Case Studies – Dr. Pratima Agale Kalyan",
-  "description": "Real patient case studies from Dr. Pratima Agale's homeopathy practice in Kalyan — PCOS, thyroid, migraines, eczema, child immunity, ADHD & more.",
-  "url": "https://pratimaagale.in/case-studies",
-  "about": [
+  name: "Homeopathy Case Studies – Dr. Pratima Agale Kalyan",
+  description: "Real patient case studies from Dr. Pratima Agale's homeopathy practice in Kalyan — PCOS, thyroid, migraines, eczema, child immunity, ADHD & more.",
+  url: "https://pratimaagale.in/case-studies",
+  about: [
     { "@type": "MedicalCondition", "name": "PCOS" },
     { "@type": "MedicalCondition", "name": "Hypothyroidism" },
     { "@type": "MedicalCondition", "name": "Migraine" },
@@ -35,11 +35,68 @@ const caseStudiesSchema = {
     { "@type": "MedicalCondition", "name": "ADHD" },
     { "@type": "MedicalCondition", "name": "Recurrent Infections" },
   ],
-  "author": {
+  author: {
     "@type": "Physician",
-    "name": "Dr. Pratima Agale",
-    "hasCredential": ["BHMS", "MD Homeopathy"],
+    name: "Dr. Pratima Agale",
+    hasCredential: ["BHMS", "MD Homeopathy"],
   },
+};
+
+// ─── JSON-LD: AggregateRating for Reviews ─────────────────────────────────────
+const aggregateRatingSchema = {
+  "@context": "https://schema.org",
+  "@type": "Physician",
+  name: "Dr. Pratima Agale",
+  image: "https://pratimaagale.in/og-image.jpg",
+  url: "https://pratimaagale.in",
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "5",
+    reviewCount: "6",
+    bestRating: "5",
+    worstRating: "1",
+  },
+  review: [
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Priya M.",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: "5",
+        bestRating: "5",
+      },
+      reviewBody: "After years of PCOD imbalance, I finally felt my body settle into a natural rhythm again. The care felt patient, precise, and deeply reassuring.",
+    },
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Rahul S.",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: "5",
+        bestRating: "5",
+      },
+      reviewBody: "My son's recurrent infections reduced dramatically. What stood out most was how calmly every follow-up was handled, with real attention to the whole child.",
+    },
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Sunita K.",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: "5",
+        bestRating: "5",
+      },
+      reviewBody: "The treatment for thyroid support felt holistic rather than mechanical. I wasn't just given medicine, I was genuinely guided through recovery.",
+    },
+  ],
 };
 
 const cases = [
@@ -141,6 +198,10 @@ export default function CaseStudiesPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(caseStudiesSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
       />
       {/* HERO */}
       <section

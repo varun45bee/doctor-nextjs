@@ -313,6 +313,53 @@ const faqSchema = {
   ],
 };
 
+// ─── Schema 4: WebSite with SearchAction ───────────────────────────────────────
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  url: "https://pratimaagale.in",
+  name: "Dr. Pratima Agale Homeopathy Clinic",
+  description: "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://pratimaagale.in/search?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Dr. Pratima Agale Homeopathy Clinic",
+    url: "https://pratimaagale.in",
+  },
+};
+
+// ─── Schema 5: Organization ───────────────────────────────────────────────────
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Dr. Pratima Agale Homeopathy Clinic",
+  url: "https://pratimaagale.in",
+  logo: "https://pratimaagale.in/logo.png",
+  description: "MD-qualified lady homeopathy doctor in Kalyan specializing in women's health, PCOS, thyroid, fertility, pediatric care and chronic diseases.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Yogidham, Phase 3",
+    addressLocality: "Kalyan",
+    addressRegion: "Maharashtra",
+    postalCode: "421301",
+    addressCountry: "IN",
+  },
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+91-9359875511",
+    contactType: "customer service",
+    availableLanguage: ["English", "Hindi", "Marathi"],
+  },
+  sameAs: [
+    "https://www.instagram.com/dr_pratimaagale/",
+    "https://www.linkedin.com/in/pratima-agale-2a26101a4/",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -343,6 +390,14 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body>

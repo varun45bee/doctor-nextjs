@@ -9,6 +9,7 @@ type AnimatedCounterProps = {
   prefix?: string;
   decimals?: number;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 export default function AnimatedCounter({
@@ -17,6 +18,7 @@ export default function AnimatedCounter({
   prefix = "",
   decimals = 0,
   className,
+  style,
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
@@ -45,7 +47,7 @@ export default function AnimatedCounter({
   }, [isInView, reduceMotion, value]);
 
   return (
-    <motion.span ref={ref} className={className}>
+    <motion.span ref={ref} className={className} style={style}>
       {prefix}
       {displayValue.toFixed(decimals)}
       {suffix}
