@@ -83,6 +83,7 @@ async function getAvailableDates() {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { decryptedBody, aesKey, iv } = decryptRequest(body);
+  console.log("FLOW REQUEST:", JSON.stringify(decryptedBody));
 
   // Meta ka health-check ping
   if (decryptedBody.action === "ping") {
