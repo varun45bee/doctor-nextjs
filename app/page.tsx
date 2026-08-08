@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   motion,
@@ -40,6 +41,113 @@ import {
 import AnimatedCounter from "@/components/animations/AnimatedCounter";
 import FloatingBlobs from "@/components/animations/FloatingBlobs";
 import RippleButton from "@/components/animations/RippleButton";
+import FAQSection from "@/components/FAQSection";
+
+// Homepage FAQs data - used for both visible section and schema
+const homepageFAQs = [
+  {
+    question: "Who is the best women homeopathy doctor in Kalyan?",
+    answer: "Dr. Pratima Agale (BHMS, MD Homeopathy) is one of Kalyan's most trusted lady homeopathy doctors, specializing in women's health, PCOS, thyroid disorders, and hormonal imbalance. She is located at Yogidham Phase 3, Kalyan.",
+  },
+  {
+    question: "Is there a female homeopathy doctor near me in Kalyan?",
+    answer: "Yes. Dr. Pratima Agale is a qualified female (lady) homeopathy doctor in Kalyan, Maharashtra. She offers both in-person consultations in Kalyan and online consultations for patients across Mumbai and Thane.",
+  },
+  {
+    question: "Can homeopathy treat PCOS and hormonal imbalance?",
+    answer: "Yes. Dr. Pratima Agale specializes in homeopathic treatment for PCOS, PCOD, irregular periods, thyroid disorders, and hormonal imbalances with individualized, side-effect-free remedies.",
+  },
+  {
+    question: "What is the qualification of Dr. Pratima Agale?",
+    answer: "Dr. Pratima Agale holds a BHMS (Bachelor of Homeopathic Medicine and Surgery) and an MD in Homeopathy, making her one of the few postgraduate-qualified homeopathy doctors in Kalyan.",
+  },
+  {
+    question: "Does Dr. Pratima Agale offer online homeopathy consultations?",
+    answer: "Yes. Dr. Pratima Agale offers online homeopathy consultations for patients in Mumbai, Thane, Dombivli, Ulhasnagar and across Maharashtra. Book at pratimaagale.in.",
+  },
+];
+
+// Schemas for homepage
+const physicianSchema = {
+  "@context": "https://schema.org",
+  "@type": "Physician",
+  "@id": "https://www.pratimaagale.in#physician",
+  name: "Dr. Pratima Agale",
+  description:
+    "Dr. Pratima Agale is an MD-qualified lady homeopathy doctor in Kalyan, Mumbai. She specializes in women's health (PCOS, thyroid, hormonal imbalance, fertility), pediatric homeopathy, skin diseases and chronic conditions.",
+  url: "https://www.pratimaagale.in",
+  image: "https://www.pratimaagale.in/og-image.png",
+  telephone: "+91-9359875511",
+  gender: "Female",
+  jobTitle: "Homeopathic Physician",
+  hasCredential: [
+    {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "degree",
+      name: "BHMS (Bachelor of Homeopathic Medicine and Surgery)",
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "postgraduate degree",
+      name: "MD (Doctor of Medicine) – Homeopathy",
+    },
+  ],
+  medicalSpecialty: [
+    "Homeopathy",
+    "Women's Health",
+    "Pediatrics",
+    "Dermatology",
+    "Chronic Disease Management",
+  ],
+  worksFor: {
+    "@id": "https://www.pratimaagale.in#medicalbusiness",
+    "@type": "MedicalBusiness",
+    name: "Dr. Pratima Agale Homeopathy Clinic",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Yogidham, Phase 3",
+      addressLocality: "Kalyan",
+      addressRegion: "Maharashtra",
+      postalCode: "421301",
+      addressCountry: "IN",
+    },
+  },
+  availableService: [
+    { "@type": "MedicalTherapy", name: "Women's Health & PCOS Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Thyroid Disorder Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Pediatric Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Skin Disease Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Chronic Disease Homeopathy" },
+    { "@type": "MedicalTherapy", name: "Fertility & Hormonal Homeopathy" },
+  ],
+  areaServed: [
+    { "@type": "City", name: "Kalyan" },
+    { "@type": "City", name: "Dombivli" },
+    { "@type": "City", name: "Thane" },
+    { "@type": "City", name: "Ulhasnagar" },
+    { "@type": "City", name: "Mumbai" },
+    { "@type": "City", name: "Ambernath" },
+    { "@type": "City", name: "Badlapur" },
+    { "@type": "City", name: "Navi Mumbai" },
+  ],
+  sameAs: [
+    "https://www.linkedin.com/in/pratima-agale-2a26101a4/",
+    "https://www.instagram.com/dr_pratimaagale/",
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: homepageFAQs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
 
 const conditions = [
   { icon: "🌸", title: "PCOD / PCOS", href: "/services/womens-health" },
@@ -206,6 +314,18 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
+      {/* Homepage-specific schemas */}
+      <Script
+        id="physician-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(physicianSchema) }}
+      />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      
       <section
         className="relative min-h-screen flex items-center justify-center"
         style={{
@@ -678,6 +798,13 @@ export default function HomePage() {
               Read all patient stories <ArrowRight className="learn-arrow w-4 h-4" />
             </Link>
           </div>
+        </div>
+      </MotionSection>
+
+      {/* FAQ Section */}
+      <MotionSection className="py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
+        <div className="max-w-4xl mx-auto">
+          <FAQSection faqs={homepageFAQs} />
         </div>
       </MotionSection>
 

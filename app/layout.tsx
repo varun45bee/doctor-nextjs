@@ -115,6 +115,12 @@ export const metadata: Metadata = {
     google: "rUFOpHprIt9o12JZzBLtWNzJomB2Y01Wy_ZSLwbg_lY",
   },
   category: "Health",
+  other: {
+    "geo.region": "IN-MH",
+    "geo.placename": "Kalyan",
+    "geo.position": "19.2403;73.1305",
+    "ICBM": "19.2403, 73.1305",
+  },
 };
 
 export const viewport = {
@@ -385,19 +391,7 @@ export default function RootLayout({
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(doctorSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
-        <script
-          type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body>

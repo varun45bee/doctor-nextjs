@@ -26,6 +26,28 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  // SEO fields
+  const [metaTitle, setMetaTitle] = useState(blog?.metaTitle || "");
+  const [metaDescription, setMetaDescription] = useState(blog?.metaDescription || "");
+  const [keywords, setKeywords] = useState(blog?.keywords?.join(", ") || "");
+  // FAQ fields
+  const [faqs, setFaqs] = useState(blog?.faqs || [{ question: "", answer: "" }]);
+
+  const addFAQ = () => {
+    setFaqs([...faqs, { question: "", answer: "" }]);
+  };
+
+  const removeFAQ = (index: number) => {
+    if (faqs.length > 1) {
+      setFaqs(faqs.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateFAQ = (index: number, field: "question" | "answer", value: string) => {
+    const updated = [...faqs];
+    updated[index][field] = value;
+    setFaqs(updated);
+  };
 
   useEffect(() => {
     if (title && !blog) {
@@ -82,6 +104,10 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
         author: "Dr. Pratima Agale",
         published,
         tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        metaTitle: metaTitle || undefined,
+        metaDescription: metaDescription || undefined,
+        keywords: keywords.split(",").map((kw) => kw.trim()).filter(Boolean),
+        faqs: faqs.filter((faq) => faq.question && faq.answer),
       };
 
       if (blog?.id) {
@@ -193,6 +219,131 @@ export default function BlogForm({ blog, onClose }: BlogFormProps) {
                 className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
                 placeholder="Short summary for preview cards (150-200 characters)"
               />
+            </div>
+
+            {/* SEO Section */}
+            <div className="border-t border-sage-200 dark:border-sage-700 pt-6">
+              <h3 className="text-lg font-semibold text-sage-900 dark:text-sage-100 mb-4">SEO Settings</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="metaTitle"
+                    className="block text-sm font-medium text-sage-700 dark:text-sage-300 mb-2"
+                  >
+                    Meta Title
+                  </label>
+                  <input
+                    type="text"
+                    id="metaTitle"
+                    value={metaTitle}
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
+                    placeholder="Custom SEO title (optional, defaults to blog title)"
+                    maxLength={60}
+                  />
+                  <p className="mt-1 text-xs text-sage-500 dark:text-sage-400">
+                    {metaTitle.length}/60 characters
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="metaDescription"
+                    className="block text-sm font-medium text-sage-700 dark:text-sage-300 mb-2"
+                  >
+                    Meta Description
+                  </label>
+                  <textarea
+                    id="metaDescription"
+                    value={metaDescription}
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
+                    placeholder="SEO description for search engines (optional, defaults to excerpt)"
+                    maxLength={160}
+                  />
+                  <p className="mt-1 text-xs text-sage-500 dark:text-sage-400">
+                    {metaDescription.length}/160 characters
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="keywords"
+                    className="block text-sm font-medium text-sage-700 dark:text-sage-300 mb-2"
+                  >
+                    Keywords
+                  </label>
+                  <input
+                    type="text"
+                    id="keywords"
+                    value={keywords}
+                    onChange={(e) => setKeywords(e.target.value)}
+                    className="w-full px-4 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white"
+                    placeholder="homeopathy, pcos treatment, kalyan (comma-separated)"
+                  />
+                  <p className="mt-1 text-xs text-sage-500 dark:text-sage-400">
+                    Separate keywords with commas
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* FAQ Section */}
+            <div className="border-t border-sage-200 dark:border-sage-700 pt-6">
+              <h3 className="text-lg font-semibold text-sage-900 dark:text-sage-100 mb-4">FAQs</h3>
+              
+              <div className="space-y-4">
+                {faqs.map((faq, index) => (
+                  <div key={index} className="p-4 border border-sage-200 dark:border-sage-600 rounded-lg space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-sage-700 dark:text-sage-300">FAQ {index + 1}</span>
+                      {faqs.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeFAQ(index)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-sage-700 dark:text-sage-300 mb-1">
+                        Question
+                      </label>
+                      <input
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) => updateFAQ(index, "question", e.target.value)}
+                        className="w-full px-3 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white text-sm"
+                        placeholder="Enter question"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-sage-700 dark:text-sage-300 mb-1">
+                        Answer
+                      </label>
+                      <textarea
+                        value={faq.answer}
+                        onChange={(e) => updateFAQ(index, "answer", e.target.value)}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-sage-300 dark:border-sage-600 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-transparent dark:bg-sage-700 dark:text-white text-sm"
+                        placeholder="Enter answer"
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                <button
+                  type="button"
+                  onClick={addFAQ}
+                  className="w-full py-2 border-2 border-dashed border-sage-300 dark:border-sage-600 rounded-lg text-sage-600 dark:text-sage-400 hover:border-sage-500 hover:text-sage-700 dark:hover:border-sage-500 dark:hover:text-sage-300 transition-colors text-sm"
+                >
+                  + Add FAQ
+                </button>
+              </div>
             </div>
 
             <div>

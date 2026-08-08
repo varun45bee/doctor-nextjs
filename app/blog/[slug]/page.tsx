@@ -5,10 +5,29 @@ import { Calendar, Clock, ArrowLeft, ArrowRight, Tag, Share2 } from "lucide-reac
 import { getBlogBySlug } from "@/lib/firestore/blogs";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
+import FAQSection from "@/components/FAQSection";
 
 interface PageProps {
   params: {
     slug: string;
+  };
+}
+
+// Generate FAQPage Schema
+function generateFAQSchema(faqs: { question: string; answer: string }[]) {
+  if (!faqs || faqs.length === 0) return null;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
   };
 }
 
@@ -22,13 +41,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const title = blog.metaTitle || `${blog.title} | Dr. Pratima Agale Homeopathy Kalyan`;
+  const description = blog.metaDescription || blog.excerpt;
+  const keywords = blog.keywords?.join(", ") || "";
+
   return {
-    title: `${blog.title} | Dr. Pratima Agale Homeopathy Kalyan`,
-    description: blog.excerpt,
+    title,
+    description,
+    keywords,
     alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug}` },
     openGraph: {
-      title: blog.title,
-      description: blog.excerpt,
+      title,
+      description,
       type: "article",
       url: `https://www.pratimaagale.in/blog/${blog.slug}`,
       images: blog.coverImage ? [{ url: blog.coverImage, width: 1200, height: 630 }] : [],
@@ -53,6 +77,14 @@ export default async function BlogPostPage({ params }: PageProps) {
           { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug}` },
         ]}
       />
+      
+      {/* FAQ Schema */}
+      {blog.faqs && blog.faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema(blog.faqs)) }}
+        />
+      )}
       
       {/* Breadcrumb */}
       <div className="bg-white border-b border-sage-50 px-6 py-3 dark:bg-zinc-950 dark:border-zinc-800">
@@ -143,6 +175,9 @@ export default async function BlogPostPage({ params }: PageProps) {
               className="prose prose-sage max-w-none dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
+
+            {/* FAQ Section */}
+            <FAQSection faqs={blog.faqs || []} />
 
             {/* Share */}
             <div className="flex items-center gap-3 py-6 border-t border-sage-100 dark:border-zinc-800">

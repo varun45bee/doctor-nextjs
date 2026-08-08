@@ -10,4 +10,10 @@ export interface Blog {
   createdAt?: Date;
   updatedAt?: Date;
   tags: string[];
+  // SEO fields
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  // FAQ fields
+  faqs?: { question: string; answer: string }[];
 }
