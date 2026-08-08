@@ -72,7 +72,7 @@ async function getAvailableDates() {
     d.setDate(today.getDate() + i);
     const dayOfWeek = d.getDay();
 
-    if (!availability || availability.weeklyDays.includes(dayOfWeek)) {
+    if (availability.weeklyDays.includes(dayOfWeek)) {
       const dateStr = d.toISOString().split("T")[0];
       dates.push({ id: dateStr, title: formatDateLabel(dateStr) });
     }
@@ -119,13 +119,9 @@ export async function POST(req: NextRequest) {
       fetchBookedSlotsForDate(dateStr),
     ]);
 
-    let timeSlots: { id: string; title: string }[] = [];
-
-    if (availability) {
-      timeSlots = availability.slots
-        .filter((slot) => !booked.includes(slot))
-        .map((slot) => ({ id: slot, title: formatSlotLabel(slot) }));
-    }
+    let timeSlots = availability.slots
+      .filter((slot) => !booked.includes(slot))
+      .map((slot) => ({ id: slot, title: formatSlotLabel(slot) }));
 
     if (timeSlots.length === 0) {
       timeSlots = [{ id: "none", title: "No slots available" }];
