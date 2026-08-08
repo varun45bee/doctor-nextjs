@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
     const dates = await getAvailableDates();
 
     const responsePayload = {
+      version: "3.0",
       screen: "APPOINTMENT",
       data: {
         condition: CONDITIONS,
@@ -128,6 +129,7 @@ export async function POST(req: NextRequest) {
     }
 
     const responsePayload = {
+      version: "3.0",
       screen: "APPOINTMENT",
       data: {
         condition: CONDITIONS,
