@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { fetchAvailabilitySettings, fetchBookedSlotsForDate } from "@/lib/firestore/availability";
 
-const PRIVATE_KEY = process.env.WHATSAPP_FLOW_PRIVATE_KEY!.replace(/\\n/g, "\n");
+const PRIVATE_KEY = process.env.WHATSAPP_FLOW_PRIVATE_KEY!
+  .replace(/\\n/g, "\n")
+  .replace(/\r\n/g, "\n")
+  .trim();
 
 const CONDITIONS = [
   { id: "pcod", title: "PCOD / PCOS" },
