@@ -81,71 +81,23 @@ async function getAvailableDates() {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { decryptedBody, aesKey, iv } = decryptRequest(body);
-  console.log("FLOW REQUEST:", JSON.stringify(decryptedBody));
+  try {
+    console.log("🔥 FLOW ENDPOINT HIT");
 
-  // Meta ka health-check ping
-  if (decryptedBody.action === "ping") {
-    const response = encryptResponse({ data: { status: "active" } }, aesKey, iv);
-    return new NextResponse(response, { headers: { "Content-Type": "text/plain" } });
-  }
+    const body = await req.text();
+    console.log("BODY:", body);
 
-  // Flow open hote hi INIT call aata hai — condition list + date list bhejo
-  if (decryptedBody.action === "INIT") {
-    const dates = await getAvailableDates();
-
-    const responsePayload = {
-      version: "3.0",
-      screen: "APPOINTMENT",
-      data: {
-        condition: CONDITIONS,
-        date: dates,
-        is_date_enabled: true,
-        time: [],
-        is_time_enabled: false,
+    return new NextResponse("OK", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
       },
-    };
+    });
+  } catch (error) {
+    console.error("FLOW ERROR:", error);
 
-    const response = encryptResponse(responsePayload, aesKey, iv);
-    return new NextResponse(response, { headers: { "Content-Type": "text/plain" } });
+    return new NextResponse("ERROR", {
+      status: 500,
+    });
   }
-
-  // User ne date select ki — us din ke available time slots bhejo
-  const { data } = decryptedBody;
-
-  if (data?.trigger === "date_selected") {
-    const dateStr = data.date;
-    const [availability, booked] = await Promise.all([
-      fetchAvailabilitySettings(),
-      fetchBookedSlotsForDate(dateStr),
-    ]);
-
-    let timeSlots = availability.slots
-      .filter((slot) => !booked.includes(slot))
-      .map((slot) => ({ id: slot, title: formatSlotLabel(slot) }));
-
-    if (timeSlots.length === 0) {
-      timeSlots = [{ id: "none", title: "No slots available" }];
-    }
-
-    const responsePayload = {
-      version: "3.0",
-      screen: "APPOINTMENT",
-      data: {
-        condition: CONDITIONS,
-        date: await getAvailableDates(),
-        is_date_enabled: true,
-        time: timeSlots,
-        is_time_enabled: true,
-      },
-    };
-
-    const response = encryptResponse(responsePayload, aesKey, iv);
-    return new NextResponse(response, { headers: { "Content-Type": "text/plain" } });
-  }
-
-  // Fallback
-  const response = encryptResponse({ data: { status: "active" } }, aesKey, iv);
-  return new NextResponse(response, { headers: { "Content-Type": "text/plain" } });
 }
