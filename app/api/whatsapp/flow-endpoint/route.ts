@@ -98,7 +98,31 @@ export async function POST(req: NextRequest) {
       JSON.stringify(decryptedBody)
     );
 
-    // INIT
+    // 1. PING
+    if (decryptedBody.action === "ping") {
+      console.log("🏥 PING REQUEST");
+
+      const response = encryptResponse(
+        {
+          data: {
+            status: "active",
+          },
+        },
+        aesKey,
+        iv
+      );
+
+      console.log("📤 PING RESPONSE ENCRYPTED");
+
+      return new NextResponse(response, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      });
+    }
+
+    // 2. INIT
     if (decryptedBody.action === "INIT") {
       console.log("🚀 INIT REQUEST");
 
