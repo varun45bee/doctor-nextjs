@@ -84,19 +84,95 @@ export async function POST(req: NextRequest) {
   try {
     console.log("🔥 FLOW ENDPOINT HIT");
 
-    const body = await req.text();
-    console.log("BODY:", body);
+    const body = await req.json();
 
-    return new NextResponse("OK", {
+    console.log("🔐 ENCRYPTED REQUEST RECEIVED");
+    console.log("Has AES key:", !!body.encrypted_aes_key);
+    console.log("Has flow data:", !!body.encrypted_flow_data);
+    console.log("Has IV:", !!body.initial_vector);
+
+    const { decryptedBody, aesKey, iv } = decryptRequest(body);
+
+    console.log(
+      "✅ DECRYPTED BODY:",
+      JSON.stringify(decryptedBody)
+    );
+
+    // Meta health check
+    if (decryptedBody.action === "ping") {
+      console.log("🏥 PING REQUEST");
+
+      const response = encryptResponse(
+        { data: { status: "active" } },
+        aesKey,
+        iv
+      );
+
+      return new NextResponse(response, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      });
+    }
+
+    if (decryptedBody.action === "INIT") {
+      console.log("🚀 INIT REQUEST");
+
+      const dates = await getAvailableDates();
+
+      const responsePayload = {
+        version: "3.0",
+        screen: "APPOINTMENT",
+        data: {
+          condition: CONDITIONS,
+          date: dates,
+          is_date_enabled: true,
+          time: [],
+          is_time_enabled: false,
+        },
+      };
+
+      console.log(
+        "📤 INIT RESPONSE:",
+        JSON.stringify(responsePayload)
+      );
+
+      const response = encryptResponse(
+        responsePayload,
+        aesKey,
+        iv
+      );
+
+      return new NextResponse(response, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      });
+    }
+
+    console.log(
+      "⚠️ UNKNOWN ACTION:",
+      decryptedBody.action
+    );
+
+    const response = encryptResponse(
+      { data: { status: "active" } },
+      aesKey,
+      iv
+    );
+
+    return new NextResponse(response, {
       status: 200,
       headers: {
         "Content-Type": "text/plain",
       },
     });
   } catch (error) {
-    console.error("FLOW ERROR:", error);
+    console.error("❌ FLOW ENDPOINT ERROR:", error);
 
-    return new NextResponse("ERROR", {
+    return new NextResponse("Internal Server Error", {
       status: 500,
     });
   }
