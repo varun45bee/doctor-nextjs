@@ -98,24 +98,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify(decryptedBody)
     );
 
-    // Meta health check
-    if (decryptedBody.action === "ping") {
-      console.log("🏥 PING REQUEST");
-
-      const response = encryptResponse(
-        { data: { status: "active" } },
-        aesKey,
-        iv
-      );
-
-      return new NextResponse(response, {
-        status: 200,
-        headers: {
-          "Content-Type": "text/plain",
-        },
-      });
-    }
-
+    // INIT
     if (decryptedBody.action === "INIT") {
       console.log("🚀 INIT REQUEST");
 
@@ -152,13 +135,72 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Date selected
+    const { data } = decryptedBody;
+
+    if (data?.trigger === "date_selected") {
+      console.log("� DATE SELECTED:", data.date);
+
+      const dateStr = data.date;
+
+      const [availability, booked] = await Promise.all([
+        fetchAvailabilitySettings(),
+        fetchBookedSlotsForDate(dateStr),
+      ]);
+
+      let timeSlots = availability.slots
+        .filter((slot) => !booked.includes(slot))
+        .map((slot) => ({
+          id: slot,
+          title: formatSlotLabel(slot),
+        }));
+
+      if (timeSlots.length === 0) {
+        timeSlots = [
+          {
+            id: "none",
+            title: "No slots available",
+          },
+        ];
+      }
+
+      const responsePayload = {
+        version: "3.0",
+        screen: "APPOINTMENT",
+        data: {
+          condition: CONDITIONS,
+          date: await getAvailableDates(),
+          is_date_enabled: true,
+          time: timeSlots,
+          is_time_enabled: true,
+        },
+      };
+
+      const response = encryptResponse(
+        responsePayload,
+        aesKey,
+        iv
+      );
+
+      return new NextResponse(response, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      });
+    }
+
     console.log(
       "⚠️ UNKNOWN ACTION:",
       decryptedBody.action
     );
 
     const response = encryptResponse(
-      { data: { status: "active" } },
+      {
+        data: {
+          status: "active",
+        },
+      },
       aesKey,
       iv
     );
