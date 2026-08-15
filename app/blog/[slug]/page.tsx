@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, ArrowLeft, ArrowRight, Tag, Share2 } from "lucide-react";
-import { getBlogBySlug } from "@/lib/firestore/blogs";
+import { getBlogPostBySlug } from "@/lib/sanity/queries";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import FAQSection from "@/components/FAQSection";
+import { PortableText } from "@portabletext/react";
 
 interface PageProps {
   params: {
@@ -16,10 +17,10 @@ interface PageProps {
 // Generate FAQPage Schema
 function generateFAQSchema(faqs: { question: string; answer: string }[]) {
   if (!faqs || faqs.length === 0) return null;
-  
+
   return {
     "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@type": " FAQsPage",
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
@@ -33,8 +34,8 @@ function generateFAQSchema(faqs: { question: string; answer: string }[]) {
 
 // Dynamic metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const blog = await getBlogBySlug(params.slug);
-  
+  const blog = await getBlogPostBySlug(params.slug);
+
   if (!blog) {
     return {
       title: "Blog Post Not Found",
@@ -49,12 +50,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     keywords,
-    alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug}` },
+    alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug.current}` },
     openGraph: {
       title,
       description,
       type: "article",
-      url: `https://www.pratimaagale.in/blog/${blog.slug}`,
+      url: `https://www.pratimaagale.in/blog/${blog.slug.current}`,
       images: blog.coverImage ? [{ url: blog.coverImage, width: 1200, height: 630 }] : [],
       authors: ["Dr. Pratima Agale"],
     },
@@ -62,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
-  const blog = await getBlogBySlug(params.slug);
+  const blog = await getBlogPostBySlug(params.slug);
 
   if (!blog) {
     notFound();
@@ -74,10 +75,10 @@ export default async function BlogPostPage({ params }: PageProps) {
         items={[
           { name: "Home", item: "https://www.pratimaagale.in" },
           { name: "Knowledge Hub", item: "https://www.pratimaagale.in/blog" },
-          { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug}` },
+          { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug.current}` },
         ]}
       />
-      
+
       {/* FAQ Schema */}
       {blog.faqs && blog.faqs.length > 0 && (
         <script
@@ -85,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema(blog.faqs)) }}
         />
       )}
-      
+
       {/* Breadcrumb */}
       <div className="bg-white border-b border-sage-50 px-6 py-3 dark:bg-zinc-950 dark:border-zinc-800">
         <div className="max-w-4xl mx-auto flex items-center gap-2 text-xs text-sage-400">
@@ -112,7 +113,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           )}
 
           <div className="flex items-center justify-center gap-3 mb-5">
-            {blog.tags.slice(0, 1).map((tag) => (
+            {blog.tags?.slice(0, 1).map((tag: string) => (
               <span
                 key={tag}
                 className="px-3 py-1 rounded-full text-xs font-medium text-white"
@@ -123,7 +124,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             ))}
             <span className="flex items-center gap-1 text-xs text-sage-500">
               <Calendar className="w-3 h-3" />
-              {blog.createdAt?.toLocaleDateString() || "Recently"}
+              {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Recently"}
             </span>
           </div>
 
@@ -146,7 +147,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <span>
               By{" "}
               <span className="font-medium text-sage-700 dark:text-zinc-300">
-                {blog.author}
+                Dr. Pratima Agale
               </span>
             </span>
           </div>
@@ -154,7 +155,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           {/* Tags */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             <Tag className="w-3.5 h-3.5 text-sage-400" />
-            {blog.tags.map((tag: string) => (
+            {blog.tags?.map((tag: string) => (
               <span
                 key={tag}
                 className="px-2.5 py-1 rounded-full text-xs bg-white border border-sage-100 text-sage-600 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400"
@@ -171,10 +172,9 @@ export default async function BlogPostPage({ params }: PageProps) {
         <div className="grid lg:grid-cols-3 gap-10">
           {/* Main content */}
           <div className="lg:col-span-2">
-            <div
-              className="prose prose-sage max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-            />
+            <div className="prose prose-sage max-w-none dark:prose-invert">
+              {blog.body && <PortableText value={blog.body} />}
+            </div>
 
             {/* FAQ Section */}
             <FAQSection faqs={blog.faqs || []} />
@@ -204,7 +204,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               </div>
               <div>
                 <div className="font-semibold text-sage-900 mb-1 dark:text-zinc-100">
-                  {blog.author}
+                  Dr. Pratima Agale
                 </div>
                 <p className="text-sage-600 text-sm leading-relaxed dark:text-zinc-400">
                   Dr. Pratima Agale is a qualified homeopathic physician with over 10 years of experience
@@ -242,7 +242,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                   fill="#25D366"
                   className="w-4 h-4"
                 >
-                  <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.40.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.90-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.40.51-.60.17-.20.23-.34.34-.57.11-.23.06-.43-.03-.60-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.60.08-.91.40-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55c.17.23 2.42 3.7 5.87 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.10 2.02-.82 2.31-1.62.28-.80.28-1.48.20-1.62-.08-.14-.30-.22-.64-.39z" />
+                  <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.67 4.77 1.84 6.76L2 30l7.44-1.8A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.42 1.07 1.1-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.3-8.57c-.34-.17-2.02-1-2.34-1.11-.32-.11-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.40.25-.74.08-.34-.17-1.44-.53-2.74-1.69-1.01-.90-1.7-2.02-1.9-2.36-.2-.34-.02-.52.15-.69.15-.15.34-.40.51-.60.17-.20.23-.34.34-.57.11-.23.06-.43-.03-.60-.08-.17-.78-1.88-1.07-2.57-.28-.68-.57-.58-.78-.59h-.66c-.23 0-.60.08-.91.40-.32.32-1.2 1.17-1.2 2.86s1.23 3.32 1.4 3.55c.17.23 2.42 3.7 5.87 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.02-.82 2.31-1.62.28-.80.28-1.48.2-1.62-.08-.14-.30-.22-.64-.39z" />
                 </svg>
                 Book Appointment
               </a>

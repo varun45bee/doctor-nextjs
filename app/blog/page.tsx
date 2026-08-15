@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
-import { getAllBlogs } from "@/lib/firestore/blogs";
-import type { Blog } from "@/lib/types/blog";
+import { getAllBlogPosts } from "@/lib/sanity/queries";
 
 export default function BlogPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,8 +14,8 @@ export default function BlogPage() {
   }, []);
 
   const loadBlogs = async () => {
-    console.log("=== Fetching blogs for public view ===");
-    const fetchedBlogs = await getAllBlogs(true);
+    console.log("=== Fetching blogs from Sanity ===");
+    const fetchedBlogs = await getAllBlogPosts();
     console.log("Blogs fetched:", fetchedBlogs.length);
     console.log("Blog data:", fetchedBlogs);
     setBlogs(fetchedBlogs);
@@ -63,7 +62,7 @@ export default function BlogPage() {
               {/* Featured */}
               {blogs.length > 0 && (
                 <Link
-                  href={`/blog/${blogs[0].slug}`}
+                  href={`/blog/${blogs[0].slug.current}`}
                   className="block rounded-2xl p-8 md:p-12 mb-10 hover:shadow-md transition-all"
                   style={{ backgroundColor: "var(--bg-surface-alt)" }}
                 >
@@ -82,9 +81,9 @@ export default function BlogPage() {
                   <div className="flex items-center gap-6 text-sm mb-6" style={{ color: "var(--text-muted)" }}>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
-                      {blogs[0].createdAt?.toLocaleDateString() || "Recently"}
+                      {blogs[0].publishedAt ? new Date(blogs[0].publishedAt).toLocaleDateString() : "Recently"}
                     </span>
-                    {blogs[0].tags.slice(0, 1).map((tag) => (
+                    {blogs[0].tags?.slice(0, 1).map((tag: string) => (
                       <span
                         key={tag}
                         className="px-3 py-0.5 rounded-full text-xs"
@@ -105,8 +104,8 @@ export default function BlogPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {blogs.slice(1).map((blog) => (
                     <Link
-                      key={blog.id}
-                      href={`/blog/${blog.slug}`}
+                      key={blog._id}
+                      href={`/blog/${blog.slug.current}`}
                       className="group rounded-2xl overflow-hidden border hover:shadow-md transition-all hover:-translate-y-1"
                       style={{ borderColor: "var(--border-color)" }}
                     >
@@ -121,7 +120,7 @@ export default function BlogPage() {
                       )}
                       <div className="p-6" style={{ backgroundColor: "var(--bg-surface)" }}>
                         <div className="flex items-center gap-2 mb-3">
-                          {blog.tags.slice(0, 1).map((tag) => (
+                          {blog.tags?.slice(0, 1).map((tag: string) => (
                             <span
                               key={tag}
                               className="text-xs px-2 py-0.5 rounded-full"
@@ -142,7 +141,7 @@ export default function BlogPage() {
                         </p>
                         <div className="flex items-center justify-between">
                           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                            {blog.createdAt?.toLocaleDateString() || "Recently"}
+                            {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Recently"}
                           </span>
                           <span className="text-sage-500 text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                             Read more <ArrowRight className="w-3.5 h-3.5" />

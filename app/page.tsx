@@ -42,6 +42,7 @@ import AnimatedCounter from "@/components/animations/AnimatedCounter";
 import FloatingBlobs from "@/components/animations/FloatingBlobs";
 import RippleButton from "@/components/animations/RippleButton";
 import FAQSection from "@/components/FAQSection";
+import { getTestimonials, getFaqs, getSiteSettings } from "@/lib/sanity/queries";
 
 // Homepage FAQs data - used for both visible section and schema
 const homepageFAQs = [
@@ -276,9 +277,32 @@ export default function HomePage() {
   const [hydrated, setHydrated] = useState(false);
   const testimonialRef = useRef<HTMLDivElement>(null);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [siteSettings, setSiteSettings] = useState<any>(null);
   const conditionHeadingWords = useMemo(() => splitWords(t.home.conditionsTitle), [t.home.conditionsTitle]);
   const heroTitleWords = useMemo(() => splitWords(t.hero.tagline), [t.hero.tagline]);
   const heroSubtitleWords = useMemo(() => splitWords(t.hero.subtitle), [t.hero.subtitle]);
+
+  useEffect(() => {
+    setHydrated(true);
+    // Fetch data from Sanity
+    const fetchSanityData = async () => {
+      try {
+        const [testimonialsData, faqsData, settingsData] = await Promise.all([
+          getTestimonials(),
+          getFaqs(),
+          getSiteSettings(),
+        ]);
+        setTestimonials(testimonialsData);
+        setFaqs(faqsData);
+        setSiteSettings(settingsData);
+      } catch (error) {
+        console.error('Error fetching Sanity data:', error);
+      }
+    };
+    fetchSanityData();
+  }, []);
 
   const updateActiveTestimonial = () => {
     if (!testimonialRef.current) {
@@ -745,7 +769,69 @@ export default function HomePage() {
             className="testimonial-track flex gap-4 sm:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory"
             onScroll={updateActiveTestimonial}
           >
-            {testimonials.map((testimonial, index) => (
+            {testimonials.length > 0 ? testimonials.map((testimonial, index) => (
+              <motion.article
+                key={testimonial._id}
+                data-testimonial-card
+                className="testimonial-card snap-center min-w-[92%] sm:min-w-[78%] md:min-w-[48%] lg:min-w-[32%] rounded-2xl p-5 sm:p-7 shadow-sm border"
+                style={{
+                  backgroundColor: "var(--bg-surface)",
+                  borderColor: "var(--border-color)",
+                }}
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        scale: activeTestimonial === index ? 1.03 : 0.98,
+                        opacity: activeTestimonial === index ? 1 : 0.6,
+                      }
+                }
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <motion.div variants={quoteMarkVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                  <Quote className="w-8 h-8 mb-4" style={{ color: "var(--border-mid)" }} />
+                </motion.div>
+                <p className="text-sm leading-relaxed mb-6 italic" style={{ color: "var(--text-secondary)" }}>
+                  &ldquo;{testimonial.text}&rdquo;
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                      {testimonial.patientName}
+                    </div>
+                    <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      {testimonial.location}
+                    </div>
+                  </div>
+                  {testimonial.rating && (
+                    <div className="flex">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.article>
+            )) : [
+              {
+                text: "After years of PCOD imbalance, I finally felt my body settle into a natural rhythm again. The care felt patient, precise, and deeply reassuring.",
+                name: "Priya M.",
+                location: "Kalyan",
+                condition: "PCOD",
+              },
+              {
+                text: "My son's recurrent infections reduced dramatically. What stood out most was how calmly every follow-up was handled, with real attention to the whole child.",
+                name: "Rahul S.",
+                location: "Andheri",
+                condition: "Child Immunity",
+              },
+              {
+                text: "The treatment for thyroid support felt holistic rather than mechanical. I wasn't just given medicine, I was genuinely guided through recovery.",
+                name: "Sunita K.",
+                location: "Mumbai",
+                condition: "Thyroid",
+              },
+            ].map((testimonial, index) => (
               <motion.article
                 key={testimonial.name}
                 data-testimonial-card
@@ -801,10 +887,20 @@ export default function HomePage() {
         </div>
       </MotionSection>
 
-      {/* FAQ Section */}
-      <MotionSection className="py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
-        <div className="max-w-4xl mx-auto">
-          <FAQSection faqs={homepageFAQs} />
+      <MotionSection className="py-20 px-4 sm:px-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="leaf-divider mb-4">
+              <span className="text-sage-500 text-sm tracking-widest uppercase font-medium">Common Questions</span>
+            </div>
+            <h2
+              className="font-serif text-4xl md:text-5xl"
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}
+            >
+              Frequently Asked Questions
+            </h2>
+          </div>
+          <FAQSection faqs={faqs.length > 0 ? faqs.map(f => ({ question: f.question, answer: f.answer })) : homepageFAQs} />
         </div>
       </MotionSection>
 
