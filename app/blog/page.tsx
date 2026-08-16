@@ -3,32 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
-import { getAllBlogPosts } from "@/lib/sanity/queries";
+import { blogPosts } from "./blog-data";
 
 export default function BlogPage() {
-  const [blogs, setBlogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadBlogs();
-  }, []);
-
-  const loadBlogs = async () => {
-    console.log("=== Fetching blogs from Sanity ===");
-    const fetchedBlogs = await getAllBlogPosts();
-    console.log("Blogs fetched:", fetchedBlogs.length);
-    console.log("Blog data:", fetchedBlogs);
-    setBlogs(fetchedBlogs);
-    setLoading(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sage-600">Loading...</div>
-      </div>
-    );
-  }
+  const [blogs, setBlogs] = useState(Object.entries(blogPosts));
 
   return (
     <div className="pt-24 overflow-hidden">
@@ -62,28 +40,21 @@ export default function BlogPage() {
               {/* Featured */}
               {blogs.length > 0 && (
                 <Link
-                  href={`/blog/${blogs[0].slug.current}`}
+                  href={`/blog/${blogs[0][0]}`}
                   className="block rounded-2xl p-8 md:p-12 mb-10 hover:shadow-md transition-all"
                   style={{ backgroundColor: "var(--bg-surface-alt)" }}
                 >
                   <span className="inline-block bg-sage-500 text-white text-xs px-3 py-1 rounded-full mb-4">Featured</span>
-                  {blogs[0].coverImage && (
-                    <img
-                      src={blogs[0].coverImage}
-                      alt={blogs[0].title}
-                      className="w-full h-64 object-cover rounded-xl mb-6"
-                    />
-                  )}
                   <h2 className="font-serif text-3xl md:text-4xl mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}>
-                    {blogs[0].title}
+                    {blogs[0][1].title}
                   </h2>
-                  <p className="leading-relaxed mb-6 max-w-2xl" style={{ color: "var(--text-secondary)" }}>{blogs[0].excerpt}</p>
+                  <p className="leading-relaxed mb-6 max-w-2xl" style={{ color: "var(--text-secondary)" }}>{blogs[0][1].subtitle}</p>
                   <div className="flex items-center gap-6 text-sm mb-6" style={{ color: "var(--text-muted)" }}>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
-                      {blogs[0].publishedAt ? new Date(blogs[0].publishedAt).toLocaleDateString() : "Recently"}
+                      {blogs[0][1].publishDate}
                     </span>
-                    {blogs[0].tags?.slice(0, 1).map((tag: string) => (
+                    {blogs[0][1].tags?.slice(0, 1).map((tag: string) => (
                       <span
                         key={tag}
                         className="px-3 py-0.5 rounded-full text-xs"
@@ -102,22 +73,16 @@ export default function BlogPage() {
               {/* Grid */}
               {blogs.length > 1 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {blogs.slice(1).map((blog) => (
+                  {blogs.slice(1).map(([slug, blog]) => (
                     <Link
-                      key={blog._id}
-                      href={`/blog/${blog.slug.current}`}
+                      key={slug}
+                      href={`/blog/${slug}`}
                       className="group rounded-2xl overflow-hidden border hover:shadow-md transition-all hover:-translate-y-1"
                       style={{ borderColor: "var(--border-color)" }}
                     >
-                      {blog.coverImage && (
-                        <div className="p-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
-                          <img
-                            src={blog.coverImage}
-                            alt={blog.title}
-                            className="w-full h-40 object-cover rounded-xl"
-                          />
-                        </div>
-                      )}
+                      <div className="p-6" style={{ backgroundColor: "var(--bg-surface-alt)" }}>
+                        <div className="text-4xl mb-4">{blog.emoji}</div>
+                      </div>
                       <div className="p-6" style={{ backgroundColor: "var(--bg-surface)" }}>
                         <div className="flex items-center gap-2 mb-3">
                           {blog.tags?.slice(0, 1).map((tag: string) => (
@@ -137,11 +102,11 @@ export default function BlogPage() {
                           {blog.title}
                         </h3>
                         <p className="text-sm leading-relaxed line-clamp-3 mb-4" style={{ color: "var(--text-secondary)" }}>
-                          {blog.excerpt}
+                          {blog.subtitle}
                         </p>
                         <div className="flex items-center justify-between">
                           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                            {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Recently"}
+                            {blog.publishDate}
                           </span>
                           <span className="text-sage-500 text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                             Read more <ArrowRight className="w-3.5 h-3.5" />

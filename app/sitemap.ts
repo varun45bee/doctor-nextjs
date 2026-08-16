@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
-import { getAllBlogPosts, getAllConditions } from '@/lib/sanity/queries'
+import { blogPosts } from './blog/blog-data'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.pratimaagale.in'
 
   // Static routes
@@ -38,23 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1 : 0.8,
   }))
 
-  // Blog routes from Sanity
-  const blogPosts = await getAllBlogPosts()
-  const blogRoutes = blogPosts.map((post: any) => ({
-    url: `${baseUrl}/blog/${post.slug.current}`,
-    lastModified: post.publishedAt ? new Date(post.publishedAt) : new Date(),
+  // Blog routes
+  const blogRoutes = Object.keys(blogPosts).map((slug) => ({
+    url: `${baseUrl}/blog/${slug}`,
+    lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }))
 
-  // Condition routes from Sanity
-  const conditions = await getAllConditions()
-  const conditionRoutes = conditions.map((condition: any) => ({
-    url: `${baseUrl}/conditions/${condition.slug.current}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
-
-  return [...staticRoutes, ...blogRoutes, ...conditionRoutes]
+  return [...staticRoutes, ...blogRoutes]
 }
