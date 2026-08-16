@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Calendar, Clock, ArrowLeft, ArrowRight, Tag, Share2 } from "lucide-react";
-import { getBlogPostBySlug } from "@/lib/sanity/queries";
-import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import { Calendar, ArrowLeft, ArrowRight, Tag, Share2 } from "lucide-react";
+import { blogPosts } from "../blog-data";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import FAQSection from "@/components/FAQSection";
-import { PortableText } from "@portabletext/react";
 
 interface PageProps {
   params: {
@@ -15,18 +13,18 @@ interface PageProps {
 }
 
 // Generate FAQPage Schema
-function generateFAQSchema(faqs: { question: string; answer: string }[]) {
+function generateFAQSchema(faqs: { q: string; a: string }[]) {
   if (!faqs || faqs.length === 0) return null;
 
   return {
     "@context": "https://schema.org",
-    "@type": " FAQsPage",
+    "@type": "FAQPage",
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
-      name: faq.question,
+      name: faq.q,
       acceptedAnswer: {
         "@type": "Answer",
-        text: faq.answer,
+        text: faq.a,
       },
     })),
   };
@@ -34,7 +32,7 @@ function generateFAQSchema(faqs: { question: string; answer: string }[]) {
 
 // Dynamic metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const blog = await getBlogPostBySlug(params.slug);
+  const blog = blogPosts[params.slug];
 
   if (!blog) {
     return {
@@ -42,28 +40,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = blog.metaTitle || `${blog.title} | Dr. Pratima Agale Homeopathy Kalyan`;
-  const description = blog.metaDescription || blog.excerpt;
-  const keywords = blog.keywords?.join(", ") || "";
+  const title = `${blog.title} | Dr. Pratima Agale Homeopathy Kalyan`;
+  const description = blog.subtitle;
 
   return {
     title,
     description,
-    keywords,
-    alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug.current}` },
+    alternates: { canonical: `https://www.pratimaagale.in/blog/${blog.slug}` },
     openGraph: {
       title,
       description,
       type: "article",
-      url: `https://www.pratimaagale.in/blog/${blog.slug.current}`,
-      images: blog.coverImage ? [{ url: blog.coverImage, width: 1200, height: 630 }] : [],
+      url: `https://www.pratimaagale.in/blog/${blog.slug}`,
       authors: ["Dr. Pratima Agale"],
     },
   };
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
-  const blog = await getBlogPostBySlug(params.slug);
+  const blog = blogPosts[params.slug];
 
   if (!blog) {
     notFound();
@@ -75,7 +70,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         items={[
           { name: "Home", item: "https://www.pratimaagale.in" },
           { name: "Knowledge Hub", item: "https://www.pratimaagale.in/blog" },
-          { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug.current}` },
+          { name: blog.title, item: `https://www.pratimaagale.in/blog/${blog.slug}` },
         ]}
       />
 
@@ -104,13 +99,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         style={{ background: "linear-gradient(135deg, var(--bg-surface-alt), var(--bg-base))" }}
       >
         <div className="max-w-3xl mx-auto">
-          {blog.coverImage && (
-            <img
-              src={blog.coverImage}
-              alt={blog.title}
-              className="w-full h-64 object-cover rounded-2xl mb-6"
-            />
-          )}
+          <div className="text-6xl mb-6">{blog.emoji}</div>
 
           <div className="flex items-center justify-center gap-3 mb-5">
             {blog.tags?.slice(0, 1).map((tag: string) => (
@@ -124,7 +113,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             ))}
             <span className="flex items-center gap-1 text-xs text-sage-500">
               <Calendar className="w-3 h-3" />
-              {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Recently"}
+              {blog.publishDate}
             </span>
           </div>
 
@@ -139,17 +128,17 @@ export default async function BlogPostPage({ params }: PageProps) {
             {blog.title}
           </h1>
 
-          {blog.excerpt && (
-            <p className="text-sage-600 text-lg mb-6 dark:text-zinc-400">{blog.excerpt}</p>
-          )}
+          <p className="text-sage-600 text-lg mb-6 dark:text-zinc-400">{blog.subtitle}</p>
 
           <div className="flex items-center justify-center gap-6 text-sm text-sage-500">
             <span>
               By{" "}
               <span className="font-medium text-sage-700 dark:text-zinc-300">
-                Dr. Pratima Agale
+                {blog.author}
               </span>
             </span>
+            <span>•</span>
+            <span>{blog.readTime} read</span>
           </div>
 
           {/* Tags */}
@@ -173,11 +162,36 @@ export default async function BlogPostPage({ params }: PageProps) {
           {/* Main content */}
           <div className="lg:col-span-2">
             <div className="prose prose-sage max-w-none dark:prose-invert">
-              {blog.body && <PortableText value={blog.body} />}
+              <p className="text-lg leading-relaxed mb-8" dangerouslySetInnerHTML={{ __html: blog.intro }} />
+              
+              {blog.sections.map((section, index) => (
+                <div key={index} className="mb-8">
+                  <h2 className="font-serif text-2xl mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", color: "var(--text-primary)" }}>
+                    {section.heading}
+                  </h2>
+                  <div dangerouslySetInnerHTML={{ __html: section.content }} />
+                </div>
+              ))}
+
+              {blog.keyPoints && blog.keyPoints.length > 0 && (
+                <div className="my-8 p-6 rounded-xl bg-sage-50 dark:bg-zinc-900">
+                  <h3 className="font-semibold mb-4 text-sage-900 dark:text-zinc-100">Key Takeaways</h3>
+                  <ul className="space-y-2">
+                    {blog.keyPoints.map((point, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sage-700 dark:text-zinc-300">
+                        <span className="text-sage-500 mt-1">•</span>
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <p className="text-lg leading-relaxed mb-8" dangerouslySetInnerHTML={{ __html: blog.conclusion }} />
             </div>
 
             {/* FAQ Section */}
-            <FAQSection faqs={blog.faqs || []} />
+            <FAQSection faqs={blog.faqs?.map(f => ({ question: f.q, answer: f.a })) || []} />
 
             {/* Share */}
             <div className="flex items-center gap-3 py-6 border-t border-sage-100 dark:border-zinc-800">
@@ -204,13 +218,9 @@ export default async function BlogPostPage({ params }: PageProps) {
               </div>
               <div>
                 <div className="font-semibold text-sage-900 mb-1 dark:text-zinc-100">
-                  Dr. Pratima Agale
+                  {blog.author}
                 </div>
-                <p className="text-sage-600 text-sm leading-relaxed dark:text-zinc-400">
-                  Dr. Pratima Agale is a qualified homeopathic physician with over 10 years of experience
-                  treating patients in Kalyan, Andheri, and Mumbai. She specializes in women's health,
-                  pediatric care, skin disorders, and chronic disease management.
-                </p>
+                <p className="text-sage-600 text-sm mb-1 dark:text-zinc-400">{blog.authorCredentials}</p>
                 <Link
                   href="/about"
                   className="text-sage-500 text-sm hover:text-sage-700 font-medium mt-2 inline-flex items-center gap-1 transition-colors"
