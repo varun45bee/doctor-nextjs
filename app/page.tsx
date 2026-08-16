@@ -440,10 +440,10 @@ export default function HomePage() {
             className="relative flex justify-center items-center mt-2 sm:mt-4 lg:mt-0"
           >
             <div
-              className="relative w-[min(100%,280px)] min-[420px]:w-[min(100%,300px)] sm:w-[min(100%,340px)] h-[340px] min-[420px]:h-[360px] sm:h-[420px] rounded-[1.6rem] sm:rounded-[2rem] overflow-hidden shadow-2xl"
+              className="relative w-[min(100%,320px)] min-[420px]:w-[min(100%,360px)] sm:w-[min(100%,400px)] lg:w-[min(100%,440px)] h-[380px] min-[420px]:h-[420px] sm:h-[480px] lg:h-[520px] rounded-[1.6rem] sm:rounded-[2rem] overflow-hidden shadow-2xl"
               style={{ background: "linear-gradient(160deg, #e6ede6, #cddccd)" }}
             >
-              <Image src="/desk.jpeg" alt="Dr. Pratima Agale" fill className="object-cover w-full h-full scale-110" priority />
+              <Image src="/doctor.webp" alt="Dr. Pratima Agale" fill className="object-cover w-full h-full scale-110" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               <div className="absolute bottom-20 left-0 right-0 px-6 text-center">
                 <h2 className="font-serif text-2xl text-white mb-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
