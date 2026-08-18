@@ -115,7 +115,7 @@ async function detectBookingIntent(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "groq/compound-mini",
       messages: [
         {
           role: "system",
@@ -186,7 +186,7 @@ async function getAIReply(userMessage: string): Promise<string> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "groq/compound-mini",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userMessage },
