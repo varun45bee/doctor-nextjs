@@ -85,6 +85,7 @@ export function buildPatientStatusEmailSubject(status: AppointmentStatus): strin
     Confirmed: "Appointment Confirmed — Dr. Pratima Agale",
     Completed: "Thank You for Your Visit — Dr. Pratima Agale",
     Cancelled: "Appointment Update — Dr. Pratima Agale",
+    Failed: "Appointment Notice — Dr. Pratima Agale",
   };
   return subjects[status];
 }
@@ -95,6 +96,7 @@ export function getStatusLabel(status: AppointmentStatus): string {
     Confirmed: "Confirmed — your appointment is approved",
     Completed: "Completed — thank you for visiting",
     Cancelled: "Not Confirmed — please contact the clinic",
+    Failed: "Booking Incomplete — please contact clinic",
   };
   return labels[status];
 }
@@ -105,6 +107,7 @@ export function getStatusColor(status: AppointmentStatus): string {
     Confirmed: "text-blue-600 bg-blue-50 border-blue-200",
     Completed: "text-green-600 bg-green-50 border-green-200",
     Cancelled: "text-red-600 bg-red-50 border-red-200",
+    Failed: "text-zinc-600 bg-zinc-50 border-zinc-200",
   };
   return colors[status];
 }

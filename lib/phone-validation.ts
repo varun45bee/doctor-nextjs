@@ -15,3 +15,5 @@ export function getIndianMobileDigits(phone: string): string | null {
 export function isValidIndianMobileNumber(phone: string): boolean {
   return getIndianMobileDigits(phone) !== null;
 }
+
+export const isValidPhone = isValidIndianMobileNumber;

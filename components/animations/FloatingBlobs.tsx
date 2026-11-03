@@ -57,7 +57,7 @@ export default function FloatingBlobs() {
 
   return (
     <div ref={rootRef} className="hero-floating-blobs" aria-hidden="true">
-      {blobs.map((blob, index) => (
+      {blobs.map((blob) => (
         <span
           key={`${blob.left}-${blob.top}`}
           data-blob

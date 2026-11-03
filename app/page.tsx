@@ -33,7 +33,6 @@ import {
   softRiseVariants,
   softSlideLeftVariants,
   softSlideRightVariants,
-  splitCharVariants,
   splitTextContainerVariants,
   splitWordVariants,
   staggerContainerVariants,
@@ -209,33 +208,8 @@ const steps = [
   { step: "04", title: "Follow-up", desc: "Thoughtful tracking and adjustment as healing unfolds." },
 ];
 
-const testimonials = [
-  {
-    text: "After years of PCOD imbalance, I finally felt my body settle into a natural rhythm again. The care felt patient, precise, and deeply reassuring.",
-    name: "Priya M.",
-    location: "Kalyan",
-    condition: "PCOD",
-  },
-  {
-    text: "My son's recurrent infections reduced dramatically. What stood out most was how calmly every follow-up was handled, with real attention to the whole child.",
-    name: "Rahul S.",
-    location: "Andheri",
-    condition: "Child Immunity",
-  },
-  {
-    text: "The treatment for thyroid support felt holistic rather than mechanical. I wasn't just given medicine, I was genuinely guided through recovery.",
-    name: "Sunita K.",
-    location: "Mumbai",
-    condition: "Thyroid",
-  },
-];
-
 function splitWords(text: string) {
   return text.split(" ").filter(Boolean);
-}
-
-function splitChars(text: string) {
-  return text.split("");
 }
 
 function useSectionInView() {

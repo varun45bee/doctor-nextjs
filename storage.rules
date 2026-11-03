@@ -2,20 +2,44 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Blog images — admins can upload, public can read
+    function isDoctor() {
+      return request.auth != null && request.auth.token.email in [
+        'varun45j@gmail.com',
+        'sardarvarun121@gmail.com',
+        'madhurmeetj@gmail.com'
+      ];
+    }
+
+    // Blog images: public read, doctor upload/delete
     match /blog-images/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null 
-        && request.auth.token.email in [
-          'sardarvarun121@gmail.com',
-          'varun45j@gmail.com',
-          'madhurmeetj@gmail.com'
-        ];
+      allow write: if isDoctor();
     }
-    
-    // Deny all other paths by default
+
+    // Prescriptions: Doctor read/write
+    match /prescriptions/{allPaths=**} {
+      allow read, write: if isDoctor();
+    }
+
+    // Patient profile photos
+    match /profile-photos/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.uid == userId || isDoctor());
+    }
+
+    // Patient medical records & diagnostic uploads
+    match /medical-records/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isDoctor());
+    }
+
+    // Real-time chat attachments (reports & images shared between patient and doctor)
+    match /chat-attachments/{conversationId}/{allPaths=**} {
+      allow read, write: if request.auth != null && (isDoctor() || conversationId == 'conv_' + request.auth.uid);
+    }
+
+    // Default: Authenticated doctors only
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read, write: if isDoctor();
     }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Leaf, Phone, MapPin, Mail, Clock, Instagram,Linkedin, Facebook, Youtube, LogIn } from "lucide-react";
+import { Leaf, Phone, MapPin, Mail, Clock, Instagram, Linkedin, LogIn } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
@@ -198,10 +198,10 @@ export default function Footer() {
                   <LogIn className="w-4 h-4 text-sage-500 flex-shrink-0" />
                   <button
                     type="button"
-                    onClick={signInWithGoogle}
+                    onClick={() => signInWithGoogle()}
                     className="text-sage-400 hover:text-sage-200 text-sm transition-colors"
                   >
-                    Doctor Login
+                    Portal Login
                   </button>
                 </li>
               )}

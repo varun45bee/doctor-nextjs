@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Clock, Plus, Trash2, Save, CheckCircle, Calendar } from "lucide-react";
-import { fetchAvailabilitySettings, saveAvailabilitySettings, type AvailabilitySettings } from "@/lib/firestore/availability";
+import { fetchAvailabilitySettings, saveAvailabilitySettings } from "@/lib/firestore/availability";
 
 export default function DoctorAvailability() {
   const [weeklyDays, setWeeklyDays] = useState<number[]>([1, 2, 3, 4, 5, 6]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from "lucide-react";
 import type { Appointment } from "@/lib/types/appointment";
 
 type DoctorCalendarProps = {

@@ -2,21 +2,104 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Blog posts — secured (sirf admin likh sakta, sab published padh sakte)
-    match /blogs/{blogId} {
-      allow read: if resource.data.published == true;
-      
-      allow read, write: if request.auth != null 
-        && request.auth.token.email in [
-          'sardarvarun121@gmail.com',
-          'varun45j@gmail.com',
-          'madhurmeetj@gmail.com'
-        ];
+    function isDoctor() {
+      return request.auth != null && request.auth.token.email in [
+        'varun45j@gmail.com',
+        'sardarvarun121@gmail.com',
+        'madhurmeetj@gmail.com'
+      ];
     }
-    
-    // Baaki sab — jaisa pehle tha
+
+    // Blog posts: Public read for published; Doctors have full control
+    match /blogs/{blogId} {
+      allow read: if resource.data.published == true || isDoctor();
+      allow write: if isDoctor();
+    }
+
+    // Clinic settings (weekly availability & slot configuration): Public read, Doctor write
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isDoctor();
+    }
+
+    // Doctor-specific availability documents
+    match /doctorAvailability/{doctorId} {
+      allow read: if true;
+      allow write: if isDoctor();
+    }
+
+    // Slot locks: read only; modifications handled server-side via Firebase Admin
+    match /slotLocks/{lockId} {
+      allow read: if true;
+      allow write: if isDoctor();
+    }
+
+    // Google Calendar & OAuth integrations: Protected doctor access only
+    match /integrations/{integrationId} {
+      allow read, write: if isDoctor();
+    }
+
+    // Background notification queue jobs: Protected doctor/internal only
+    match /notificationJobs/{jobId} {
+      allow read, write: if isDoctor();
+    }
+
+    // Immutable audit logs: Doctors can inspect logs; writes done via server Admin SDK
+    match /auditLogs/{logId} {
+      allow read: if isDoctor();
+      allow write: if false; // server Admin SDK only
+    }
+
+    // Phone-based appointment lookup: Public create & read for patient portal
+    match /appointment_lookup/{phoneKey} {
+      allow read, create, update: if true;
+      allow delete: if isDoctor();
+    }
+
+    // Clinical appointments:
+    // - Public can read (for portal lookup) and create
+    // - Patients can append progress logs; Doctor can update status & prescriptions
+    match /appointments/{appointmentId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if isDoctor() 
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progressLogs']));
+      allow delete: if isDoctor();
+    }
+
+    // Patient Profiles:
+    // - Authenticated patient can read and manage their own profile
+    // - Doctors can read all profiles to review medical history
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isDoctor());
+      allow create, update: if request.auth != null && (request.auth.uid == userId || isDoctor());
+      allow delete: if isDoctor();
+
+      // Subcollection: Patient Medical Records
+      match /medicalRecords/{recordId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isDoctor());
+      }
+    }
+
+    // Real-Time Doctor Chat Conversations:
+    // - Patient can read/write their own conversation thread
+    // - Doctors can read and write all patient conversations
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && (isDoctor() || conversationId == 'conv_' + request.auth.uid || resource.data.patientId == request.auth.uid);
+      allow create, update: if request.auth != null && (isDoctor() || conversationId == 'conv_' + request.auth.uid || request.resource.data.patientId == request.auth.uid);
+      allow delete: if isDoctor();
+
+      // Real-time messages subcollection
+      match /messages/{messageId} {
+        allow read: if request.auth != null && (isDoctor() || conversationId == 'conv_' + request.auth.uid);
+        allow create: if request.auth != null && (isDoctor() || conversationId == 'conv_' + request.auth.uid);
+        allow update, delete: if isDoctor();
+      }
+    }
+
+    // Default: Authenticated doctors only
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 12, 31);
+      allow read, write: if isDoctor();
     }
   }
 }

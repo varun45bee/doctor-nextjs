@@ -1,6 +1,5 @@
 "use client";
-import Link from "next/link";
-import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 
 export default function WhyHomeopathyPage() {

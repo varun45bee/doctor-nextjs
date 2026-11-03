@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   return NextResponse.json({ message: "Use POST to send WhatsApp message" });
 }

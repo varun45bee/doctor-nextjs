@@ -115,7 +115,7 @@ async function detectBookingIntent(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "groq/compound-mini",
+      model: "qwen/qwen3.8-27b",
       messages: [
         {
           role: "system",
@@ -186,7 +186,7 @@ async function getAIReply(userMessage: string): Promise<string> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "groq/compound-mini",
+      model: "qwen/qwen3.8-27b",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userMessage },

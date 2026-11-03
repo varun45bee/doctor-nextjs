@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, CheckCircle, Shield } from "lucide-react";
+import { CheckCircle, Shield } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Child Homeopathy Doctor Kalyan | Immunity, ADHD, Allergies – Dr. Pratima Agale MD",

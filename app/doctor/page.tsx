@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, List, Calendar as CalendarIcon, BarChart2, Clock, FileText } from "lucide-react";
+import { RefreshCw, List, Calendar as CalendarIcon, BarChart2, Clock, FileText, MessageSquare } from "lucide-react";
 import AppointmentFilters from "@/components/doctor/AppointmentFilters";
 import AppointmentsTable from "@/components/doctor/AppointmentsTable";
 import EmptyState from "@/components/doctor/EmptyState";
@@ -11,6 +11,8 @@ import PatientDrawer from "@/components/doctor/PatientDrawer";
 import DoctorCalendar from "@/components/doctor/DoctorCalendar";
 import DoctorAnalytics from "@/components/doctor/DoctorAnalytics";
 import DoctorAvailability from "@/components/doctor/DoctorAvailability";
+import DoctorChat from "@/components/doctor/DoctorChat";
+import GoogleCalendarSyncCard from "@/components/doctor/GoogleCalendarSyncCard";
 import {
   fetchAppointments,
   filterAppointments,
@@ -33,7 +35,7 @@ export default function DoctorDashboardPage() {
   const [notifyMessage, setNotifyMessage] = useState("");
 
   // Premium dashboard tab controls
-  const [activeTab, setActiveTab] = useState<"appointments" | "calendar" | "analytics" | "availability" | "blog">("appointments");
+  const [activeTab, setActiveTab] = useState<"appointments" | "calendar" | "analytics" | "availability" | "chat" | "blog">("appointments");
   // EHR Drawer patient reference state
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
@@ -138,6 +140,9 @@ export default function DoctorDashboardPage() {
         ))}
       </div>
 
+      {/* Google Calendar & Meet Sync Status */}
+      <GoogleCalendarSyncCard />
+
       {/* Premium Navigation Toolbar */}
       <div
         className="p-3 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4"
@@ -149,6 +154,7 @@ export default function DoctorDashboardPage() {
   {[
     { id: "appointments", label: "Appointments", icon: List },
     { id: "calendar", label: "Calendar Schedule", icon: CalendarIcon },
+    { id: "chat", label: "Patient Chats", icon: MessageSquare },
     { id: "analytics", label: "Clinic Analytics", icon: BarChart2 },
     { id: "availability", label: "Availability Settings", icon: Clock },
     { id: "blog", label: "Blog Management", icon: FileText },
@@ -167,6 +173,7 @@ export default function DoctorDashboardPage() {
               tab.id as
                 | "appointments"
                 | "calendar"
+                | "chat"
                 | "analytics"
                 | "availability"
                 | "blog"
@@ -294,6 +301,13 @@ export default function DoctorDashboardPage() {
         {activeTab === "availability" && (
           <div>
             <DoctorAvailability />
+          </div>
+        )}
+
+        {/* TAB 5: PATIENT REAL-TIME CHATS */}
+        {activeTab === "chat" && (
+          <div>
+            <DoctorChat />
           </div>
         )}
       </div>

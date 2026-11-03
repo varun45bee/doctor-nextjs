@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, CheckCircle, MapPin, Phone, Clock } from "lucide-react";
+import { CheckCircle, MapPin, Phone, Clock } from "lucide-react";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 export const metadata: Metadata = {

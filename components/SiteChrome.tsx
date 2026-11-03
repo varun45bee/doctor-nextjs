@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import CuraAiFloatingButton from "@/components/CuraAiFloatingButton";
 
 export default function SiteChrome({
   children,
@@ -24,6 +25,7 @@ export default function SiteChrome({
         {children}
       </main>
       <Footer />
+      <CuraAiFloatingButton />
       <WhatsAppButton />
     </>
   );

@@ -14,7 +14,7 @@ const BlogForm = dynamic(() => import("./BlogForm"), {
 });
 
 export default function AdminBlogPage() {
-  const { user, isDoctor, loading } = useAuth();
+  const { isDoctor, loading } = useAuth();
   const router = useRouter();
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loadingBlogs, setLoadingBlogs] = useState(true);

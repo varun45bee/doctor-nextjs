@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, Globe, LayoutDashboard } from "lucide-react";
+import { Menu, X, ChevronDown, Globe, LayoutDashboard, User } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
@@ -26,7 +26,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -256,6 +255,26 @@ export default function Navbar() {
             </Link>
           )}
 
+          {!loading && user && !isDoctor && (
+            <Link
+              href="/patient/dashboard"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border border-sage-400 text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900 transition-colors font-medium"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Patient Portal</span>
+            </Link>
+          )}
+
+          {!loading && !user && (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-full border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-950/40 transition-colors font-medium"
+            >
+              <User className="w-4 h-4" />
+              <span>Login</span>
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={() => openAppointment()}
@@ -304,14 +323,34 @@ export default function Navbar() {
             {!loading && user && isDoctor && (
               <Link
                 href="/doctor"
-                className="block py-1 text-sage-800"
+                className="block py-1 text-sage-800 font-medium"
                 onClick={() => setMenuOpen(false)}
               >
-                Dashboard
+                Doctor Dashboard
               </Link>
             )}
 
-            <div className="pt-3 flex flex-col gap-3">
+            {!loading && user && !isDoctor && (
+              <Link
+                href="/patient/dashboard"
+                className="block py-1 text-sage-800 font-medium"
+                onClick={() => setMenuOpen(false)}
+              >
+                Patient Portal
+              </Link>
+            )}
+
+            {!loading && !user && (
+              <Link
+                href="/login"
+                className="block py-1 text-sage-800 font-medium"
+                onClick={() => setMenuOpen(false)}
+              >
+                Patient Login
+              </Link>
+            )}
+
+            <div className="pt-3 flex flex-col gap-2.5">
               <button
                 type="button"
                 onClick={() => {

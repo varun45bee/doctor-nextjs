@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
 import { blogPosts } from "./blog-data";
 
 export default function BlogPage() {
-  const [blogs, setBlogs] = useState(Object.entries(blogPosts));
+  const blogs = Object.entries(blogPosts);
 
   return (
     <div className="pt-24 overflow-hidden">

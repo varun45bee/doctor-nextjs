@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import MedicalDisclaimer from "@/components/seo/MedicalDisclaimer";
-import { MapPin, Phone, Clock, Star, Award, Users, CheckCircle } from "lucide-react";
+import { MapPin, Phone, Clock, CheckCircle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Homeopathy Doctor in Kalyan | Dr. Pratima Agale MD Homeopathy",

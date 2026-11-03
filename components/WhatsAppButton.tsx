@@ -20,7 +20,7 @@ export default function WhatsAppButton() {
       <style>{`
         .wa-fab {
           position: fixed;
-          bottom: 50px;
+          bottom: 24px;
           right: 20px;
           z-index: 99999;
           width: 52px;

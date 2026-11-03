@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, GraduationCap, Heart, Award } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
