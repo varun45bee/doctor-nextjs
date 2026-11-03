@@ -50,9 +50,14 @@ function LoginContent() {
           <ArrowLeft className="w-4 h-4" />
           Back to Clinic Home
         </Link>
-        <span className="text-xs px-3 py-1 rounded-full bg-sage-100 dark:bg-sage-900/50 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-sage-800">
-          Dr. Pratima Agale Clinic
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full overflow-hidden relative border border-sage-200 bg-white shadow-xs">
+            <Image src="/logo.png" alt="Dr. Pratima Agale" fill className="object-contain p-0.5" priority />
+          </div>
+          <span className="text-xs px-3 py-1 rounded-full bg-sage-100 dark:bg-sage-900/50 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-sage-800 font-medium">
+            Dr. Pratima Agale Clinic
+          </span>
+        </div>
       </div>
 
       {/* Main Login Card */}
@@ -66,12 +71,13 @@ function LoginContent() {
         >
           {/* Clinic Branding Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 relative rounded-2xl overflow-hidden shadow-md border border-sage-200 dark:border-sage-800">
+            <div className="w-20 h-20 mx-auto mb-4 relative rounded-full overflow-hidden shadow-md border-2 border-sage-300 dark:border-sage-700 bg-white p-2">
               <Image
-                src="/images/doctor-portrait.jpg"
-                alt="Dr. Pratima Agale"
+                src="/logo.png"
+                alt="Dr. Pratima Agale Clinic"
                 fill
-                className="object-cover object-top"
+                className="object-contain p-1"
+                priority
               />
             </div>
             <h1

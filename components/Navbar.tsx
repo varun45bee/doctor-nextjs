@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Globe, LayoutDashboard, User } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import PatientAvatar from "@/components/patient/PatientAvatar";
 import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
@@ -21,7 +22,7 @@ export default function Navbar() {
   const { openAppointment } = useAppointment();
   const { t, locale, setLocale } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { user, isDoctor, loading } = useAuth();
+  const { user, userProfile, isDoctor, loading } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -258,9 +259,14 @@ export default function Navbar() {
           {!loading && user && !isDoctor && (
             <Link
               href="/patient/dashboard"
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border border-sage-400 text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900 transition-colors font-medium"
+              className="flex items-center gap-2 text-sm px-3.5 py-1.5 rounded-full border border-sage-300 dark:border-sage-700 bg-sage-50/60 dark:bg-sage-950/40 text-sage-800 dark:text-sage-200 hover:bg-sage-100 transition-colors font-medium shadow-2xs"
             >
-              <User className="w-4 h-4" />
+              <PatientAvatar
+                src={userProfile?.photoURL || user.photoURL}
+                name={userProfile?.fullName || user.displayName}
+                size="xs"
+                showRing={false}
+              />
               <span className="hidden sm:inline">Patient Portal</span>
             </Link>
           )}

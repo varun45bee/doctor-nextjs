@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import PatientGuard from "@/components/patient/PatientGuard";
+import PatientAvatar from "@/components/patient/PatientAvatar";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 
@@ -65,12 +66,13 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
             {/* Left: Brand & Home Link */}
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2.5 group">
-                <div className="w-9 h-9 rounded-full overflow-hidden relative border border-sage-200 dark:border-sage-800 shadow-sm">
+                <div className="w-9 h-9 rounded-full overflow-hidden relative border border-sage-200 dark:border-sage-800 bg-white shadow-xs p-1">
                   <Image
-                    src="/images/doctor-portrait.jpg"
-                    alt="Dr. Pratima Agale"
+                    src="/logo.png"
+                    alt="Dr. Pratima Agale Clinic"
                     fill
-                    className="object-cover object-top"
+                    className="object-contain p-0.5"
+                    priority
                   />
                 </div>
                 <div>
@@ -111,6 +113,16 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
 
             {/* Right: User Menu & Actions */}
             <div className="flex items-center gap-2.5">
+              {/* Back to main website */}
+              <Link
+                href="/"
+                className="hidden lg:inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--border-color)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
+                title="Return to Clinic Website"
+              >
+                <span>Clinic Website</span>
+                <ExternalLink className="w-3 h-3 text-[var(--text-muted)]" />
+              </Link>
+
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -122,20 +134,11 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
 
               {/* Profile Avatar / Name */}
               <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[var(--border-color)]">
-                {userProfile?.photoURL || user?.photoURL ? (
-                  <div className="w-8 h-8 rounded-full overflow-hidden relative border border-sage-300">
-                    <Image
-                      src={userProfile?.photoURL || user?.photoURL || ""}
-                      alt={userProfile?.fullName || "Patient"}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-sage-200 dark:bg-sage-800 text-sage-800 dark:text-sage-200 flex items-center justify-center text-xs font-semibold">
-                    {(userProfile?.fullName || user?.displayName || "P")[0].toUpperCase()}
-                  </div>
-                )}
+                <PatientAvatar
+                  src={userProfile?.photoURL || user?.photoURL}
+                  name={userProfile?.fullName || user?.displayName}
+                  size="sm"
+                />
                 <span className="text-xs font-medium text-[var(--text-primary)] max-w-[120px] truncate">
                   {userProfile?.fullName || user?.displayName || "Patient"}
                 </span>

@@ -158,7 +158,7 @@ export default function PatientChatPage() {
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-sage-300 dark:border-sage-700 shadow-sm">
               <Image
-                src="/images/doctor-portrait.jpg"
+                src="/doctor.webp"
                 alt="Dr. Pratima Agale"
                 fill
                 className="object-cover object-top"
@@ -221,7 +221,7 @@ export default function PatientChatPage() {
                   {!isMe && (
                     <div className="relative w-8 h-8 rounded-full overflow-hidden border border-sage-200 shrink-0 mb-1">
                       <Image
-                        src="/images/doctor-portrait.jpg"
+                        src="/doctor.webp"
                         alt="Dr. Pratima Agale"
                         fill
                         className="object-cover object-top"

@@ -23,6 +23,7 @@ import {
 } from "@/lib/services/chat-service";
 import { getPatientProfile, getMedicalRecords } from "@/lib/services/patient-profile";
 import { uploadChatAttachment } from "@/lib/storage/patient-storage";
+import PatientAvatar from "@/components/patient/PatientAvatar";
 
 export default function DoctorChat() {
   const { user } = useAuth();
@@ -220,9 +221,12 @@ export default function DoctorChat() {
                       : "hover:bg-[var(--bg-subtle)]"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-sage-200 dark:bg-sage-800 text-sage-800 dark:text-sage-200 flex items-center justify-center font-bold text-sm shrink-0">
-                    {c.patientName ? c.patientName[0].toUpperCase() : "P"}
-                  </div>
+                  <PatientAvatar
+                    src={c.patientPhotoURL}
+                    name={c.patientName}
+                    size="sm"
+                    className="shrink-0"
+                  />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1 mb-1">
@@ -253,9 +257,12 @@ export default function DoctorChat() {
             {/* Thread Header */}
             <div className="px-6 py-3 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-subtle)] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-sage-200 dark:bg-sage-800 text-sage-800 dark:text-sage-200 flex items-center justify-center font-bold text-xs shrink-0">
-                  {selectedConv.patientName[0].toUpperCase()}
-                </div>
+                <PatientAvatar
+                  src={selectedConv.patientPhotoURL}
+                  name={selectedConv.patientName}
+                  size="sm"
+                  className="shrink-0"
+                />
                 <div>
                   <h3 className="font-serif font-bold text-sm text-[var(--text-primary)]">
                     {selectedConv.patientName}

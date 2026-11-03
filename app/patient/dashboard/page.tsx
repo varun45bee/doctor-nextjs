@@ -204,9 +204,9 @@ export default function PatientDashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden relative border border-sage-300">
+                <div className="w-10 h-10 rounded-full overflow-hidden relative border border-sage-300 dark:border-sage-700 shadow-xs">
                   <Image
-                    src="/images/doctor-portrait.jpg"
+                    src="/doctor.webp"
                     alt="Dr. Pratima Agale"
                     fill
                     className="object-cover object-top"

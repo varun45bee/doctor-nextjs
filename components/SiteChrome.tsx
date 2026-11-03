@@ -13,8 +13,11 @@ export default function SiteChrome({
 }) {
   const pathname = usePathname();
   const isDoctorRoute = pathname.startsWith("/doctor");
+  const isPatientRoute = pathname.startsWith("/patient");
+  const isLoginRoute = pathname === "/login";
 
-  if (isDoctorRoute) {
+  // Dedicated portal layouts for Doctor Portal, Patient Portal, and Login
+  if (isDoctorRoute || isPatientRoute || isLoginRoute) {
     return <>{children}</>;
   }
 

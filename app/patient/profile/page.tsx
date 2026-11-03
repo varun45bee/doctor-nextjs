@@ -10,8 +10,13 @@ import {
   AlertCircle,
   Save,
   FileHeart,
+  Trash2,
+  UploadCloud,
 } from "lucide-react";
+import { updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
+import PatientAvatar from "@/components/patient/PatientAvatar";
 import {
   UserProfile,
   BloodGroup,
@@ -67,6 +72,8 @@ export default function PatientProfilePage() {
 
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -115,24 +122,101 @@ export default function PatientProfilePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const processPhotoUpload = async (file: File) => {
+    if (!user) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMessage("Please upload a valid image file (JPEG, PNG, or WEBP).");
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setErrorMessage("Profile photo size exceeds 5MB limit. Please choose a smaller image.");
+      return;
+    }
 
     setPhotoUploading(true);
     setErrorMessage("");
+    setSuccessMessage("");
+
+    // Instant local preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewPhoto(objectUrl);
+
     try {
-      const url = await uploadProfilePhoto(user.uid, file);
-      setFormData((prev) => ({ ...prev, photoURL: url }));
-      await updatePatientProfile(user.uid, { photoURL: url });
+      const downloadUrl = await uploadProfilePhoto(user.uid, file);
+      
+      // Update both Firestore Profile and Firebase Auth user instance
+      await updatePatientProfile(user.uid, { photoURL: downloadUrl });
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: downloadUrl }).catch((e) => {
+          console.warn("Auth updateProfile notice:", e);
+        });
+      }
+
+      setFormData((prev) => ({ ...prev, photoURL: downloadUrl }));
+      setPreviewPhoto(null);
       await refreshProfile();
-      setSuccessMessage("Profile photo updated successfully!");
+      setSuccessMessage("Profile photo uploaded and synced successfully!");
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err: any) {
+      console.error("Photo upload error:", err);
+      setPreviewPhoto(null);
+      setErrorMessage(err.message || "Failed to upload photo. Please check your network and try again.");
+    } finally {
+      setPhotoUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processPhotoUpload(file);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!user) return;
+    setPhotoUploading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    try {
+      setPreviewPhoto(null);
+      await updatePatientProfile(user.uid, { photoURL: "" });
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: "" }).catch(() => {});
+      }
+      setFormData((prev) => ({ ...prev, photoURL: "" }));
+      await refreshProfile();
+      setSuccessMessage("Profile photo removed. Initial avatar active.");
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || "Failed to upload photo");
+      setErrorMessage(err.message || "Failed to remove photo.");
     } finally {
       setPhotoUploading(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processPhotoUpload(file);
     }
   };
 
@@ -265,29 +349,43 @@ export default function PatientProfilePage() {
             </div>
           </div>
 
-          {/* Photo Upload */}
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-sage-300 dark:border-sage-700 shadow-md">
-              {formData.photoURL ? (
-                <Image
-                  src={formData.photoURL}
-                  alt="Profile"
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-sage-100 dark:bg-sage-900 flex items-center justify-center text-xl font-bold text-sage-700">
-                  {(formData.fullName || "P")[0].toUpperCase()}
-                </div>
-              )}
+          {/* Enterprise Photo Upload & Avatar */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border-color)]">
+            {/* Interactive Avatar Drop Area */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => !photoUploading && fileInputRef.current?.click()}
+              className={`relative cursor-pointer group transition-all duration-200 rounded-full ${
+                isDragging ? "scale-105 ring-4 ring-sage-500" : ""
+              }`}
+              title="Click or drag an image to update photo"
+            >
+              <PatientAvatar
+                src={previewPhoto || formData.photoURL}
+                name={formData.fullName || user?.displayName}
+                size="xl"
+                className="shadow-md transition-opacity group-hover:opacity-90"
+              />
+
+              {/* Hover / Drag Overlay */}
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                <Camera className="w-6 h-6 mb-0.5" />
+                <span className="text-[10px] font-semibold">Change</span>
+              </div>
+
+              {/* Uploading Spinner Overlay */}
               {photoUploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-white" />
+                <div className="absolute inset-0 rounded-full bg-black/70 flex flex-col items-center justify-center text-white z-10 backdrop-blur-xs">
+                  <Loader2 className="w-6 h-6 animate-spin text-white mb-1" />
+                  <span className="text-[10px] font-medium tracking-wide">Uploading...</span>
                 </div>
               )}
             </div>
 
-            <div>
+            {/* Actions & Guidelines */}
+            <div className="space-y-2 text-center sm:text-left flex-1">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -295,17 +393,31 @@ export default function PatientProfilePage() {
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={photoUploading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--border-color)] text-xs font-semibold hover:bg-[var(--bg-subtle)] transition-colors shadow-sm"
-              >
-                <Camera className="w-4 h-4 text-sage-600" />
-                <span>{photoUploading ? "Uploading..." : "Change Photo"}</span>
-              </button>
-              <p className="text-[11px] text-[var(--text-muted)] mt-1.5">
-                Allowed formats: JPG, PNG, WEBP. Max 5MB.
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={photoUploading}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>{photoUploading ? "Uploading..." : "Upload New Photo"}</span>
+                </button>
+
+                {(formData.photoURL || previewPhoto) && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    disabled={photoUploading}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--text-muted)]">
+                Drag and drop or click to upload. Formats: <strong className="font-medium text-[var(--text-secondary)]">JPG, PNG, WEBP</strong> (Max 5MB).
               </p>
             </div>
           </div>
