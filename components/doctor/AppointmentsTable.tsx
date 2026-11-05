@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Video,
   MapPin,
@@ -8,6 +9,10 @@ import {
   ExternalLink,
   AlertCircle,
   Clock,
+  Copy,
+  RotateCw,
+  Loader2,
+  Check,
 } from "lucide-react";
 import StatusBadge from "@/components/doctor/StatusBadge";
 import StatusSelect from "@/components/doctor/StatusSelect";
@@ -56,6 +61,37 @@ export default function AppointmentsTable({
   onReschedule,
   onCancel,
 }: AppointmentsTableProps) {
+  const [retryingMeetId, setRetryingMeetId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleRetryMeet = async (apptId: string) => {
+    setRetryingMeetId(apptId);
+    try {
+      const res = await fetch(`/api/appointments/${apptId}/meet`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(
+          data.error ||
+            "Failed to generate Google Meet room. Please ensure Google Calendar & Meet are connected in Doctor Settings."
+        );
+      } else {
+        alert("Google Meet room successfully generated!");
+        window.location.reload();
+      }
+    } catch {
+      alert("Network error while creating Google Meet room.");
+    } finally {
+      setRetryingMeetId(null);
+    }
+  };
+
+  const handleCopyLink = (id: string, url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
   return (
     <>
       {/* Desktop table */}
@@ -135,26 +171,65 @@ export default function AppointmentsTable({
                 {/* Google Meet Link */}
                 <td className="px-4 py-3.5 text-xs" onClick={(e) => e.stopPropagation()}>
                   {appt.consultationType === "online" ? (
-                    appt.googleMeetUrl ? (
-                      <a
-                        href={appt.googleMeetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-semibold text-xs transition-colors shadow-sm"
-                      >
-                        <Video className="w-3.5 h-3.5" />
-                        Join Meet
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : appt.calendarSyncStatus === "failed" ? (
-                      <span className="text-[11px] text-red-500 font-medium flex items-center gap-1" title={appt.calendarError}>
-                        <AlertCircle className="w-3 h-3" /> Sync Failed
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-amber-600 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Pending
-                      </span>
-                    )
+                    (() => {
+                      const meetLink = appt.googleMeetLink || appt.googleMeetUrl;
+                      const isRetrying = retryingMeetId === appt.id;
+
+                      if (meetLink) {
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-semibold text-xs transition-colors shadow-sm"
+                            >
+                              <Video className="w-3.5 h-3.5" />
+                              Join
+                              <ExternalLink className="w-3 h-3 opacity-80" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(appt.id, meetLink)}
+                              className="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-surface-alt)] text-[var(--text-secondary)] transition-colors"
+                              title="Copy Google Meet Link"
+                            >
+                              {copiedId === appt.id ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      if (isRetrying || appt.meetingStatus === "creating") {
+                        return (
+                          <span className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Creating...
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {appt.meetingStatus === "failed" ? "Failed" : "Pending"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRetryMeet(appt.id)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900 text-amber-900 dark:text-amber-200 text-[11px] font-medium transition-colors"
+                            title="Retry Google Meet Creation"
+                          >
+                            <RotateCw className="w-3 h-3" />
+                            Retry
+                          </button>
+                        </div>
+                      );
+                    })()
                   ) : (
                     <span className="text-[11px] text-[var(--text-muted)]">—</span>
                   )}
@@ -251,17 +326,65 @@ export default function AppointmentsTable({
               </span>
             </div>
 
-            {appt.consultationType === "online" && appt.googleMeetUrl && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <a
-                  href={appt.googleMeetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-sage-600 text-white text-xs font-bold shadow-sm"
-                >
-                  <Video className="w-3.5 h-3.5" />
-                  Join Google Meet
-                </a>
+            {appt.consultationType === "online" && (
+              <div onClick={(e) => e.stopPropagation()} className="space-y-1.5">
+                {(() => {
+                  const meetLink = appt.googleMeetLink || appt.googleMeetUrl;
+                  const isRetrying = retryingMeetId === appt.id;
+
+                  if (meetLink) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-sage-600 text-white text-xs font-bold shadow-sm"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          Join Google Meet
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyLink(appt.id, meetLink)}
+                          className="p-2 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-surface-alt)] text-[var(--text-secondary)]"
+                          title="Copy Link"
+                        >
+                          {copiedId === appt.id ? (
+                            <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  if (isRetrying || appt.meetingStatus === "creating") {
+                    return (
+                      <div className="py-2 text-center text-xs text-blue-600 flex items-center justify-center gap-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Generating Google Meet room...
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-xs">
+                      <span className="text-amber-800 dark:text-amber-200 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        {appt.meetingStatus === "failed" ? "Meet Failed" : "Meet Pending"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRetryMeet(appt.id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-600 text-white font-semibold text-xs shadow-xs"
+                      >
+                        <RotateCw className="w-3 h-3" /> Retry
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 

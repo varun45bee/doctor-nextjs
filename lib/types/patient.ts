@@ -18,7 +18,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phone: string;
-  photoURL?: string;
+  photoURL?: string | null;
   dateOfBirth?: string; // YYYY-MM-DD
   gender?: Gender;
   address?: string;

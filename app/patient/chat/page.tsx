@@ -374,7 +374,8 @@ export default function PatientChatPage() {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type your message to Dr. Pratima Agale..."
-            className="flex-1 px-4 py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--text-primary)] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
+            style={{ fontSize: "16px" }}
+            className="flex-1 px-4 py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--text-primary)] text-[16px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
           />
 
           {/* Send Button */}

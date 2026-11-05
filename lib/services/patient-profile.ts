@@ -8,6 +8,7 @@ import {
   addDoc,
   deleteDoc,
   query,
+  where,
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
@@ -33,6 +34,31 @@ export async function getPatientProfile(uid: string): Promise<UserProfile | null
   } catch (error) {
     console.error("Error fetching patient profile:", error);
     throw error;
+  }
+}
+
+/**
+ * Find patient profile by email (useful when doctor panel matches appointment by patient email)
+ */
+export async function getPatientProfileByEmail(email: string): Promise<UserProfile | null> {
+  if (!email) return null;
+  try {
+    const usersCol = collection(db, "users");
+    const q = query(usersCol, where("email", "==", email.trim().toLowerCase()));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      // Also try original casing
+      const q2 = query(usersCol, where("email", "==", email.trim()));
+      const snap2 = await getDocs(q2);
+      if (snap2.empty) return null;
+      const firstDoc = snap2.docs[0];
+      return { uid: firstDoc.id, ...firstDoc.data() } as UserProfile;
+    }
+    const firstDoc = snap.docs[0];
+    return { uid: firstDoc.id, ...firstDoc.data() } as UserProfile;
+  } catch (error) {
+    console.error("Error fetching patient profile by email:", error);
+    return null;
   }
 }
 

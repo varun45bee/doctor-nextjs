@@ -662,3 +662,234 @@ article {
     bottom: 80px !important;
   }
 }
+
+/* ─── CURAAI FLOATING ASSISTANT & GLASS MODAL ───────────── */
+@keyframes cura-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cura-wave {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  20%, 60% {
+    transform: rotate(-20deg) scale(1.1);
+  }
+  40%, 80% {
+    transform: rotate(14deg) scale(1.1);
+  }
+}
+
+@keyframes cura-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(77, 124, 99, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(77, 124, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(77, 124, 99, 0);
+  }
+}
+
+.cura-floating-container {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cura-char-btn {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #3f6b56;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  animation: cura-float 3.5s ease-in-out infinite, cura-pulse 2.8s infinite;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+  outline: none;
+}
+
+.cura-char-btn:hover {
+  transform: scale(1.12) translateY(-2px);
+  animation: none;
+  box-shadow: 0 8px 24px rgba(47, 74, 61, 0.35);
+}
+
+.cura-waving-hand {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 16px;
+  line-height: 1;
+  background: #ffffff;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  border: 1.5px solid #3f6b56;
+  animation: cura-wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+  pointer-events: none;
+}
+
+.cura-speech-bubble {
+  position: absolute;
+  right: 68px;
+  white-space: nowrap;
+  background: #243c30;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cura-speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 7px;
+  border-style: solid;
+  border-color: transparent transparent transparent #243c30;
+}
+
+.cura-char-btn:hover .cura-speech-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.cura-glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+.dark .cura-glass-card {
+  background: rgba(20, 32, 25, 0.94);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.cura-welcome-banner {
+  background: linear-gradient(135deg, rgba(253, 247, 237, 0.95) 0%, rgba(240, 248, 243, 0.92) 100%);
+  border-bottom: 1px solid rgba(47, 74, 61, 0.1);
+}
+
+.dark .cura-welcome-banner {
+  background: linear-gradient(135deg, rgba(32, 48, 38, 0.95) 0%, rgba(24, 38, 30, 0.92) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ─── WHATSAPP FLOATING BUTTON ──────────────────────────── */
+.wa-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 99999;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #25D366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wa-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+}
+
+.wa-fab .wa-tooltip {
+  position: absolute;
+  right: 62px;
+  white-space: nowrap;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.wa-fab:hover .wa-tooltip {
+  opacity: 1;
+}
+
+/* ─── CHATBOT SCROLL AREA ───────────────────────────────── */
+.chat-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(24, 68, 51, 0.3) transparent;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.chat-scroll-area::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb {
+  background-color: rgba(24, 68, 51, 0.25);
+  border-radius: 9999px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(24, 68, 51, 0.5);
+}
+
+.dark .chat-scroll-area {
+  scrollbar-color: rgba(110, 231, 183, 0.3) transparent;
+}
+
+.dark .chat-scroll-area::-webkit-scrollbar-thumb {
+  background-color: rgba(110, 231, 183, 0.25);
+}
+
+.dark .chat-scroll-area::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(110, 231, 183, 0.5);
+}
+

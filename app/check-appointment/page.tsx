@@ -43,8 +43,8 @@ function CheckAppointmentContent() {
 
   // Auto-login if id and token are in URL
   useEffect(() => {
-    const id = searchParams.get("id");
-    const token = searchParams.get("token");
+    const id = searchParams?.get("id");
+    const token = searchParams?.get("token");
 
     if (id && token) {
       setLoading(true);

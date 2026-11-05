@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   X,
   User,
@@ -20,9 +21,27 @@ import {
   MapPin,
   ExternalLink,
   CheckCircle2,
+  HeartPulse,
+  AlertTriangle,
+  FileDown,
+  Pill,
+  ShieldCheck,
+  Activity,
+  FolderOpen,
+  RotateCw,
+  Loader2,
 } from "lucide-react";
 import type { Appointment } from "@/lib/types/appointment";
 import { saveAppointmentPrescription } from "@/lib/firestore/appointments";
+import {
+  getPatientProfile,
+  getPatientProfileByEmail,
+  getMedicalRecords,
+} from "@/lib/services/patient-profile";
+import type { UserProfile, MedicalRecord } from "@/lib/types/patient";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { normalizeAppointment } from "@/lib/types/appointment";
 
 type PatientDrawerProps = {
   appointment: Appointment | null;
@@ -34,6 +53,12 @@ export default function PatientDrawer({ appointment, onClose }: PatientDrawerPro
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Patient Dossier State (Loaded from users/{uid})
+  const [patientProfile, setPatientProfile] = useState<UserProfile | null>(null);
+  const [patientRecords, setPatientRecords] = useState<MedicalRecord[]>([]);
+  const [patientPastAppointments, setPatientPastAppointments] = useState<Appointment[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
   // Prescription Form State
   const [remedy, setRemedy] = useState("");
   const [potency, setPotency] = useState("30C");
@@ -43,6 +68,31 @@ export default function PatientDrawer({ appointment, onClose }: PatientDrawerPro
   
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [prescriptionSaved, setPrescriptionSaved] = useState(false);
+  const [retryingMeet, setRetryingMeet] = useState(false);
+
+  const handleRetryMeet = async () => {
+    if (!appointment) return;
+    setRetryingMeet(true);
+    try {
+      const res = await fetch(`/api/appointments/${appointment.id}/meet`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(
+          data.error ||
+            "Failed to generate Google Meet room. Please verify that Google is connected in Settings."
+        );
+      } else {
+        alert("Google Meet room successfully generated!");
+        window.location.reload();
+      }
+    } catch {
+      alert("Network error while creating Google Meet room.");
+    } finally {
+      setRetryingMeet(false);
+    }
+  };
 
   useEffect(() => {
     if (appointment) {
@@ -60,6 +110,46 @@ export default function PatientDrawer({ appointment, onClose }: PatientDrawerPro
         setDuration("7 days");
         setInstructions("Avoid raw onion, garlic, or strong perfumes 30 minutes before/after taking the remedy.");
       }
+
+      // Fetch patient profile, medical records, and appointment history
+      const loadPatientDossier = async () => {
+        if (!appointment) return;
+        setLoadingProfile(true);
+        try {
+          let profile: UserProfile | null = null;
+          if (appointment.patientId) {
+            profile = await getPatientProfile(appointment.patientId);
+          }
+          if (!profile && appointment.patientEmail) {
+            profile = await getPatientProfileByEmail(appointment.patientEmail);
+          }
+          setPatientProfile(profile);
+
+          if (profile?.uid) {
+            const docs = await getMedicalRecords(profile.uid);
+            setPatientRecords(docs);
+          } else {
+            setPatientRecords([]);
+          }
+
+          if (appointment.patientEmail) {
+            const apptsCol = collection(db, "appointments");
+            const q = query(apptsCol, where("patientEmail", "==", appointment.patientEmail));
+            const snap = await getDocs(q);
+            const historyList = snap.docs
+              .map((d) => normalizeAppointment({ id: d.id, ...d.data() }))
+              .filter((a) => a.id !== appointment.id)
+              .sort((a, b) => (b.appointmentDate || "").localeCompare(a.appointmentDate || ""));
+            setPatientPastAppointments(historyList);
+          }
+        } catch (err) {
+          console.error("Error fetching patient dossier in drawer:", err);
+        } finally {
+          setLoadingProfile(false);
+        }
+      }
+
+      loadPatientDossier();
     } else {
       setIsOpen(false);
     }
@@ -231,36 +321,91 @@ Homeopathy Clinic`;
 
                 {appointment.consultationType === "online" && (
                   <div className="pt-2">
-                    {appointment.googleMeetUrl ? (
-                      <div className="p-4 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-sage-800 dark:text-sage-200 flex items-center gap-1.5">
-                            <Video className="w-4 h-4 text-sage-600" /> Google Meet Video Room
-                          </span>
-                          <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Ready
-                          </span>
+                    {(() => {
+                      const meetLink =
+                        appointment.googleMeetLink || appointment.googleMeetUrl;
+                      const status =
+                        appointment.meetingStatus ||
+                        (meetLink ? "ready" : "pending");
+
+                      if (meetLink) {
+                        return (
+                          <div className="p-4 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-sage-800 dark:text-sage-200 flex items-center gap-1.5">
+                                <Video className="w-4 h-4 text-sage-600" /> Google Meet Video Room
+                              </span>
+                              <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Ready
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={meetLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-sm transition-colors"
+                              >
+                                <Video className="w-4 h-4" />
+                                Join Google Meet Consultation
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(meetLink);
+                                  alert("Google Meet link copied to clipboard!");
+                                }}
+                                className="p-2.5 rounded-xl border border-sage-300 dark:border-sage-700 hover:bg-sage-100 dark:hover:bg-sage-900 text-sage-700 dark:text-sage-300 transition-colors"
+                                title="Copy Meet Link"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-[11px] text-[var(--text-muted)] break-all text-center">
+                              {meetLink}
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-2.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                              <AlertCircle className="w-4 h-4 text-amber-600" />
+                              {status === "failed"
+                                ? "Google Meet Generation Failed"
+                                : "Google Meet Pending"}
+                            </span>
+                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono">
+                              {status}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                            Room was not automatically created. Click below to securely generate or retry the meeting room.
+                          </p>
+                          <button
+                            type="button"
+                            disabled={retryingMeet}
+                            onClick={handleRetryMeet}
+                            className="w-full inline-flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
+                          >
+                            {retryingMeet ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Generating Meet Room...</span>
+                              </>
+                            ) : (
+                              <>
+                                <RotateCw className="w-3.5 h-3.5" />
+                                <span>Generate / Retry Google Meet Room</span>
+                              </>
+                            )}
+                          </button>
                         </div>
-                        <a
-                          href={appointment.googleMeetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-sm transition-colors"
-                        >
-                          <Video className="w-4 h-4" />
-                          Join Google Meet Consultation
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                        <p className="text-[11px] text-[var(--text-muted)] break-all text-center">
-                          {appointment.googleMeetUrl}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
-                        <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span>Google Meet link is pending or integration is disconnected.</span>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -291,9 +436,20 @@ Homeopathy Clinic`;
                 className="p-4 rounded-xl border space-y-3"
                 style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
               >
-                <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                  Contact Information
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                    Contact Information
+                  </h4>
+                  {patientProfile?.uid && (
+                    <Link
+                      href={`/doctor/chat?patient=${patientProfile.uid}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-600 hover:bg-sage-700 text-white text-[11px] font-semibold transition-colors shadow-2xs"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      <span>Chat with Patient</span>
+                    </Link>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {appointment.patientPhone && (
                     <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
@@ -312,6 +468,163 @@ Homeopathy Clinic`;
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Patient Dossier & Medical Profile (Connected to users/{uid}) */}
+              <div
+                className="p-4 rounded-xl border space-y-4"
+                style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <HeartPulse className="w-4 h-4 text-rose-500" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      Confidential Medical Dossier
+                    </h4>
+                  </div>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300">
+                    {patientProfile?.bloodGroup && patientProfile.bloodGroup !== "Unknown"
+                      ? `Blood Group: ${patientProfile.bloodGroup}`
+                      : "Blood Group: Not Specified"}
+                  </span>
+                </div>
+
+                {loadingProfile ? (
+                  <p className="text-xs text-[var(--text-muted)] italic">
+                    Loading confidential patient medical records...
+                  </p>
+                ) : patientProfile ? (
+                  <div className="space-y-3 text-xs">
+                    {/* Allergies Highlight Alert */}
+                    {patientProfile.allergies ? (
+                      <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200">
+                        <div className="flex items-center gap-1.5 font-bold mb-0.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Known Allergies:</span>
+                        </div>
+                        <p className="pl-5 font-medium">{patientProfile.allergies}</p>
+                      </div>
+                    ) : (
+                      <div className="text-[var(--text-muted)] italic">No allergies reported by patient.</div>
+                    )}
+
+                    {/* Medications & Chronic Conditions */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="p-2.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface)]">
+                        <span className="text-[11px] font-semibold text-[var(--text-muted)] block mb-1">
+                          Current Medications:
+                        </span>
+                        <p className="font-medium text-[var(--text-primary)]">
+                          {patientProfile.currentMedications || "None reported"}
+                        </p>
+                      </div>
+                      <div className="p-2.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface)]">
+                        <span className="text-[11px] font-semibold text-[var(--text-muted)] block mb-1">
+                          Chronic Diseases:
+                        </span>
+                        <p className="font-medium text-[var(--text-primary)]">
+                          {patientProfile.chronicDiseases || "None reported"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Surgeries & Lifestyle */}
+                    {(patientProfile.previousSurgeries || patientProfile.lifestyleInformation) && (
+                      <div className="space-y-2 pt-1 border-t border-[var(--border-color)]">
+                        {patientProfile.previousSurgeries && (
+                          <div>
+                            <span className="text-[11px] font-semibold text-[var(--text-muted)] block">
+                              Prior Surgeries & Hospitalizations:
+                            </span>
+                            <p className="font-medium text-[var(--text-primary)]">
+                              {patientProfile.previousSurgeries}
+                            </p>
+                          </div>
+                        )}
+                        {patientProfile.lifestyleInformation && (
+                          <div>
+                            <span className="text-[11px] font-semibold text-[var(--text-muted)] block">
+                              Lifestyle, Sleep & Modalities:
+                            </span>
+                            <p className="font-medium text-[var(--text-primary)]">
+                              {patientProfile.lifestyleInformation}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Address & Emergency Contact */}
+                    <div className="pt-2 border-t border-[var(--border-color)] grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div>
+                        <span className="text-[var(--text-muted)] block">Address:</span>
+                        <span className="font-medium text-[var(--text-primary)]">
+                          {patientProfile.address || "Not provided"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[var(--text-muted)] block">Emergency Contact:</span>
+                        <span className="font-medium text-[var(--text-primary)]">
+                          {patientProfile.emergencyContact
+                            ? `${patientProfile.emergencyContact} (${patientProfile.emergencyRelationship || "Contact"})`
+                            : "Not set"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-[var(--text-muted)] italic">
+                    Patient has not created a detailed medical profile yet. Basic appointment details only.
+                  </div>
+                )}
+              </div>
+
+              {/* Diagnostic Records / Uploaded Documents */}
+              <div
+                className="p-4 rounded-xl border space-y-3"
+                style={{ backgroundColor: "var(--bg-surface-alt)", borderColor: "var(--border-color)" }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-blue-500" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      Diagnostic Records ({patientRecords.length})
+                    </h4>
+                  </div>
+                </div>
+
+                {patientRecords.length > 0 ? (
+                  <div className="space-y-2">
+                    {patientRecords.map((rec) => (
+                      <div
+                        key={rec.id}
+                        className="p-2.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface)] flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="overflow-hidden">
+                          <p className="font-semibold text-[var(--text-primary)] truncate">
+                            {rec.title}
+                          </p>
+                          <p className="text-[10px] text-[var(--text-muted)] capitalize">
+                            {rec.type.replace("_", " ")} {rec.recordDate && `• Date: ${rec.recordDate}`}
+                          </p>
+                        </div>
+                        <a
+                          href={rec.documentURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-100 text-[11px] font-medium shrink-0 transition-colors"
+                        >
+                          <FileDown className="w-3.5 h-3.5" />
+                          <span>View</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--text-muted)] italic">
+                    No diagnostic documents uploaded by patient.
+                  </p>
+                )}
               </div>
 
               {/* Personal Details */}
@@ -577,35 +890,48 @@ Homeopathy Clinic`;
                   </div>
                 </div>
 
-                {/* Timeline Item 2 Mock */}
-                <div className="relative">
-                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-750 border-2 border-white dark:border-zinc-900"></span>
-                  <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                    Follow-Up Consultation
+                {/* Real Patient Past Consultations & Remedies Prescribed */}
+                {patientPastAppointments.length > 0 ? (
+                  patientPastAppointments.map((pastAppt) => (
+                    <div key={pastAppt.id} className="relative">
+                      <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-700 border-2 border-white dark:border-zinc-900"></span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                          Consultation: {pastAppt.condition || "Clinical Visit"}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[var(--text-muted)] font-medium">
+                          {pastAppt.status}
+                        </span>
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                        {pastAppt.appointmentDate} · {pastAppt.appointmentTime} ({pastAppt.consultationType})
+                      </div>
+                      {pastAppt.prescription ? (
+                        <div className="mt-2 p-2.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50 text-xs space-y-1">
+                          <p className="font-semibold text-emerald-900 dark:text-emerald-300">
+                            💊 {pastAppt.prescription.remedy} {pastAppt.prescription.potency}
+                          </p>
+                          <p className="text-[11px] text-[var(--text-secondary)]">
+                            Dosage: {pastAppt.prescription.dosage} ({pastAppt.prescription.duration})
+                          </p>
+                          {pastAppt.prescription.instructions && (
+                            <p className="text-[10px] italic text-[var(--text-muted)]">
+                              &ldquo;{pastAppt.prescription.instructions}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      ) : pastAppt.message ? (
+                        <p className="text-xs italic text-[var(--text-muted)] mt-1">
+                          Notes: &ldquo;{pastAppt.message}&rdquo;
+                        </p>
+                      ) : null}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-[var(--text-muted)] italic pt-2">
+                    No prior clinic appointments recorded for this patient.
                   </div>
-                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    April 14, 2026
-                  </div>
-                  <div className="mt-2 text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
-                    <p>💊 <strong className="font-semibold text-xs">Pulsatilla 200C</strong> (4 globules, twice daily)</p>
-                    <p className="italic text-zinc-500 mt-0.5">"Improvement reported in skin rash. Modalities: Worse in hot room, better in open air."</p>
-                  </div>
-                </div>
-
-                {/* Timeline Item 3 Mock */}
-                <div className="relative">
-                  <span className="absolute -left-7 top-1 w-4 h-4 rounded-full bg-zinc-300 dark:bg-zinc-750 border-2 border-white dark:border-zinc-900"></span>
-                  <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                    Initial Consultation & Case Taking
-                  </div>
-                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    March 10, 2026
-                  </div>
-                  <div className="mt-2 text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
-                    <p>💊 <strong className="font-semibold text-xs">Arsenicum Album 30C</strong> (twice daily for 1 week)</p>
-                    <p className="italic text-zinc-500 mt-0.5">"Severe itching and dry skin patches. Modalities: agg. from cold application, amel. by warm wraps."</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}

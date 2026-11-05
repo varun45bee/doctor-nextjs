@@ -64,6 +64,12 @@ export interface Appointment {
   googleCalendarEventId?: string;
   calendarId?: string;
   googleMeetUrl?: string;
+  googleMeetLink?: string;
+  googleMeetSpaceName?: string;
+  meetingStatus?: "pending" | "creating" | "ready" | "failed";
+  meetingCreatedAt?: string;
+  meetingCreatedBy?: string;
+  meetingError?: string;
   calendarSyncStatus?: "pending" | "synced" | "failed" | "not_applicable";
   calendarError?: string;
 
@@ -105,6 +111,12 @@ export interface AppointmentWrite {
   googleCalendarEventId?: string;
   calendarId?: string;
   googleMeetUrl?: string;
+  googleMeetLink?: string;
+  googleMeetSpaceName?: string;
+  meetingStatus?: "pending" | "creating" | "ready" | "failed";
+  meetingCreatedAt?: string;
+  meetingCreatedBy?: string;
+  meetingError?: string;
   calendarSyncStatus?: "pending" | "synced" | "failed" | "not_applicable";
   calendarError?: string;
   notificationStatus?: NotificationDeliveryStatus;
@@ -229,7 +241,13 @@ export function normalizeAppointment(doc: RawAppointment): Appointment {
     // Google Calendar & Meet
     googleCalendarEventId: data.googleCalendarEventId ? String(data.googleCalendarEventId) : undefined,
     calendarId: data.calendarId ? String(data.calendarId) : undefined,
-    googleMeetUrl: data.googleMeetUrl ? String(data.googleMeetUrl) : undefined,
+    googleMeetUrl: data.googleMeetUrl ? String(data.googleMeetUrl) : (data.googleMeetLink ? String(data.googleMeetLink) : undefined),
+    googleMeetLink: data.googleMeetLink ? String(data.googleMeetLink) : (data.googleMeetUrl ? String(data.googleMeetUrl) : undefined),
+    googleMeetSpaceName: data.googleMeetSpaceName ? String(data.googleMeetSpaceName) : undefined,
+    meetingStatus: (data.meetingStatus as Appointment["meetingStatus"]) || (data.googleMeetLink || data.googleMeetUrl ? "ready" : undefined),
+    meetingCreatedAt: data.meetingCreatedAt ? String(data.meetingCreatedAt) : undefined,
+    meetingCreatedBy: data.meetingCreatedBy ? String(data.meetingCreatedBy) : undefined,
+    meetingError: data.meetingError ? String(data.meetingError) : undefined,
     calendarSyncStatus: (data.calendarSyncStatus as Appointment["calendarSyncStatus"]) || undefined,
     calendarError: data.calendarError ? String(data.calendarError) : undefined,
 

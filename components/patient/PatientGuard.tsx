@@ -18,7 +18,7 @@ export default function PatientGuard({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      router.replace(`/login?redirect=${encodeURIComponent(pathname || "")}`);
     } else if (
       !loading &&
       !profileLoading &&

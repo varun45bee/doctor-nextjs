@@ -12,6 +12,18 @@ import {
   ArrowRight,
   PlusCircle,
   HeartPulse,
+  Pill,
+  Printer,
+  X,
+  ExternalLink,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  MapPin,
+  Clock,
+  Copy,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { calculateProfileCompletion, MedicalRecord } from "@/lib/types/patient";
@@ -27,6 +39,7 @@ export default function PatientDashboardPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [records, setRecords] = useState<MedicalRecord[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [selectedPrescriptionAppt, setSelectedPrescriptionAppt] = useState<Appointment | null>(null);
 
   // Profile completion calculation
   const completionPercentage = useMemo(() => {
@@ -38,18 +51,34 @@ export default function PatientDashboardPage() {
 
     let unsubConv: (() => void) | undefined;
 
-    async function loadData() {
+    const loadData = async () => {
       try {
-        // 1. Fetch appointments matching patient email
-        if (user?.email) {
+        // 1. Fetch appointments matching patient email and/or patientId
+        if (user?.email || user?.uid) {
           try {
             const apptsCol = collection(db, "appointments");
-            const q = query(apptsCol, where("patientEmail", "==", user.email));
-            const snap = await getDocs(q);
-            const appts = snap.docs.map((d) =>
-              normalizeAppointment({ id: d.id, ...d.data() })
-            );
-            // Sort by date desc
+            const queries = [];
+            if (user?.email) {
+              queries.push(getDocs(query(apptsCol, where("patientEmail", "==", user.email))));
+              if (user.email !== user.email.toLowerCase()) {
+                queries.push(getDocs(query(apptsCol, where("patientEmail", "==", user.email.toLowerCase()))));
+              }
+            }
+            if (user?.uid) {
+              queries.push(getDocs(query(apptsCol, where("patientId", "==", user.uid))));
+            }
+
+            const snapshots = await Promise.all(queries);
+            const apptMap = new Map<string, Appointment>();
+
+            snapshots.forEach((snap) => {
+              snap.docs.forEach((d) => {
+                const appt = normalizeAppointment({ id: d.id, ...d.data() });
+                apptMap.set(appt.id, appt);
+              });
+            });
+
+            const appts = Array.from(apptMap.values());
             appts.sort((a, b) => (b.appointmentDate || "").localeCompare(a.appointmentDate || ""));
             setAppointments(appts);
           } catch (err) {
@@ -427,22 +456,81 @@ export default function PatientDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Google Meet Link if available */}
-                  {appt.googleMeetUrl ? (
-                    <a
-                      href={appt.googleMeetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors shadow-sm"
-                    >
-                      <Video className="w-4 h-4" />
-                      <span>Join Google Meet Consultation</span>
-                    </a>
-                  ) : (
-                    <div className="text-xs text-[var(--text-muted)] italic">
-                      Google Meet link will be activated prior to consultation.
-                    </div>
-                  )}
+                  {/* Google Meet Consultation Access */}
+                  {(() => {
+                    const meetLink = appt.googleMeetLink || appt.googleMeetUrl;
+                    const status = appt.meetingStatus || (meetLink ? "ready" : "pending");
+
+                    if (status === "ready" && meetLink) {
+                      return (
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              Video Room Ready
+                            </span>
+                            <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                              Google Meet
+                            </span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <a
+                              href={meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-sm"
+                            >
+                              <Video className="w-4 h-4" />
+                              <span>Join Consultation</span>
+                              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(meetLink);
+                                alert("Google Meet link copied to clipboard!");
+                              }}
+                              className="px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs text-[var(--text-secondary)] transition-colors flex items-center justify-center gap-1"
+                              title="Copy link"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span className="sm:hidden">Copy Link</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (status === "creating") {
+                      return (
+                        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 flex items-center gap-2 text-xs text-blue-800 dark:text-blue-300">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+                          <span>Generating your secure Google Meet room...</span>
+                        </div>
+                      );
+                    }
+
+                    if (status === "failed") {
+                      return (
+                        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 space-y-1 text-xs text-amber-900 dark:text-amber-200">
+                          <p className="font-semibold flex items-center gap-1.5">
+                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                            Meeting link will be provided shortly
+                          </p>
+                          <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                            Dr. Pratima&apos;s team is preparing your room. You can also reach clinic support at +91 91365 09988.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="text-xs text-[var(--text-muted)] italic flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-sage-500" />
+                        <span>Google Meet link will be activated prior to consultation time.</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
@@ -452,34 +540,69 @@ export default function PatientDashboardPage() {
         {/* Past Consultations */}
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-            Consultation History
+            Consultation History & Prescriptions
           </h3>
           {pastAppointments.length > 0 ? (
             <div className="divide-y divide-[var(--border-color)]">
               {pastAppointments.map((appt) => (
                 <div
                   key={appt.id}
-                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
                 >
-                  <div>
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {appt.appointmentDate} ({appt.appointmentTime})
-                    </span>
-                    <span className="text-[var(--text-muted)] ml-2">
-                      • {appt.consultationType || "Online Consultation"}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-[var(--text-primary)]">
+                        {appt.appointmentDate} at {appt.appointmentTime}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          appt.status === "Completed"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : appt.status === "Cancelled"
+                            ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                            : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300"
+                        }`}
+                      >
+                        {appt.status}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)] capitalize">
+                        • {appt.consultationType === "online" ? "Google Meet" : "In-Clinic (Kalyan)"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      Chief Complaint:{" "}
+                      <strong className="font-medium text-[var(--text-primary)]">
+                        {appt.condition || "General Homeopathy Consultation"}
+                      </strong>
+                    </p>
+
+                    {/* Prescribed Remedy Highlight if available */}
+                    {appt.prescription ? (
+                      <div className="flex items-center gap-2 text-xs pt-0.5">
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60">
+                          <Pill className="w-3 h-3 text-emerald-600" />
+                          <span>Remedy: {appt.prescription.remedy} {appt.prescription.potency}</span>
+                        </span>
+                        <span className="text-[11px] text-[var(--text-muted)]">
+                          ({appt.prescription.dosage})
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full font-medium w-fit ${
-                      appt.status === "Completed"
-                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                        : appt.status === "Cancelled"
-                        ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
-                        : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300"
-                    }`}
-                  >
-                    {appt.status}
-                  </span>
+
+                  <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+                    {appt.prescription && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPrescriptionAppt(appt)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800 text-sage-800 dark:text-sage-200 font-semibold text-xs hover:bg-sage-100 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-sage-600" />
+                        <span>View Digital Prescription</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -492,6 +615,146 @@ export default function PatientDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Official Digital Prescription Modal Slip */}
+      {selectedPrescriptionAppt && selectedPrescriptionAppt.prescription && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setSelectedPrescriptionAppt(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl p-6 sm:p-8 space-y-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prescription Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden relative border border-sage-300 dark:border-sage-700 shrink-0">
+                  <Image
+                    src="/doctor.webp"
+                    alt="Dr. Pratima Agale"
+                    fill
+                    className="object-cover object-top"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-zinc-900 dark:text-zinc-100">
+                    Dr. Pratima Agale Clinic
+                  </h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    BHMS, MD (Homeopathy) • Kalyan (W), Mumbai
+                  </p>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                    Reg. Classical Homeopathic Practice
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPrescriptionAppt(null)}
+                className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Patient & Consultation Meta */}
+            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-700/60 text-xs">
+              <div>
+                <span className="text-zinc-500 text-[11px] block">Patient Name:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  {selectedPrescriptionAppt.patientName}
+                </span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[11px] block">Date of Consult:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  {selectedPrescriptionAppt.appointmentDate}
+                </span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[11px] block">Age / Gender:</span>
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {selectedPrescriptionAppt.age ? `${selectedPrescriptionAppt.age} yrs` : userProfile?.dateOfBirth ? "On Record" : "—"} • {userProfile?.gender || "—"}
+                </span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[11px] block">Consultation ID:</span>
+                <span className="font-mono text-zinc-600 dark:text-zinc-400">
+                  {selectedPrescriptionAppt.id.substring(0, 10).toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            {/* Chief Condition */}
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1">
+                Clinical Diagnosis / Condition:
+              </span>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                {selectedPrescriptionAppt.condition || "Constitutional Homeopathic Care"}
+              </p>
+            </div>
+
+            {/* Prescription Remedy Box */}
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                  <Pill className="w-4 h-4 text-emerald-600" />
+                  <span>Rx Remedy Prescribed</span>
+                </span>
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">
+                  {selectedPrescriptionAppt.prescription.potency}
+                </span>
+              </div>
+              <p className="text-xl font-serif font-bold text-emerald-950 dark:text-emerald-100">
+                {selectedPrescriptionAppt.prescription.remedy}
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-emerald-200 dark:border-emerald-800/80">
+                <div>
+                  <span className="text-emerald-800/80 dark:text-emerald-400 text-[11px] block">Dosage:</span>
+                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">
+                    {selectedPrescriptionAppt.prescription.dosage}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-emerald-800/80 dark:text-emerald-400 text-[11px] block">Duration:</span>
+                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">
+                    {selectedPrescriptionAppt.prescription.duration}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Instructions & Modalities */}
+            <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 text-xs">
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">
+                Homeopathic Instructions & Dietary Precautions:
+              </span>
+              <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                {selectedPrescriptionAppt.prescription.instructions || "Avoid raw onion, garlic, or strong perfumes 30 minutes before and after taking the remedy. Store medicine in a cool, dry place away from direct sunlight."}
+              </p>
+            </div>
+
+            {/* Clinic Verification Stamp & Signature */}
+            <div className="pt-2 flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium text-[11px]">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Digitally Verified by Dr. Pratima Agale</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Prescription</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

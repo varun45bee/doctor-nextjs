@@ -12,6 +12,7 @@ import { getSlotTimestamps, DEFAULT_TIMEZONE } from "@/lib/utils/timezone";
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/meetings.space.created",
 ];
 
 export function getAppBaseUrl(): string {

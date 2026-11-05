@@ -12,7 +12,7 @@ interface BreadcrumbItem {
 export default function Breadcrumbs() {
   const pathname = usePathname();
   
-  if (pathname === "/") return null;
+  if (!pathname || pathname === "/") return null;
 
   const pathSegments = pathname.split("/").filter((segment) => segment);
   

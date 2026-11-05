@@ -10,7 +10,7 @@ import { ShieldCheck, MessageSquare, FileText, ArrowLeft, Loader2 } from "lucide
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect");
+  const redirectUrl = searchParams?.get("redirect");
   const { user, isDoctor, signInWithGoogle, authError, clearAuthError, loading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 

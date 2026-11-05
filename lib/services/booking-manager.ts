@@ -115,6 +115,18 @@ export async function createAppointmentBooking(
     status: "Confirmed",
     googleCalendarEventId: calendarEventId || null,
     googleMeetUrl: meetUrl || null,
+    googleMeetLink: meetUrl || null,
+    meetingStatus:
+      input.consultationType === "online"
+        ? meetUrl
+          ? "ready"
+          : calendarSyncStatus === "failed"
+          ? "failed"
+          : "pending"
+        : "not_applicable",
+    meetingCreatedAt: meetUrl ? new Date() : null,
+    meetingCreatedBy: meetUrl ? doctorId : null,
+    meetingError: calendarError || null,
     calendarSyncStatus,
     calendarError: calendarError || null,
     updatedAt: new Date(),
@@ -377,6 +389,13 @@ export async function rescheduleAppointmentBooking(params: {
     appointmentTime: params.newTime,
     rescheduledFrom: `${oldDate} ${oldTime}`,
     googleMeetUrl: meetUrl || null,
+    googleMeetLink: meetUrl || null,
+    meetingStatus:
+      appt.consultationType === "online"
+        ? meetUrl
+          ? "ready"
+          : "pending"
+        : "not_applicable",
     updatedAt: new Date(),
   });
 

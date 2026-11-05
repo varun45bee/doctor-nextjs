@@ -11,7 +11,7 @@ export default function SiteChrome({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const isDoctorRoute = pathname.startsWith("/doctor");
   const isPatientRoute = pathname.startsWith("/patient");
   const isLoginRoute = pathname === "/login";

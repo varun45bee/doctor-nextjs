@@ -1,102 +1,120 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  buildEnterpriseSystemPrompt,
+  validateAndSanitizeGroqResponse,
+  type ConversationContextState,
+} from "@/lib/ai/conversationContext";
+
+// Primary Groq models supported by Groq API
+const PRIMARY_MODEL = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
+const FALLBACK_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, history } = await req.json();
+    const body = await req.json();
+    const { message, history, context } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const conversationHistory = Array.isArray(history) ? history : [];
+    const conversationHistory = Array.isArray(history)
+      ? history.map((m: any) => ({
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: typeof m.content === "string" ? m.content : "",
+        }))
+      : [];
 
-    const systemPrompt = `You are CuraAI, the empathetic, expert clinical intake assistant for Dr. Pratima Agale (BHMS, MD Homeopathy).
-Your job is to conduct a personalized homeopathic clinical intake by asking 1-2 thoughtful questions to help prepare the patient's case history:
-1. Symptoms & Sensations: exact nature of the complaint (e.g., throbbing headache, irregular cycles, dry skin, fatigue).
-2. Modalities (Homeopathy Core): what makes the symptoms better or worse (e.g. cold, warmth, stress, morning, evening, food).
-3. Duration & Prior Treatments: how long this has persisted and any medicines taken.
+    const existingContext: Partial<ConversationContextState> =
+      context && typeof context === "object" ? context : {};
 
-Rules:
-- Introduce yourself warmly as CuraAI if greeting the patient.
-- Be respectful, caring, and encouraging.
-- Ask ONE focused question at a time so the patient is never overwhelmed.
-- Keep replies brief (1-3 conversational sentences max).
-- Never diagnose or prescribe medicines.
-- Always respond in valid JSON matching this exact schema:
-{
-  "reply": "Warm 1-2 sentence response with your next question or guidance.",
-  "analysis": {
-    "detectedCondition": "PCOD / PCOS | Thyroid Disorder | Arthritis | Migraines | Child Immunity | Skin & Hair | Digestive | Other",
-    "duration": "e.g. 6 months, 2 years, or 'Recent'",
-    "severity": "Mild | Moderate | Chronic",
-    "careStream": "e.g. Women's Constitutional Care | Neurological Care | Pediatric Gentle Care",
-    "modalities": "e.g. Aggravated by stress/cold; relieved by rest",
-    "prepTip": "Practical advice for their appointment (e.g. keep past blood tests or prescription history ready)"
-  }
-}`;
+    const systemPrompt = buildEnterpriseSystemPrompt(existingContext);
 
     const messages = [
       { role: "system", content: systemPrompt },
-      ...conversationHistory.slice(-8),
+      ...conversationHistory.slice(-10),
       { role: "user", content: message },
     ];
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "qwen/qwen3.8-27b",
-        messages,
-        temperature: 0.35,
-        response_format: { type: "json_object" },
-      }),
-    });
+    // Enterprise Groq API Call with timeout and model fallback cascade
+    let groqRawData: any = null;
+    const apiKey = process.env.GROQ_API_KEY;
 
-    if (!response.ok) {
-      return NextResponse.json({
-        reply: "Hello, I am CuraAI. Thank you for explaining your symptoms. How long have you been experiencing this, and does anything make it feel better or worse?",
-        analysis: {
-          detectedCondition: "Classical Homeopathy Consultation",
-          duration: "Noted",
-          severity: "Moderate",
-          careStream: "Constitutional Case Management",
-          modalities: "To be evaluated during consultation",
-          prepTip: "Please keep your recent medical reports and prescriptions ready for Dr. Pratima.",
-        },
-      });
+    if (apiKey) {
+      const callGroq = async (model: string) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
+
+        try {
+          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              temperature: 0.3,
+              response_format: { type: "json_object" },
+            }),
+            signal: controller.signal,
+          });
+          return res;
+        } finally {
+          clearTimeout(timeout);
+        }
+      };
+
+      try {
+        let res = await callGroq(PRIMARY_MODEL);
+
+        if (!res.ok) {
+          console.warn(`Groq primary model (${PRIMARY_MODEL}) failed with status ${res.status}. Cascading to fallbacks...`);
+          for (const fallbackModel of FALLBACK_MODELS) {
+            try {
+              res = await callGroq(fallbackModel);
+              if (res.ok) break;
+            } catch (fallbackErr) {
+              console.warn(`Fallback model ${fallbackModel} failed:`, fallbackErr);
+            }
+          }
+        }
+
+        if (res.ok) {
+          const data = await res.json();
+          const content = data?.choices?.[0]?.message?.content ?? "{}";
+          groqRawData = JSON.parse(content);
+        } else {
+          console.error("All Groq models failed. Last status:", res.status);
+        }
+      } catch (groqErr) {
+        console.warn("Groq API call exception, using clinical fallback engine:", groqErr);
+      }
+    } else {
+      console.warn("GROQ_API_KEY is not configured, running on built-in clinical fallback engine.");
     }
 
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content ?? "{}";
-    const parsed = JSON.parse(content);
+    // Server-side validation, sanitization & safety guard
+    const sanitizedResponse = validateAndSanitizeGroqResponse(
+      groqRawData,
+      message,
+      existingContext,
+      conversationHistory
+    );
 
-    return NextResponse.json({
-      reply: parsed.reply || "Thank you. Let's schedule your appointment with Dr. Pratima.",
-      analysis: parsed.analysis || {
-        detectedCondition: "Classical Homeopathy Consultation",
-        duration: "Noted",
-        severity: "Moderate",
-        careStream: "Constitutional Case Management",
-        modalities: "To be evaluated",
-        prepTip: "Keep any past lab tests ready for your visit.",
-      },
-    });
+    return NextResponse.json(sanitizedResponse, { status: 200 });
   } catch (err) {
-    console.error("CuraAI route error:", err);
-    return NextResponse.json({
-      reply: "Thank you for sharing your symptoms. Please proceed to select a convenient date and time to meet Dr. Pratima.",
-      analysis: {
-        detectedCondition: "Clinical Consultation",
-        duration: "Noted",
-        severity: "Standard",
-        careStream: "Constitutional Homeopathy",
-        modalities: "General",
-        prepTip: "Keep your previous medical history ready.",
-      },
-    });
+    console.error("Consult-AI route critical error:", err);
+
+    // Guaranteed safe emergency/clinical fallback response
+    const safeFallback = validateAndSanitizeGroqResponse(
+      null,
+      "General consultation inquiry",
+      undefined,
+      []
+    );
+
+    return NextResponse.json(safeFallback, { status: 200 });
   }
 }
-

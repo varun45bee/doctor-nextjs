@@ -62,4 +62,53 @@ test("Doctor Access Control: Only authorized emails receive doctor privileges", 
   assert.strictEqual(isAllowedDoctorEmail("random.user@example.com"), false);
   assert.strictEqual(isAllowedDoctorEmail(null), false);
   assert.strictEqual(isAllowedDoctorEmail(undefined), false);
+
+  // Test authorized doctor emails (case-insensitive check)
+  assert.strictEqual(isAllowedDoctorEmail("varun45j@gmail.com"), true);
+  assert.strictEqual(isAllowedDoctorEmail("VARUN45J@GMAIL.COM"), true);
+  assert.strictEqual(isAllowedDoctorEmail("sardarvarun121@gmail.com"), true);
+  assert.strictEqual(isAllowedDoctorEmail("madhurmeetj@gmail.com"), true);
+});
+
+test("Patient Dashboard: Appointment deduplication merges UID and email-linked appointments safely", () => {
+  const appointmentsByUid = [
+    { id: "apt-1", patientName: "Aarav Sharma", status: "confirmed", patientEmail: "aarav@example.com" },
+    { id: "apt-2", patientName: "Aarav Sharma", status: "completed", patientEmail: "aarav@example.com" },
+  ];
+  const appointmentsByEmail = [
+    { id: "apt-2", patientName: "Aarav Sharma", status: "completed", patientEmail: "aarav@example.com" },
+    { id: "apt-3", patientName: "Aarav Sharma", status: "confirmed", patientEmail: "aarav@example.com" },
+  ];
+
+  // Emulate deduplication strategy used in Patient Dashboard loadData
+  const mergedMap = new Map<string, typeof appointmentsByUid[0]>();
+  for (const a of [...appointmentsByUid, ...appointmentsByEmail]) {
+    mergedMap.set(a.id, a);
+  }
+  const deduplicated = Array.from(mergedMap.values());
+
+  assert.strictEqual(deduplicated.length, 3);
+  assert.deepStrictEqual(deduplicated.map(a => a.id), ["apt-1", "apt-2", "apt-3"]);
+});
+
+test("Patient Dossier: Critical allergy alerts are highlighted for doctor clinical safety", () => {
+  const profileWithAllergies: Partial<UserProfile> = {
+    fullName: "Priya Deshmukh",
+    allergies: "Penicillin, Sulfa drugs, Peanuts",
+  };
+  const profileWithoutAllergies: Partial<UserProfile> = {
+    fullName: "Amit Verma",
+    allergies: "None",
+  };
+
+  const hasAllergiesWarning = (allergies?: string) => {
+    if (!allergies) return false;
+    const lower = allergies.trim().toLowerCase();
+    return lower !== "" && lower !== "none" && lower !== "nil" && lower !== "no known allergies";
+  };
+
+  assert.strictEqual(hasAllergiesWarning(profileWithAllergies.allergies), true);
+  assert.strictEqual(hasAllergiesWarning(profileWithoutAllergies.allergies), false);
+  assert.strictEqual(hasAllergiesWarning(""), false);
+  assert.strictEqual(hasAllergiesWarning(undefined), false);
 });

@@ -112,6 +112,9 @@ export const viewport = {
   themeColor: "#5a7f5a",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  interactiveWidget: "resizes-content",
 };
 
 const themeScript = `

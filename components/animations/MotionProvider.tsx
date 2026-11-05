@@ -18,6 +18,11 @@ export default function MotionProvider() {
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
     });
 
+    // Expose lenis instance globally so modals can pause background scrolling
+    if (typeof window !== "undefined") {
+      (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
+    }
+
     let frame = 0;
 
     const raf = (time: number) => {
@@ -29,6 +34,9 @@ export default function MotionProvider() {
 
     return () => {
       window.cancelAnimationFrame(frame);
+      if (typeof window !== "undefined") {
+        delete (window as unknown as { __lenis?: Lenis }).__lenis;
+      }
       lenis.destroy();
     };
   }, [reduceMotion]);

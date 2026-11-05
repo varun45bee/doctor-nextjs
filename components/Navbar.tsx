@@ -4,9 +4,18 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, Globe, LayoutDashboard, User } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Globe,
+  LayoutDashboard,
+  User,
+  LogOut,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import PatientAvatar from "@/components/patient/PatientAvatar";
 import { useAppointment } from "@/lib/appointment-context";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
@@ -18,16 +27,33 @@ const localeLabels: Record<Locale, string> = {
   mr: "मर",
 };
 
+function getInitials(name?: string | null): string {
+  if (!name || !name.trim()) return "P";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function Navbar() {
   const { openAppointment } = useAppointment();
   const { t, locale, setLocale } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { user, userProfile, isDoctor, loading } = useAuth();
+  const { user, userProfile, isDoctor, loading, openLoginModal, signOut } =
+    useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  const profilePhoto = userProfile?.photoURL || user?.photoURL || null;
+  const profileName =
+    userProfile?.fullName || user?.displayName || "Patient";
+  const initials = getInitials(profileName);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -38,19 +64,29 @@ export default function Navbar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpenMenu(null);
+      }
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openMenu]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Close menus on navigation
   useEffect(() => {
     setOpenMenu(null);
     setMenuOpen(false);
+    setProfileDropdownOpen(false);
   }, [pathname]);
 
   const menuSections = [
@@ -111,13 +147,15 @@ export default function Navbar() {
       }}
     >
       <nav className="max-w-7xl mx-auto px-[19px] py-4 flex items-center justify-between gap-4">
-
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
           <div
             className="relative w-12 h-12 rounded-full overflow-hidden border shadow-sm"
             style={{
-              backgroundColor: theme === "dark" ? "rgba(255,255,255,0.92)" : "var(--bg-surface)",
+              backgroundColor:
+                theme === "dark"
+                  ? "rgba(255,255,255,0.92)"
+                  : "var(--bg-surface)",
               borderColor: "var(--border-color)",
               boxShadow:
                 theme === "dark"
@@ -137,52 +175,62 @@ export default function Navbar() {
 
         {/* DESKTOP NAVIGATION */}
         <div className="hidden lg:flex items-center gap-5 text-sm font-medium">
-          <Link href="/" className="text-sage-800 hover:text-sage-500 transition-colors">
+          <Link
+            href="/"
+            className="text-sage-800 hover:text-sage-500 transition-colors"
+          >
             {t.nav.home}
           </Link>
 
-          <Link href="/about" className="text-sage-800 hover:text-sage-500 transition-colors">
+          <Link
+            href="/about"
+            className="text-sage-800 hover:text-sage-500 transition-colors"
+          >
             {t.nav.about}
           </Link>
 
           {/* SERVICES MENU */}
-          <div
-            className="relative"
-          >
-            <button 
-              onClick={() => setOpenMenu(openMenu === "services" ? null : "services")}
-              className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors"
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() =>
+                setOpenMenu(openMenu === "services" ? null : "services")
+              }
+              className="flex items-center gap-1 text-sage-800 hover:text-sage-500 transition-colors cursor-pointer"
             >
-              {t.nav.services}
+              <span>{t.nav.services}</span>
               <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform ${
-                  openMenu === "services" ? "rotate-180" : ""
+                size={16}
+                className={`transition-transform duration-300 ${
+                  openMenu === "services" ? "rotate-180 text-sage-500" : ""
                 }`}
               />
             </button>
 
+            {/* Mega Dropdown Menu */}
             {openMenu === "services" && (
               <div
-                ref={dropdownRef}
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[760px] rounded-2xl shadow-2xl border"
-                style={{ backgroundColor: "var(--dropdown-bg)", borderColor: "var(--border-color)" }}
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[850px] p-6 rounded-2xl border shadow-2xl transition-all duration-300 z-50 animate-in fade-in slide-in-from-top-2"
+                style={{
+                  backgroundColor: "var(--bg-surface)",
+                  borderColor: "var(--border-color)",
+                }}
               >
-                <div className="grid grid-cols-4 p-5 gap-4">
-                  {menuSections.map((section) => (
-                    <div key={section.title}>
-                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-sage-50">
-                        <span>{section.emoji}</span>
-                        <span className="text-xs font-semibold text-sage-700 uppercase tracking-wide">
-                          {section.title}
-                        </span>
+                <div className="grid grid-cols-4 gap-6">
+                  {menuSections.map((sec, idx) => (
+                    <div key={idx} className="space-y-3">
+                      <div className="flex items-center gap-2 pb-2 border-b border-sage-100 dark:border-sage-800">
+                        <span className="text-base">{sec.emoji}</span>
+                        <h4 className="font-serif font-bold text-sm text-sage-800 tracking-wide">
+                          {sec.title}
+                        </h4>
                       </div>
-                      <ul className="space-y-2">
-                        {section.items.map((item) => (
-                          <li key={item.href}>
+                      <ul className="space-y-1.5">
+                        {sec.items.map((item, i) => (
+                          <li key={i}>
                             <Link
                               href={item.href}
-                              className="text-xs text-sage-600 hover:text-sage-900 transition-colors"
                               onClick={() => setOpenMenu(null)}
+                              className="text-xs text-sage-600 dark:text-sage-400 hover:text-sage-800 dark:hover:text-sage-200 hover:translate-x-1 transition-all block py-1 font-medium"
                             >
                               {item.label}
                             </Link>
@@ -196,19 +244,26 @@ export default function Navbar() {
             )}
           </div>
 
-          <Link href="/why-homeopathy" className="text-sage-800 hover:text-sage-500 transition-colors">
+          <Link
+            href="/why-homeopathy"
+            className="text-sage-800 hover:text-sage-500 transition-colors"
+          >
             {t.nav.whyHomeopathy}
           </Link>
 
-          <Link href="/case-studies" className="text-sage-800 hover:text-sage-500 transition-colors">
+          <Link
+            href="/case-studies"
+            className="text-sage-800 hover:text-sage-500 transition-colors"
+          >
             {t.nav.caseStudies}
           </Link>
 
-          <Link href="/blog" className="text-sage-800 dark:text-sage-300 hover:text-sage-500 transition-colors">
+          <Link
+            href="/blog"
+            className="text-sage-800 dark:text-sage-300 hover:text-sage-500 transition-colors"
+          >
             {t.nav.blog}
           </Link>
-
-      
         </div>
 
         {/* RIGHT SIDE */}
@@ -225,11 +280,18 @@ export default function Navbar() {
             </span>
           </button>
 
+          {/* Language Switcher */}
           <div
             className="flex items-center rounded-full px-2 py-1 border"
-            style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-color)" }}
+            style={{
+              backgroundColor: "var(--bg-subtle)",
+              borderColor: "var(--border-color)",
+            }}
           >
-            <Globe className="w-3.5 h-3.5 mr-1" style={{ color: "var(--text-muted)" }} />
+            <Globe
+              className="w-3.5 h-3.5 mr-1"
+              style={{ color: "var(--text-muted)" }}
+            />
             {(["en", "hi", "mr"] as Locale[]).map((l) => (
               <button
                 key={l}
@@ -246,52 +308,170 @@ export default function Navbar() {
             ))}
           </div>
 
+          {/* Doctor Dashboard Link */}
           {!loading && user && isDoctor && (
             <Link
               href="/doctor"
               className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border border-sage-400 text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900 transition-colors font-medium"
             >
               <LayoutDashboard className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <span className="hidden sm:inline">Doctor Portal</span>
             </Link>
           )}
 
+          {/* Patient Logged In: Round Profile Icon at Top Right */}
           {!loading && user && !isDoctor && (
-            <Link
-              href="/patient/dashboard"
-              className="flex items-center gap-2 text-sm px-3.5 py-1.5 rounded-full border border-sage-300 dark:border-sage-700 bg-sage-50/60 dark:bg-sage-950/40 text-sage-800 dark:text-sage-200 hover:bg-sage-100 transition-colors font-medium shadow-2xs"
-            >
-              <PatientAvatar
-                src={userProfile?.photoURL || user.photoURL}
-                name={userProfile?.fullName || user.displayName}
-                size="xs"
-                showRing={false}
-              />
-              <span className="hidden sm:inline">Patient Portal</span>
-            </Link>
+            <div className="relative" ref={profileDropdownRef}>
+              <Link
+                href="/patient/profile"
+                className="relative block rounded-full transition-all hover:scale-105 active:scale-95 group focus:outline-none"
+                title={`Logged in as ${profileName}. Click to view Profile.`}
+                aria-label="View Patient Profile"
+                onMouseEnter={() => setProfileDropdownOpen(true)}
+              >
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500/80 hover:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/70 shadow-sm flex items-center justify-center cursor-pointer">
+                  {profilePhoto ? (
+                    <Image
+                      src={profilePhoto}
+                      alt={profileName}
+                      fill
+                      unoptimized
+                      referrerPolicy="no-referrer"
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  ) : (
+                    <span className="font-bold text-xs text-emerald-900 dark:text-emerald-200 select-none uppercase">
+                      {initials}
+                    </span>
+                  )}
+                  {/* Active online green dot */}
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+                </div>
+              </Link>
+
+              {/* Hover Dropdown Menu */}
+              {profileDropdownOpen && (
+                <div
+                  onMouseLeave={() => setProfileDropdownOpen(false)}
+                  className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150"
+                >
+                  <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-700/60 mb-1">
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate text-sm">
+                      {profileName}
+                    </p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                      {userProfile?.phone || user?.email || "Patient"}
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/patient/profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-zinc-700 text-emerald-950 dark:text-emerald-200 font-semibold transition"
+                  >
+                    <User className="w-4 h-4 text-emerald-600" />
+                    <span>My Profile</span>
+                  </Link>
+
+                  <Link
+                    href="/patient/dashboard"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-medium transition"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-zinc-400" />
+                    <span>Patient Dashboard</span>
+                  </Link>
+
+                  <Link
+                    href="/patient/medical-history"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-medium transition"
+                  >
+                    <FileText className="w-4 h-4 text-zinc-400" />
+                    <span>Medical Records</span>
+                  </Link>
+
+                  <Link
+                    href="/patient/chat"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-medium transition"
+                  >
+                    <MessageSquare className="w-4 h-4 text-zinc-400" />
+                    <span>Doctor Chat</span>
+                  </Link>
+
+                  <div className="border-t border-zinc-100 dark:border-zinc-700/60 mt-1 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        signOut();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-medium transition text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
+          {/* Patient Not Logged In: Login button that opens Modal Popup without redirecting */}
           {!loading && !user && (
-            <Link
-              href="/login"
-              className="flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-full border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-950/40 transition-colors font-medium"
+            <button
+              type="button"
+              onClick={() => openLoginModal("/patient/profile")}
+              className="flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-full border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-950/40 transition-colors font-medium cursor-pointer"
             >
               <User className="w-4 h-4" />
               <span>Login</span>
-            </Link>
+            </button>
           )}
 
+          {/* Book Appointment CTA */}
           <button
             type="button"
             onClick={() => openAppointment()}
-            className="flex items-center gap-2 bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors"
+            className="flex items-center gap-2 bg-sage-500 text-white text-sm px-5 py-2.5 rounded-full hover:bg-sage-600 transition-colors cursor-pointer shadow-xs"
           >
             {t.hero.cta}
           </button>
         </div>
 
-        {/* MOBILE TOGGLE */}
+        {/* MOBILE HEADER CONTROLS */}
         <div className="lg:hidden flex items-center gap-2">
+          {/* Round Profile Icon on Mobile Top Right */}
+          {!loading && user && !isDoctor && (
+            <Link
+              href="/patient/profile"
+              className="relative p-0.5 rounded-full ring-2 ring-emerald-500/80 active:scale-95 transition-transform"
+              aria-label="My Profile"
+              title="My Profile"
+            >
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/70 flex items-center justify-center">
+                {profilePhoto ? (
+                  <Image
+                    src={profilePhoto}
+                    alt={profileName}
+                    fill
+                    unoptimized
+                    referrerPolicy="no-referrer"
+                    className="object-cover"
+                    sizes="32px"
+                  />
+                ) : (
+                  <span className="font-bold text-[11px] text-emerald-900 dark:text-emerald-200 uppercase">
+                    {initials}
+                  </span>
+                )}
+                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-zinc-900" />
+              </div>
+            </Link>
+          )}
+
           <button
             id="theme-toggle-mobile"
             onClick={toggleTheme}
@@ -302,8 +482,9 @@ export default function Navbar() {
               {theme === "dark" ? "🌙" : "☀️"}
             </span>
           </button>
+
           <button
-            className="p-2"
+            className="p-2 cursor-pointer"
             style={{ color: "var(--text-secondary)" }}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -316,44 +497,135 @@ export default function Navbar() {
       {menuOpen && (
         <div
           className="lg:hidden border-t"
-          style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
+          style={{
+            backgroundColor: "var(--bg-surface)",
+            borderColor: "var(--border-color)",
+          }}
         >
           <div className="px-6 py-4 space-y-3">
-
-            <Link href="/" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link href="/about" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>About</Link>
-            <Link href="/why-homeopathy" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Why Homeopathy</Link>
-            <Link href="/case-studies" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Case Studies</Link>
-            <Link href="/blog" className="block py-1 text-sage-800" onClick={() => setMenuOpen(false)}>Blog</Link>
+            <Link
+              href="/"
+              className="block py-1 text-sage-800 dark:text-sage-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              href="/about"
+              className="block py-1 text-sage-800 dark:text-sage-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              href="/why-homeopathy"
+              className="block py-1 text-sage-800 dark:text-sage-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              Why Homeopathy
+            </Link>
+            <Link
+              href="/case-studies"
+              className="block py-1 text-sage-800 dark:text-sage-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              Case Studies
+            </Link>
+            <Link
+              href="/blog"
+              className="block py-1 text-sage-800 dark:text-sage-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              Blog
+            </Link>
 
             {!loading && user && isDoctor && (
               <Link
                 href="/doctor"
-                className="block py-1 text-sage-800 font-medium"
+                className="block py-1 text-sage-800 dark:text-sage-200 font-medium"
                 onClick={() => setMenuOpen(false)}
               >
                 Doctor Dashboard
               </Link>
             )}
 
+            {/* Mobile Logged-in Patient Card */}
             {!loading && user && !isDoctor && (
-              <Link
-                href="/patient/dashboard"
-                className="block py-1 text-sage-800 font-medium"
-                onClick={() => setMenuOpen(false)}
-              >
-                Patient Portal
-              </Link>
+              <div className="pt-2 pb-1 border-t border-zinc-200 dark:border-zinc-700/60 space-y-2">
+                <Link
+                  href="/patient/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800"
+                >
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-emerald-500 bg-white shrink-0 flex items-center justify-center">
+                    {profilePhoto ? (
+                      <Image
+                        src={profilePhoto}
+                        alt={profileName}
+                        fill
+                        unoptimized
+                        referrerPolicy="no-referrer"
+                        className="object-cover"
+                        sizes="36px"
+                      />
+                    ) : (
+                      <span className="font-bold text-xs text-emerald-900 uppercase">
+                        {initials}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm text-emerald-950 dark:text-emerald-200 truncate">
+                      {profileName}
+                    </p>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                      View & Edit Profile →
+                    </p>
+                  </div>
+                </Link>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <Link
+                    href="/patient/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-center font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/patient/medical-history"
+                    onClick={() => setMenuOpen(false)}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-center font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Records
+                  </Link>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    signOut();
+                  }}
+                  className="w-full text-left py-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
             )}
 
+            {/* Mobile Not Logged In: Open Login Modal */}
             {!loading && !user && (
-              <Link
-                href="/login"
-                className="block py-1 text-sage-800 font-medium"
-                onClick={() => setMenuOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openLoginModal("/patient/profile");
+                }}
+                className="block w-full text-left py-2 text-sage-800 dark:text-sage-200 font-medium cursor-pointer"
               >
                 Patient Login
-              </Link>
+              </button>
             )}
 
             <div className="pt-3 flex flex-col gap-2.5">
@@ -368,8 +640,6 @@ export default function Navbar() {
                 {t.hero.cta}
               </button>
             </div>
-
-
           </div>
         </div>
       )}
