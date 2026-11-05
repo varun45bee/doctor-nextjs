@@ -893,3 +893,16 @@ article {
   background-color: rgba(110, 231, 183, 0.5);
 }
 
+/* ─── SCROLLBAR HIDING UTILITIES ─────────────────────────── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+

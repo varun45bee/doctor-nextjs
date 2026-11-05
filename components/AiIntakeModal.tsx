@@ -845,7 +845,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         >
           {/* Quick Suggestions Chips matching Feddy reference pill (e.g. "Hi!") */}
           {!hasChatStarted && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 px-0.5 no-scrollbar select-none">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none">
               <button
                 type="button"
                 onClick={() => handleSendMessage("Hi")}
