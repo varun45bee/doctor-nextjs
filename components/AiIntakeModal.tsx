@@ -845,39 +845,47 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         >
           {/* Quick Suggestions Chips matching Feddy reference pill (e.g. "Hi!") */}
           {!hasChatStarted && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none">
-              <button
-                type="button"
-                onClick={() => handleSendMessage("Hi")}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-semibold text-[#184433] dark:text-emerald-300 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+            <div className="overflow-hidden pb-1 -mb-1">
+              <div
+                className="flex items-center gap-1.5 overflow-x-auto pb-4 -mb-4 px-0.5 no-scrollbar select-none"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
               >
-                <span>👋</span>
-                <span>Hi!</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSendMessage("I am not feeling well")}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
-              >
-                <span>🤒</span>
-                <span>I&apos;m not feeling well</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSendMessage("I have a health question")}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
-              >
-                <span>💬</span>
-                <span>Ask Doctor</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleBookNow}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
-              >
-                <span>📅</span>
-                <span>Book Video Visit</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendMessage("Hi")}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-semibold text-[#184433] dark:text-emerald-300 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                >
+                  <span>👋</span>
+                  <span>Hi!</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendMessage("I am not feeling well")}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                >
+                  <span>🤒</span>
+                  <span>I&apos;m not feeling well</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendMessage("I have a health question")}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                >
+                  <span>💬</span>
+                  <span>Ask Doctor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBookNow}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                >
+                  <span>📅</span>
+                  <span>Book Video Visit</span>
+                </button>
+              </div>
             </div>
           )}
 

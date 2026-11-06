@@ -63,7 +63,7 @@ NEXT_PUBLIC_ALLOWED_DOCTOR_EMAIL="doctor@pratimaagale.in,varun45j@gmail.com"
 
 # Firebase Admin SDK
 FIREBASE_PROJECT_ID="doc-web-a913f"
-FIREBASE_CLIENT_EMAIL="firebase-adminsdk-xxx@doc-web-a913f.iam.gserviceaccount.com"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@doc-web-a913f.iam.gserviceaccount.com"
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
 # Email & WhatsApp Notifications
