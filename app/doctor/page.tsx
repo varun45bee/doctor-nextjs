@@ -366,13 +366,13 @@ export default function DoctorDashboardPage() {
                   appointments={filtered}
                   updatingId={updatingId}
                   onStatusChange={handleStatusChange}
-                  onSelectAppointment={(appt) => setSelectedAppointment(appt)}
+                  onSelectAppointment={(appt) => setSelectedAppointment({ ...appt })}
                   onReschedule={(appt) => {
-                    setSelectedAppointment(appt);
+                    setSelectedAppointment({ ...appt });
                     setIsRescheduleOpen(true);
                   }}
                   onCancel={(appt) => {
-                    setSelectedAppointment(appt);
+                    setSelectedAppointment({ ...appt });
                     setIsCancelOpen(true);
                   }}
                 />
@@ -389,7 +389,7 @@ export default function DoctorDashboardPage() {
             ) : (
               <DoctorCalendar
                 appointments={appointments}
-                onSelectAppointment={(appt) => setSelectedAppointment(appt)}
+                onSelectAppointment={(appt) => setSelectedAppointment({ ...appt })}
               />
             )}
           </div>

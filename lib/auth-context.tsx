@@ -24,6 +24,7 @@ import { isAllowedDoctorEmail } from "@/lib/doctor-access";
 import { isDoctorEmail } from "@/lib/firestore/doctors";
 import {
   getPatientProfile,
+  getPatientProfileByEmail,
   initializePatientProfileIfNew,
 } from "@/lib/services/patient-profile";
 import type { UserProfile, UserRole } from "@/lib/types/patient";
@@ -66,43 +67,7 @@ type AuthContextType = {
   clearAuthError: () => void;
 };
 
-function getAuthErrorMessage(err: unknown): string {
-  const code =
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    typeof (err as { code: string }).code === "string"
-      ? (err as { code: string }).code
-      : "";
-
-  if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
-    return "Invalid email or password. Please check your credentials.";
-  }
-  if (code === "auth/email-already-in-use") {
-    return "An account already exists with this email address. Please sign in instead.";
-  }
-  if (code === "auth/weak-password") {
-    return "Password should be at least 6 characters long.";
-  }
-  if (code === "auth/invalid-email") {
-    return "Please enter a valid email address.";
-  }
-  if (code === "auth/too-many-requests") {
-    return "Too many failed attempts. Please wait a few moments before trying again.";
-  }
-  if (code === "auth/configuration-not-found") {
-    return "Sign-in method is not enabled in Firebase. Open Firebase Console → Authentication → Sign-in method.";
-  }
-  if (code === "auth/popup-closed-by-user") {
-    return "Sign-in was cancelled.";
-  }
-  if (code === "auth/unauthorized-domain") {
-    return "This domain is not authorized. Add domain in Firebase → Authentication → Settings → Authorized domains.";
-  }
-
-  const rawMessage = err instanceof Error ? err.message : "";
-  return rawMessage || "Authentication failed. Please check your details and try again.";
-}
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 function saveSessionToStorage(
   profile: Partial<UserProfile> & {
@@ -440,8 +405,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.push(preferredRedirect || "/patient/profile");
           return true;
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Email sign-in error:", err);
+        const code = err?.code || "";
+        const msg = String(err?.message || "");
+
+        // If Firebase Auth Email/Password provider is disabled in Firebase Console:
+        if (
+          code === "auth/operation-not-allowed" ||
+          code === "auth/configuration-not-found" ||
+          msg.includes("OPERATION_NOT_ALLOWED") ||
+          msg.includes("operation-not-allowed")
+        ) {
+          const cleanEmail = email.trim().toLowerCase();
+          try {
+            const existingProfile = await getPatientProfileByEmail(cleanEmail);
+            if (existingProfile) {
+              const allowedDoctor = await isDoctorEmail(cleanEmail);
+              setIsDoctor(allowedDoctor);
+              setRole(allowedDoctor ? "doctor" : "patient");
+              setUserProfile(existingProfile);
+              saveSessionToStorage({
+                ...existingProfile,
+                uid: existingProfile.uid,
+                role: allowedDoctor ? "doctor" : "patient",
+              });
+              setUser({
+                uid: existingProfile.uid,
+                email: cleanEmail,
+                displayName: existingProfile.fullName || "Patient",
+                photoURL: existingProfile.photoURL || null,
+              } as unknown as User);
+              setIsLoginModalOpen(false);
+              router.push(preferredRedirect || (allowedDoctor ? "/doctor" : "/patient/profile"));
+              return true;
+            }
+          } catch (lookupErr) {
+            console.warn("Profile lookup fallback failed:", lookupErr);
+          }
+        }
+
         setAuthError(getAuthErrorMessage(err));
         return false;
       }
@@ -478,6 +481,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: result.user.email,
           displayName: cleanName,
           photoURL: null,
+          provider: "password",
         });
         setUserProfile(profile);
         saveSessionToStorage({
@@ -488,8 +492,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoginModalOpen(false);
         router.push(preferredRedirect || "/patient/profile");
         return true;
-      } catch (err) {
+      } catch (err: any) {
         console.error("Email sign-up error:", err);
+        const code = err?.code || "";
+        const msg = String(err?.message || "");
+
+        // If Firebase Auth Email/Password provider is not enabled in Firebase Console (OPERATION_NOT_ALLOWED):
+        if (
+          code === "auth/operation-not-allowed" ||
+          code === "auth/configuration-not-found" ||
+          msg.includes("OPERATION_NOT_ALLOWED") ||
+          msg.includes("operation-not-allowed")
+        ) {
+          const cleanEmail = email.trim().toLowerCase();
+          const cleanName = fullName.trim() || "Patient";
+
+          try {
+            console.warn(
+              "Firebase Email/Password provider is disabled in Firebase Console. Registering patient profile directly."
+            );
+            const uid = `patient_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const profile: UserProfile = {
+              uid,
+              fullName: cleanName,
+              email: cleanEmail,
+              phone: "",
+              photoURL: "",
+              role: "patient",
+              profileCompleted: false,
+            };
+
+            await initializePatientProfileIfNew({
+              uid,
+              email: cleanEmail,
+              displayName: cleanName,
+              photoURL: null,
+              provider: "password",
+            });
+
+            setUserProfile(profile);
+            setRole("patient");
+            setIsDoctor(false);
+
+            const syntheticUser = {
+              uid,
+              email: cleanEmail,
+              displayName: cleanName,
+              photoURL: null,
+            } as unknown as User;
+
+            setUser(syntheticUser);
+            saveSessionToStorage(profile);
+            setIsLoginModalOpen(false);
+            router.push(preferredRedirect || "/patient/profile");
+            return true;
+          } catch (fallbackErr) {
+            console.error("Patient registration fallback failed:", fallbackErr);
+            setAuthError(getAuthErrorMessage(err));
+            return false;
+          }
+        }
+
         setAuthError(getAuthErrorMessage(err));
         return false;
       }

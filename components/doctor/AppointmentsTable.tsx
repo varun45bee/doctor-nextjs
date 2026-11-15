@@ -271,8 +271,11 @@ export default function AppointmentsTable({
 
                         <button
                           type="button"
-                          onClick={() => onSelectAppointment?.(appt)}
-                          className="px-2.5 py-1.5 rounded-lg bg-sage-50 hover:bg-sage-100 dark:bg-sage-950/50 dark:hover:bg-sage-900/60 text-sage-700 dark:text-sage-300 font-semibold text-xs transition-colors flex items-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectAppointment?.(appt);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-sage-50 hover:bg-sage-100 dark:bg-sage-950/50 dark:hover:bg-sage-900/60 text-sage-700 dark:text-sage-300 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
                         >
                           <span>EHR</span>
                           <ArrowRight className="w-3 h-3" />
@@ -428,8 +431,11 @@ export default function AppointmentsTable({
                   )}
                   <button
                     type="button"
-                    onClick={() => onSelectAppointment?.(appt)}
-                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-sage-600 hover:bg-sage-700 text-white transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectAppointment?.(appt);
+                    }}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-sage-600 hover:bg-sage-700 text-white transition-colors cursor-pointer"
                   >
                     View EHR
                   </button>

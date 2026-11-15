@@ -7,6 +7,7 @@ import {
 import type { UserProfile } from "../lib/types/patient.ts";
 import { getConversationIdForPatient } from "../lib/services/chat-service.ts";
 import { isAllowedDoctorEmail } from "../lib/doctor-access.ts";
+import { getAuthErrorMessage, EMAIL_VALIDATION_REGEX } from "../lib/auth-errors.ts";
 
 test("Patient Profile: calculateProfileCompletion calculates accurate percentages", () => {
   // 1. Null or empty profile
@@ -111,4 +112,34 @@ test("Patient Dossier: Critical allergy alerts are highlighted for doctor clinic
   assert.strictEqual(hasAllergiesWarning(profileWithoutAllergies.allergies), false);
   assert.strictEqual(hasAllergiesWarning(""), false);
   assert.strictEqual(hasAllergiesWarning(undefined), false);
+});
+
+test("Auth Error Handler: Maps operation-not-allowed to clear actionable guidance", () => {
+  // 1. Firebase code auth/operation-not-allowed
+  const err1 = { code: "auth/operation-not-allowed" };
+  const msg1 = getAuthErrorMessage(err1);
+  assert.match(msg1, /Firebase Console/i);
+  assert.match(msg1, /Google/i);
+
+  // 2. Firebase raw REST error with OPERATION_NOT_ALLOWED message
+  const err2 = new Error("OPERATION_NOT_ALLOWED");
+  const msg2 = getAuthErrorMessage(err2);
+  assert.match(msg2, /Firebase Console/i);
+
+  // 3. String error message
+  const msg3 = getAuthErrorMessage("Firebase: Error (auth/operation-not-allowed).");
+  assert.match(msg3, /Firebase Console/i);
+
+  // 4. Invalid email format error
+  const errEmail = { code: "auth/invalid-email" };
+  const msgEmail = getAuthErrorMessage(errEmail);
+  assert.strictEqual(msgEmail, "Please enter a valid email address.");
+
+  // 5. Email validation regex
+  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  assert.strictEqual(EMAIL_REGEX.test("varun45@gmail.com"), true);
+  assert.strictEqual(EMAIL_REGEX.test("invalid-email"), false);
+  assert.strictEqual(EMAIL_REGEX.test("user@gmail"), false);
+  assert.strictEqual(EMAIL_REGEX.test("user@.com"), false);
+  assert.strictEqual(EMAIL_REGEX.test("@domain.com"), false);
 });

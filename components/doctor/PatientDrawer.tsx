@@ -100,7 +100,6 @@ export default function PatientDrawer({
   onAppointmentUpdated,
 }: PatientDrawerProps) {
   const [activeTab, setActiveTab] = useState<"case" | "prescription" | "history" | "notes">("case");
-  const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Modals for Reschedule & Cancel
@@ -135,7 +134,6 @@ export default function PatientDrawer({
 
   useEffect(() => {
     if (appointment) {
-      setIsOpen(true);
       if (appointment.prescription) {
         setRemedy(appointment.prescription.remedy);
         setPotency(appointment.prescription.potency);
@@ -193,17 +191,10 @@ export default function PatientDrawer({
       };
 
       loadPatientDossier();
-    } else {
-      setIsOpen(false);
     }
   }, [appointment]);
 
   if (!appointment) return null;
-
-  const handleClose = () => {
-    setIsOpen(false);
-    setTimeout(onClose, 250);
-  };
 
   const fullInstructions = useMemo(() => {
     const precautions: string[] = [];
@@ -311,16 +302,11 @@ WhatsApp Support: https://www.pratimaagale.in`;
   return (
     <>
       <div
-        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        style={{ backgroundColor: "rgba(10, 16, 12, 0.5)", backdropFilter: "blur(4px)" }}
-        onClick={handleClose}
+        className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        onClick={onClose}
       >
         <div
-          className={`w-full max-w-2xl h-full overflow-hidden flex flex-col shadow-2xl transition-transform duration-300 ease-out transform ${
-            isOpen ? "translate-x-0" : "translate-x-full"
-          } bg-[var(--bg-surface)] border-l border-[var(--border-color)]`}
+          className="w-full max-w-2xl h-full overflow-hidden flex flex-col shadow-2xl bg-[var(--bg-surface)] border-l border-[var(--border-color)] animate-in slide-in-from-right duration-250 ease-out"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Drawer Header */}
@@ -346,7 +332,7 @@ WhatsApp Support: https://www.pratimaagale.in`;
                   )}
                 </div>
                 <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                  Slot: <span className="font-semibold text-sage-600 dark:text-sage-400">{appointment.appointmentDate} at {appointment.appointmentTime}</span> · ID: #{appointment.id.substring(0, 8)}
+                  Slot: <span className="font-semibold text-sage-600 dark:text-sage-400">{appointment.appointmentDate} at {appointment.appointmentTime}</span> · ID: #{(appointment.id || "").substring(0, 8)}
                 </p>
               </div>
             </div>
@@ -354,7 +340,7 @@ WhatsApp Support: https://www.pratimaagale.in`;
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={handleClose}
+                onClick={onClose}
                 className="p-2 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-muted)] text-[var(--text-secondary)] transition-colors"
                 aria-label="Close drawer"
               >
@@ -370,7 +356,7 @@ WhatsApp Support: https://www.pratimaagale.in`;
               {appointment.patientPhone && (
                 <>
                   <a
-                    href={`https://wa.me/91${appointment.patientPhone.replace(/\D/g, "").slice(-10)}`}
+                    href={`https://wa.me/91${String(appointment.patientPhone).replace(/\D/g, "").slice(-10)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-2xs transition-colors"
@@ -833,11 +819,13 @@ WhatsApp Support: https://www.pratimaagale.in`;
                             Patient Progress Check-In
                           </span>
                           <span className="text-[10px] text-[var(--text-muted)]">
-                            {new Date(log.loggedAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
+                            {log.loggedAt
+                              ? new Date(log.loggedAt).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "Recent"}
                           </span>
                         </div>
                         <div className="mt-1 text-xs space-y-1 text-[var(--text-secondary)]">
