@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "../firebase.ts";
 
 export interface AvailabilitySettings {
   weeklyDays: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday

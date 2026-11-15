@@ -97,17 +97,11 @@ export default function PrivacyPolicyPage() {
                   <strong>Profile picture:</strong> If available and authorized, to display your
                   avatar within your personal dashboard.
                 </li>
-                <li>
-                  <strong>Google Meet &amp; Calendar access (for authorized doctor accounts):</strong>{" "}
-                  To automatically generate secure Google Meet video consultation spaces and
-                  schedule telehealth appointments directly on behalf of Dr. Pratima Agale.
-                </li>
               </ul>
               <div className="p-4 rounded-2xl bg-[#f4f7f4] dark:bg-[#152319] border border-[var(--border-color)]">
                 <p className="text-sm font-medium leading-relaxed">
                   <strong>Purpose Limitation:</strong> We use Google user data strictly for
-                  authentication, account creation, account management, scheduling appointments,
-                  generating video consultation links, and providing core healthcare website
+                  authentication, account creation, account management, and providing core healthcare website
                   services.
                 </p>
               </div>
@@ -130,8 +124,9 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li>
                   <strong>Consultation &amp; Appointment Details:</strong> Phone number, preferred
-                  appointment date and time, consultation type (video or in-clinic), and health
-                  concerns or symptom summaries voluntarily provided during booking or clinical intake.
+                  appointment date and time, telehealth video consultation details, delivery address for
+                  medicine courier delivery, and health concerns or symptom summaries voluntarily provided
+                  during booking or clinical intake.
                 </li>
                 <li>
                   <strong>WhatsApp &amp; Communication Channels:</strong> Phone number and message
@@ -155,59 +150,61 @@ export default function PrivacyPolicyPage() {
                   color: "var(--sage-mid)",
                 }}
               >
-                3. Data Sharing, Transfer, and Third-Party Disclosures
+                3. With Whom We Share, Transfer, or Disclose Google User Data
               </h2>
               <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 mb-4">
-                <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
-                  <strong>We do not sell Google user data, nor do we use it for advertising, marketing, or profiling.</strong>
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                  We do not sell, rent, trade, or share Google user data with third parties for marketing, advertising, or profiling purposes.
                 </p>
               </div>
               <p className="leading-relaxed mb-4">
-                We may share limited user information with trusted third-party service providers
-                strictly when necessary to operate our website, authenticate users, and provide
-                healthcare services. These providers include:
+                Dr. Pratima Agale&apos;s Homeopathy Clinic treats your information with the highest degree
+                of confidentiality. We do not share, transfer, or disclose Google user data to any external
+                parties, brokers, advertisers, or third-party AI models.
+              </p>
+              <p className="leading-relaxed mb-3">
+                Google user data is transferred, shared, or disclosed <strong>only</strong> to the following trusted
+                service providers strictly when necessary to operate our website and execute the core functionality of our healthcare
+                services:
               </p>
               <ul className="list-disc pl-6 space-y-3 mb-4">
                 <li>
-                  <strong>Google OAuth / Google Identity Services:</strong> Used for secure
-                  single-sign-on (SSO) authentication and identity verification.
+                  <strong>Google Identity Services &amp; Firebase Authentication (Google LLC):</strong> Used
+                  for secure single sign-on (SSO) authentication, ID token verification, account creation, and session
+                  management.
                 </li>
                 <li>
-                  <strong>Google Meet &amp; Google Calendar APIs:</strong> Used solely to generate
-                  unique video consultation rooms and schedule telehealth sessions between patients
-                  and Dr. Pratima Agale.
+                  <strong>Google Cloud Platform &amp; Firebase Firestore (Google LLC):</strong> Cloud
+                  infrastructure used for encrypted database storage of user accounts, consultation records, and
+                  system logs under Google Cloud&apos;s enterprise security terms.
                 </li>
                 <li>
-                  <strong>Google Firebase / Firestore:</strong> Cloud infrastructure provided by
-                  Google Cloud Platform used for secure user authentication session storage,
-                  role-based access control, and encrypted database storage.
+                  <strong>Vercel Inc.:</strong> Cloud hosting and serverless compute infrastructure that securely
+                  executes our Next.js backend API routes under strict data confidentiality terms.
                 </li>
                 <li>
-                  <strong>Vercel Inc.:</strong> Used for secure hosting, serverless backend compute,
-                  and global content delivery of the website.
-                </li>
-                <li>
-                  <strong>Payment Service Providers:</strong> Used to securely process patient
-                  consultation fee transactions in compliance with PCI-DSS standards.
-                </li>
-                <li>
-                  <strong>Meta / WhatsApp Business API:</strong> Used strictly to transmit
-                  appointment confirmations, video consultation links, and reminders to patients who
-                  opt in to WhatsApp notifications.
+                  <strong>Payment service providers:</strong> Used to securely process consultation fee payments,
+                  if applicable. Note: Google OAuth user data, credentials, and tokens are never shared with payment processors.
                 </li>
               </ul>
               <p className="leading-relaxed mb-3">
-                These third-party providers process information according to their applicable privacy
-                and security policies. We do not authorize any third party to use Google user data or
-                patient information for purposes unrelated to providing their specific services to us.
+                These trusted service providers process information strictly according to their applicable privacy and security policies. We do not authorize them to use Google user data for any purpose unrelated to providing their specific contracted services.
+              </p>
+              <p className="leading-relaxed mb-3">
+                <strong>Non-Google Clinic Communications:</strong> For patient contact channels independent of
+                Google OAuth (such as when you voluntarily provide a phone number for SMS or WhatsApp appointment
+                reminders), message delivery is transmitted via Meta / WhatsApp Business API or Brevo strictly
+                to deliver transactional appointment confirmations. We never transfer Google OAuth data or
+                Google user tokens to any messaging or advertising networks.
               </p>
               <p className="leading-relaxed">
-                We may also disclose information if required to do so by applicable law, court order,
-                or governmental regulation.
+                We do not transfer or disclose Google user data to any other third parties without your prior
+                explicit consent, unless required to do so by applicable statutory law, subpoena, court order, or
+                governmental regulatory process.
               </p>
             </section>
 
-            {/* Data Protection and Security */}
+            {/* Data Protection Mechanisms for Sensitive Data */}
             <section>
               <h2
                 className="text-2xl font-semibold mb-4"
@@ -216,45 +213,48 @@ export default function PrivacyPolicyPage() {
                   color: "var(--sage-mid)",
                 }}
               >
-                4. Data Protection and Security Mechanisms for Sensitive Data
+                4. Data Protection Mechanisms for Sensitive Data
               </h2>
               <p className="leading-relaxed mb-4">
-                We take rigorous technical and organizational measures to protect personal and
-                sensitive user information against unauthorized access, alteration, disclosure, or
-                destruction:
+                We take comprehensive technical and organizational security mechanisms and safeguards to protect
+                personal and sensitive data—including Google user data, clinical intake details, and authentication
+                tokens—against unauthorized access, destruction, use, alteration, or disclosure:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mb-4">
+              <ul className="list-disc pl-6 space-y-3 mb-4">
                 <li>
-                  <strong>Encryption in Transit (HTTPS / TLS):</strong> All communications between
-                  users&apos; web browsers, our web application, and third-party APIs are encrypted
-                  using modern Transport Layer Security (TLS 1.2 and TLS 1.3) with HTTPS enforced
-                  across all pages.
+                  <strong>Encryption in Transit (HTTPS / TLS 1.2 &amp; TLS 1.3):</strong> All network
+                  communications between client web browsers, our application servers, and Google APIs are
+                  strictly encrypted in transit using modern Transport Layer Security (TLS 1.2 and TLS 1.3). Insecure HTTP
+                  connections are automatically upgraded to HTTPS with HTTP Strict Transport Security (HSTS).
                 </li>
                 <li>
-                  <strong>Encryption at Rest:</strong> Where supported by our infrastructure, stored
-                  data—including appointment records, patient details, and database documents in
-                  Firebase Firestore—is protected using strong encryption at rest (AES-256).
+                  <strong>Encryption at Rest (AES-256):</strong> All sensitive records, database entries, and
+                  user profiles stored within Firebase Firestore and Google Cloud infrastructure are encrypted
+                  at rest using industry-standard Advanced Encryption Standard with 256-bit keys (AES-256).
                 </li>
                 <li>
-                  <strong>Secure Credential &amp; Token Handling:</strong> OAuth refresh tokens,
-                  client secrets, and service account keys are stored securely server-side using
-                  environment secrets and cryptographic protection. Refresh tokens are never exposed
-                  to the client browser, frontend scripts, or unauthorized users.
+                  <strong>Cryptographic Protection of Sensitive Credentials &amp; Tokens:</strong> Google OAuth refresh
+                  tokens, client secrets, and integration credentials are encrypted server-side using AES-256-GCM
+                  authenticated encryption. Cryptographic keys are held exclusively in isolated serverless
+                  environment secrets. Tokens and sensitive secrets are never stored in plaintext, never logged,
+                  and never transmitted to the browser or client-side JavaScript.
                 </li>
                 <li>
-                  <strong>Role-Based Access Control (RBAC):</strong> Strict authentication and
-                  authorization controls ensure that patients can access only their own records and
-                  appointments. Administrative and clinical management tools are restricted strictly
-                  to verified clinical personnel.
+                  <strong>Role-Based Access Control (RBAC) &amp; Principle of Least Privilege:</strong> Access to patient
+                  records and doctor tools is enforced server-side through Firebase ID
+                  token verification. Patients are strictly restricted to reading only their own appointment
+                  records. Clinical management actions are permitted exclusively to the verified
+                  doctor UID.
                 </li>
                 <li>
-                  <strong>Restricted Human Access:</strong> Access to personal and medical information
-                  is limited exclusively to authorized personnel who need the information to provide
-                  clinical healthcare or technical website maintenance.
+                  <strong>Restricted Human Access:</strong> Access to sensitive clinical and Google user data
+                  is restricted exclusively to Dr. Pratima Agale for direct patient care. No third-party
+                  contractors, brokers, or unauthorized personnel have access to patient consultation records.
                 </li>
                 <li>
-                  <strong>Regular Monitoring:</strong> Continuous monitoring of website infrastructure,
-                  serverless functions, and security logs to prevent and detect security threats.
+                  <strong>Continuous Monitoring and Vulnerability Management:</strong> We conduct regular
+                  security audits, dependency security scans, and runtime error monitoring across our Next.js
+                  backend and cloud services to ensure ongoing protection against security vulnerabilities.
                 </li>
               </ul>
             </section>

@@ -27,7 +27,7 @@ test("Doctor Access: Allowed doctor email check", () => {
   assert.strictEqual(isAllowedDoctorEmail(""), false);
 });
 
-test("Google Calendar & Meet: Event payload construction for Online Consultation", () => {
+test("Online Consultation: Timezone formatting and summary", () => {
   const appointment: Appointment = {
     id: "appt_test_999",
     patientName: "Ananya Deshmukh",
@@ -50,26 +50,10 @@ test("Google Calendar & Meet: Event payload construction for Online Consultation
   );
 
   const isOnline = appointment.consultationType === "online";
-  const summary = `Consultation: ${appointment.patientName} (Online Consultation (Google Meet))`;
-
-  const attendees = [
-    { email: appointment.patientEmail, displayName: appointment.patientName },
-    { email: "doctor@example.com", displayName: "Dr. Pratima Agale", responseStatus: "accepted" },
-  ];
-
-  const conferenceData = isOnline
-    ? {
-        createRequest: {
-          requestId: `meet_${appointment.id}`,
-          conferenceSolutionKey: { type: "hangoutsMeet" },
-        },
-      }
-    : undefined;
+  const summary = `Consultation: ${appointment.patientName} (Online Video Consultation)`;
 
   assert.strictEqual(isOnline, true);
-  assert.ok(summary.includes("Google Meet"));
-  assert.strictEqual(attendees.length, 2);
-  assert.strictEqual(conferenceData?.createRequest.conferenceSolutionKey.type, "hangoutsMeet");
+  assert.ok(summary.includes("Online Video Consultation"));
   assert.ok(startIso.includes("2026-11-25T10:30:00.000Z"), "16:00 IST is 10:30 UTC");
 });
 

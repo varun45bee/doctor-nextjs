@@ -50,18 +50,25 @@ service cloud.firestore {
       allow write: if false; // server Admin SDK only
     }
 
-    // Phone-based appointment lookup: Public create & read for patient portal
+    // Phone-based appointment lookup: Public read and pending creation for patient status check
     match /appointment_lookup/{phoneKey} {
-      allow read, create, update: if true;
-      allow delete: if isDoctor();
+      allow read: if true;
+      allow create: if request.resource.data.status == 'Pending' || isDoctor();
+      allow update, delete: if isDoctor();
     }
 
     // Clinical appointments:
-    // - Public can read (for portal lookup) and create
-    // - Patients can append progress logs; Doctor can update status & prescriptions
+    // - Authenticated Doctor can read all appointments
+    // - Authenticated Patient can read their own appointments
+    // - Public patient can create appointments directly (works with phone number)
+    // - Patients can append progress logs; updates managed by doctor
     match /appointments/{appointmentId} {
+      allow read: if isDoctor() 
+        || (request.auth != null && (
+          (resource.data.patientId != null && resource.data.patientId == request.auth.uid) ||
+          (resource.data.patientEmail != null && request.auth.token.email != null && resource.data.patientEmail == request.auth.token.email)
+        ));
       allow create: if true;
-      allow read: if true;
       allow update: if isDoctor() 
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progressLogs']));
       allow delete: if isDoctor();

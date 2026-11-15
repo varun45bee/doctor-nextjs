@@ -40,7 +40,7 @@ import {
 } from "@/lib/services/patient-profile";
 import type { UserProfile, MedicalRecord } from "@/lib/types/patient";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { normalizeAppointment } from "@/lib/types/appointment";
 
 type PatientDrawerProps = {
@@ -68,31 +68,6 @@ export default function PatientDrawer({ appointment, onClose }: PatientDrawerPro
   
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [prescriptionSaved, setPrescriptionSaved] = useState(false);
-  const [retryingMeet, setRetryingMeet] = useState(false);
-
-  const handleRetryMeet = async () => {
-    if (!appointment) return;
-    setRetryingMeet(true);
-    try {
-      const res = await fetch(`/api/appointments/${appointment.id}/meet`, {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        alert(
-          data.error ||
-            "Failed to generate Google Meet room. Please verify that Google is connected in Settings."
-        );
-      } else {
-        alert("Google Meet room successfully generated!");
-        window.location.reload();
-      }
-    } catch {
-      alert("Network error while creating Google Meet room.");
-    } finally {
-      setRetryingMeet(false);
-    }
-  };
 
   useEffect(() => {
     if (appointment) {
@@ -294,7 +269,7 @@ Homeopathy Clinic`;
           {/* CASE DETAILS TAB */}
           {activeSubTab === "case" && (
             <div className="space-y-6 page-enter">
-              {/* Consultation Mode & Google Meet Action Banner */}
+              {/* Consultation Mode Banner */}
               <div
                 className="p-5 rounded-2xl border space-y-3"
                 style={{
@@ -307,107 +282,43 @@ Homeopathy Clinic`;
                     Consultation Mode
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sage-100 text-sage-800 dark:bg-sage-900/50 dark:text-sage-200">
-                    {appointment.consultationType === "online" ? (
-                      <>
-                        <Video className="w-3.5 h-3.5 text-sage-600" /> Online (Google Meet)
-                      </>
-                    ) : (
-                      <>
-                        <MapPin className="w-3.5 h-3.5 text-sage-600" /> In-Person Clinic (Kalyan)
-                      </>
-                    )}
+                    <Video className="w-3.5 h-3.5 text-sage-600" /> Online Video Consultation
                   </span>
                 </div>
 
-                {appointment.consultationType === "online" && (
-                  <div className="pt-2">
-                    {(() => {
-                      const meetLink =
-                        appointment.googleMeetLink || appointment.googleMeetUrl;
-                      const status =
-                        appointment.meetingStatus ||
-                        (meetLink ? "ready" : "pending");
-
-                      if (meetLink) {
-                        return (
-                          <div className="p-4 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-sage-800 dark:text-sage-200 flex items-center gap-1.5">
-                                <Video className="w-4 h-4 text-sage-600" /> Google Meet Video Room
-                              </span>
-                              <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" /> Ready
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={meetLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-sm transition-colors"
-                              >
-                                <Video className="w-4 h-4" />
-                                Join Google Meet Consultation
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(meetLink);
-                                  alert("Google Meet link copied to clipboard!");
-                                }}
-                                className="p-2.5 rounded-xl border border-sage-300 dark:border-sage-700 hover:bg-sage-100 dark:hover:bg-sage-900 text-sage-700 dark:text-sage-300 transition-colors"
-                                title="Copy Meet Link"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </button>
-                            </div>
-                            <p className="text-[11px] text-[var(--text-muted)] break-all text-center">
-                              {meetLink}
-                            </p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-2.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-                              <AlertCircle className="w-4 h-4 text-amber-600" />
-                              {status === "failed"
-                                ? "Google Meet Generation Failed"
-                                : "Google Meet Pending"}
-                            </span>
-                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono">
-                              {status}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                            Room was not automatically created. Click below to securely generate or retry the meeting room.
-                          </p>
-                          <button
-                            type="button"
-                            disabled={retryingMeet}
-                            onClick={handleRetryMeet}
-                            className="w-full inline-flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
-                          >
-                            {retryingMeet ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>Generating Meet Room...</span>
-                              </>
-                            ) : (
-                              <>
-                                <RotateCw className="w-3.5 h-3.5" />
-                                <span>Generate / Retry Google Meet Room</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      );
-                    })()}
+                <div className="pt-2">
+                  <div className="p-4 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800 space-y-2">
+                    <p className="text-xs font-medium text-sage-900 dark:text-sage-200">
+                      Online Video Consultation scheduled for{" "}
+                      <strong>
+                        {appointment.appointmentDate} at {appointment.appointmentTime}
+                      </strong>
+                      .
+                    </p>
+                    <p className="text-[11px] text-[var(--text-muted)]">
+                      Connect with the patient directly via phone or WhatsApp video call at the scheduled time.
+                    </p>
+                    {appointment.patientPhone && (
+                      <div className="pt-1 flex items-center gap-2">
+                        <a
+                          href={`https://wa.me/91${appointment.patientPhone.replace(/\D/g, "").slice(-10)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition-colors"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          Chat on WhatsApp
+                        </a>
+                        <a
+                          href={`tel:${appointment.patientPhone}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-surface)] text-[var(--text-primary)] font-semibold text-xs transition-colors"
+                        >
+                          Call Patient
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Notification Delivery Overview */}
                 <div className="pt-2 border-t border-[var(--border-color)] flex items-center justify-between text-xs text-[var(--text-secondary)]">

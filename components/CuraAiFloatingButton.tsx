@@ -20,21 +20,21 @@ export default function CuraAiFloatingButton() {
         type="button"
         onClick={() => openAiIntake()}
         className="cura-char-btn group"
-        aria-label="Say Hi to CuraAI"
+        aria-label="Say Hi to Nirvana"
       >
         {/* Tooltip on hover */}
         <span className="cura-speech-bubble">
-          Say Hi to CuraAI 👋
+          Say Hi to Nirvana 💜
         </span>
 
-        {/* CuraAI Avatar Character */}
-        <div className="relative w-11 h-11 rounded-full overflow-hidden">
+        {/* Nirvana Avatar Character (transparent cutout, no circular background) */}
+        <div className="cura-char-avatar relative w-[58px] h-[70px] select-none pointer-events-none">
           <Image
             src="/cura-avatar.png"
-            alt="CuraAI"
+            alt="Nirvana AI Assistant"
             fill
-            className="object-cover object-top"
-            sizes="44px"
+            className="object-contain object-bottom"
+            sizes="60px"
             priority
           />
         </div>

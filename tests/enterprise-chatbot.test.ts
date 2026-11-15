@@ -425,7 +425,7 @@ describe("Enterprise Context-Aware Conversation & Multi-Turn Engine", () => {
   // Test 13: Enterprise fallback when Groq is unavailable: 'hi' gives proper greeting & waving puppy GIF
   it("Test 13: Fallback engine: 'hi' gives rich greeting & waving puppy GIF", () => {
     const res = validateAndSanitizeGroqResponse(null, "hi");
-    assert.match(res.reply, /CuraAI|Dr\. Pratima|Welcome/i);
+    assert.match(res.reply, /Nirvana|CuraAI|Dr\. Pratima|Welcome/i);
     assert.doesNotMatch(res.reply, /Thank you for sharing\. Could you tell me more/i);
     assert.equal(res.gif.should_show, true);
     assert.equal(res.gif.category, "greeting");
@@ -808,6 +808,32 @@ describe("Enterprise Context-Aware Conversation & Multi-Turn Engine", () => {
     assert.match(res.reply, /### Understanding Migraines/);
     assert.match(res.reply, /\| Type \| Characteristic \|/);
     assert.match(res.reply, /- Rest in a quiet dark room/);
+  });
+
+  // Test 26: HealthXcare Clinical AI System Prompt structure & 112 emergency directive
+  it("Test 26: HealthXcare prompt includes 6-part response format, 112 emergency triage, and safety rules", () => {
+    const prompt = buildEnterpriseSystemPrompt({
+      currentTopic: "chest_pain",
+      reportedSymptoms: ["chest pain"],
+    });
+
+    assert.match(prompt, /HealthXcare/i);
+    assert.match(prompt, /112 \/ 108/i);
+    assert.match(prompt, /STANDARD MEDICAL RESPONSE FORMAT/i);
+    assert.match(prompt, /Understanding the concern/i);
+    assert.match(prompt, /Symptoms to watch for/i);
+    assert.match(prompt, /When to consult a doctor/i);
+    assert.match(prompt, /MEDICATION AND PRESCRIPTION SAFETY/i);
+  });
+
+  // Test 27: HealthXcare special populations & lab interpretation principles
+  it("Test 27: HealthXcare prompt covers lab result interpretation, pregnancy, and pediatric precautions", () => {
+    const prompt = buildEnterpriseSystemPrompt();
+
+    assert.match(prompt, /MEDICAL REPORT AND LAB RESULT INTERPRETATION/i);
+    assert.match(prompt, /SPECIAL POPULATIONS & HIGH-RISK GROUPS/i);
+    assert.match(prompt, /pregnancy, breastfeeding, infants/i);
+    assert.match(prompt, /PATIENT PRIVACY & CONFIDENTIALITY/i);
   });
 });
 

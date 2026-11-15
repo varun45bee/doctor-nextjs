@@ -5,6 +5,7 @@ import {
   isEmergencySituation,
   isInformationalMedicalQuestion,
   isSymptomNegated,
+  isProfanity,
   fetchReactionGif,
 } from "../lib/giphy/reactionDetector.ts";
 import { getGiphyClient } from "../lib/giphy/giphyClient.ts";
@@ -234,5 +235,127 @@ describe("Context-Aware GIPHY Reaction & Safety Engine (30+ Scenarios)", () => {
     const res = await fetchReactionGif("test query");
     // Handles gracefully by returning null or cached data
     assert.ok(res === null || typeof res === "object");
+  });
+
+  // 13. PROFANITY & CONDUCT ZERO-TOLERANCE (STRICTLY NULL)
+  it("Scenario 39: Profanity 'fuck you' strictly returns NULL", () => {
+    assert.equal(detectContextualReaction("fuck you"), null);
+    assert.equal(isProfanity("fuck you"), true);
+  });
+
+  it("Scenario 40: Profanity 'stfu' strictly returns NULL", () => {
+    assert.equal(detectContextualReaction("stfu"), null);
+  });
+
+  it("Scenario 41: Masked profanity 'f*ck' strictly returns NULL", () => {
+    assert.equal(detectContextualReaction("f*ck this"), null);
+  });
+
+  it("Scenario 42: Hindi profanity 'madarchod' strictly returns NULL", () => {
+    assert.equal(detectContextualReaction("madarchod"), null);
+  });
+
+  // =========================================================================
+  // 14. SPECIFICATION TEST SUITE (EXACT 7 REQUIRED EVALUATION SCENARIOS)
+  // =========================================================================
+  describe("Specification Test Suite: Repetition Prevention & Strict Intent Matching", () => {
+    it("Spec 1: Send 'hi' 10 times: greeting GIFs only, with NO immediate repeats", async () => {
+      const convId = "conv_spec_test_hi_10";
+      const servedGifs: any[] = [];
+      const historyIds: string[] = [];
+
+      for (let i = 0; i < 10; i++) {
+        // Step 1: Detect intent
+        const intent = detectContextualReaction("hi");
+        assert.ok(intent, "Intent must be detected for 'hi'");
+        assert.equal(intent.categoryId, "greeting");
+
+        // Step 2: Fetch non-repeating GIF with conversation history
+        const gif = await fetchReactionGif(intent.categoryId, {
+          conversationId: convId,
+          recentGifIds: historyIds,
+        });
+
+        assert.ok(gif, `Turn ${i + 1} must return a valid GIF`);
+        assert.ok(gif.images?.fixed_width?.url, `Turn ${i + 1} must have a valid URL`);
+
+        servedGifs.push(gif);
+        historyIds.push(String(gif.id));
+
+        // Step 3: Verify NO IMMEDIATE REPEAT (adjacent GIF IDs must never match)
+        if (i > 0) {
+          const prevId = servedGifs[i - 1].id;
+          const currId = gif.id;
+          assert.notEqual(
+            currId,
+            prevId,
+            `Turn ${i + 1} (${currId}) must not immediately repeat Turn ${i} (${prevId})`
+          );
+        }
+      }
+
+      // Step 4: Verify diversity: multiple distinct GIF IDs served across 10 turns
+      const distinctIds = new Set(servedGifs.map((g) => g.id));
+      assert.ok(
+        distinctIds.size >= 4,
+        `Expected at least 4 distinct GIFs across 10 turns, got ${distinctIds.size}`
+      );
+    });
+
+    it("Spec 2: Send 'hi', then 'thank you': second response must use an appreciation GIF", async () => {
+      const intent1 = detectContextualReaction("hi");
+      assert.equal(intent1?.categoryId, "greeting");
+      const gif1 = await fetchReactionGif(intent1.categoryId);
+      assert.ok(gif1);
+
+      const intent2 = detectContextualReaction("thank you");
+      assert.equal(intent2?.categoryId, "appreciation");
+      const gif2 = await fetchReactionGif(intent2.categoryId, {
+        recentGifIds: [String(gif1.id)],
+      });
+      assert.ok(gif2);
+      assert.notEqual(gif1.id, gif2.id);
+    });
+
+    it("Spec 3: Send 'hi', then 'I have a headache': only a headache-support GIF is eligible", async () => {
+      const intent1 = detectContextualReaction("hi");
+      assert.equal(intent1?.categoryId, "greeting");
+
+      const intent2 = detectContextualReaction("I have a headache");
+      assert.ok(intent2);
+      assert.equal(intent2.categoryId, "illness");
+      assert.equal(intent2.subType, "headache");
+      assert.match(intent2.query, /headache/i);
+
+      const gif = await fetchReactionGif(intent2.subType);
+      assert.ok(gif);
+      assert.match(gif.title.toLowerCase(), /headache|rest|pillow|sympathy|soothing/i);
+    });
+
+    it("Spec 4: Send 'I don't have a headache': NO headache GIF", () => {
+      const res = detectContextualReaction("I don't have a headache");
+      assert.equal(res, null, "Negated symptom must strictly return null");
+    });
+
+    it("Spec 5: Ask 'What causes a headache?': NO GIF", () => {
+      const res = detectContextualReaction("What causes a headache?");
+      assert.equal(res, null, "Medical inquiry question must strictly return null");
+    });
+
+    it("Spec 6: Send an emergency message: NO GIF", () => {
+      const res = detectContextualReaction("Emergency! Severe chest pain radiating to left arm!");
+      assert.equal(res, null, "Medical emergency must strictly return null");
+    });
+
+    it("Spec 7: Send an unrelated message: NO GIF", () => {
+      const res1 = detectContextualReaction("The sky is blue today");
+      assert.equal(res1, null, "Unrelated statement must return null");
+
+      const res2 = detectContextualReaction("What is 15 multiplied by 4?");
+      assert.equal(res2, null, "Non-clinical math question must return null");
+
+      const res3 = detectContextualReaction("I am shopping for a new car");
+      assert.equal(res3, null, "Random shopping text must return null");
+    });
   });
 });

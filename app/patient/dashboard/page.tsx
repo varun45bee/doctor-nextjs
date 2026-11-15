@@ -417,7 +417,7 @@ export default function PatientDashboardPage() {
               Consultations & Bookings
             </h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-              Scheduled Google Meet video consultations and past appointment records.
+              Scheduled online video consultations and past appointment records.
             </p>
           </div>
           <Link
@@ -456,81 +456,18 @@ export default function PatientDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Google Meet Consultation Access */}
-                  {(() => {
-                    const meetLink = appt.googleMeetLink || appt.googleMeetUrl;
-                    const status = appt.meetingStatus || (meetLink ? "ready" : "pending");
-
-                    if (status === "ready" && meetLink) {
-                      return (
-                        <div className="space-y-2 pt-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                              Video Room Ready
-                            </span>
-                            <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                              Google Meet
-                            </span>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            <a
-                              href={meetLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-sm"
-                            >
-                              <Video className="w-4 h-4" />
-                              <span>Join Consultation</span>
-                              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText(meetLink);
-                                alert("Google Meet link copied to clipboard!");
-                              }}
-                              className="px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs text-[var(--text-secondary)] transition-colors flex items-center justify-center gap-1"
-                              title="Copy link"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                              <span className="sm:hidden">Copy Link</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    if (status === "creating") {
-                      return (
-                        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 flex items-center gap-2 text-xs text-blue-800 dark:text-blue-300">
-                          <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
-                          <span>Generating your secure Google Meet room...</span>
-                        </div>
-                      );
-                    }
-
-                    if (status === "failed") {
-                      return (
-                        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 space-y-1 text-xs text-amber-900 dark:text-amber-200">
-                          <p className="font-semibold flex items-center gap-1.5">
-                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                            Meeting link will be provided shortly
-                          </p>
-                          <p className="text-[11px] text-amber-700 dark:text-amber-300">
-                            Dr. Pratima&apos;s team is preparing your room. You can also reach clinic support at +91 91365 09988.
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="text-xs text-[var(--text-muted)] italic flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-sage-500" />
-                        <span>Google Meet link will be activated prior to consultation time.</span>
-                      </div>
-                    );
-                  })()}
+                  {/* Online Video Consultation Access */}
+                  <div className="space-y-2 pt-1">
+                    <div className="p-3.5 rounded-xl bg-sage-50/80 dark:bg-sage-950/40 border border-sage-200 dark:border-sage-800 space-y-1.5 text-xs">
+                      <p className="font-semibold text-sage-900 dark:text-sage-200 flex items-center gap-1.5">
+                        <Video className="w-3.5 h-3.5 text-sage-600 shrink-0" />
+                        Online Video Consultation
+                      </p>
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        Dr. Pratima Agale will initiate your consultation via video call at the scheduled time. Booking details and reminders have been sent to your registered contact.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -566,7 +503,7 @@ export default function PatientDashboardPage() {
                         {appt.status}
                       </span>
                       <span className="text-[11px] text-[var(--text-muted)] capitalize">
-                        • {appt.consultationType === "online" ? "Google Meet" : "In-Clinic (Kalyan)"}
+                        • Online Video Consultation
                       </span>
                     </div>
 

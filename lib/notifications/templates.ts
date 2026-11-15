@@ -80,7 +80,7 @@ function baseEmailWrapper(content: string, preheader = ""): string {
 
 export function buildConfirmationEmail(p: EmailTemplateParams): { subject: string; html: string } {
   const isOnline = p.consultationType === "online";
-  const typeText = isOnline ? "Online Consultation (Google Meet)" : "In-Person Consultation";
+  const typeText = isOnline ? "Online Video Consultation" : "In-Person Consultation";
   const dateFormatted = formatInKolkata(`${p.appointmentDate}T00:00:00+05:30`, {
     dateStyle: "full",
   });
@@ -119,8 +119,13 @@ export function buildConfirmationEmail(p: EmailTemplateParams): { subject: strin
               </td>
             </tr>`
           : `<tr>
-              <td style="padding-top: 12px; border-top: 1px dashed #cbd5e0; font-size: 14px; color: #718096;">Clinic Address:</td>
-              <td style="padding-top: 12px; border-top: 1px dashed #cbd5e0; font-size: 13px; color: #2d3748; text-align: right;">${p.clinicAddress || CLINIC_DEFAULT_ADDRESS}</td>
+              <td colspan="2" style="padding-top: 12px; border-top: 1px dashed #cbd5e0; font-size: 13px; color: #4a5568; line-height: 1.5;">
+                ${
+                  isOnline
+                    ? "Dr. Pratima Agale will initiate your online consultation at your scheduled appointment time."
+                    : `<strong>Clinic Address:</strong> ${p.clinicAddress || CLINIC_DEFAULT_ADDRESS}`
+                }
+              </td>
             </tr>`
       }
     </table>
@@ -187,7 +192,7 @@ export function buildCancellationEmail(p: EmailTemplateParams): { subject: strin
 
 export function buildRescheduledEmail(p: EmailTemplateParams): { subject: string; html: string } {
   const isOnline = p.consultationType === "online";
-  const typeText = isOnline ? "Online Consultation (Google Meet)" : "In-Person Consultation";
+  const typeText = isOnline ? "Online Video Consultation" : "In-Person Consultation";
 
   const content = `
     <h2 style="color: #2f4a3d; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 16px; font-family: Georgia, serif;">
@@ -211,18 +216,15 @@ export function buildRescheduledEmail(p: EmailTemplateParams): { subject: string
         <td style="padding-bottom: 12px; font-size: 14px; color: #718096;">Mode:</td>
         <td style="padding-bottom: 12px; font-size: 14px; font-weight: 600; color: #2f4a3d; text-align: right;">${typeText}</td>
       </tr>
-      ${
-        isOnline && p.googleMeetUrl
-          ? `<tr>
-              <td colspan="2" style="padding-top: 12px; border-top: 1px dashed #cbd5e0; text-align: center;">
-                <a href="${p.googleMeetUrl}" target="_blank" style="display: inline-block; background-color: #2f4a3d; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600;">
-                  Join Google Meet
-                </a>
-                <div style="font-size: 11px; color: #718096; margin-top: 8px;">${p.googleMeetUrl}</div>
-              </td>
-            </tr>`
-          : ""
-      }
+      <tr>
+        <td colspan="2" style="padding-top: 12px; border-top: 1px dashed #cbd5e0; font-size: 13px; color: #4a5568; line-height: 1.5;">
+          ${
+            isOnline
+              ? "Dr. Pratima Agale will initiate your online consultation at your rescheduled time."
+              : `<strong>Clinic Address:</strong> ${p.clinicAddress || CLINIC_DEFAULT_ADDRESS}`
+          }
+        </td>
+      </tr>
     </table>
   `;
 
@@ -239,15 +241,14 @@ export function buildDoctorNotificationEmail(p: EmailTemplateParams): { subject:
       New Appointment Confirmed 📋
     </h2>
     <p style="font-size: 14px; line-height: 1.6; color: #4a5568;">
-      A new appointment has been scheduled and added to your Google Calendar:
+      A new appointment has been scheduled:
     </p>
 
     <div style="background-color: #f7faf8; border: 1px solid #e6f0ea; border-radius: 8px; padding: 16px; margin: 20px 0; font-size: 14px;">
       <p style="margin: 4px 0;"><strong>Patient:</strong> ${p.patientName}</p>
       <p style="margin: 4px 0;"><strong>Date:</strong> ${p.appointmentDate}</p>
       <p style="margin: 4px 0;"><strong>Time:</strong> ${p.appointmentTime} (IST)</p>
-      <p style="margin: 4px 0;"><strong>Type:</strong> ${isOnline ? "Online (Google Meet)" : "In-Person Clinic"}</p>
-      ${p.googleMeetUrl ? `<p style="margin: 4px 0;"><strong>Meet URL:</strong> <a href="${p.googleMeetUrl}">${p.googleMeetUrl}</a></p>` : ""}
+      <p style="margin: 4px 0;"><strong>Type:</strong> ${isOnline ? "Online Video Consultation" : "In-Person Clinic"}</p>
     </div>
 
     <p style="font-size: 13px; color: #718096;">
@@ -277,8 +278,8 @@ Dear ${p.patientName}, your appointment is *CONFIRMED*.
 
 📅 *Date:* ${dateFormatted}
 🕒 *Time:* ${p.appointmentTime} IST
-🏥 *Mode:* ${isOnline ? "Online (Google Meet)" : "In-Person Clinic (Kalyan)"}
-${isOnline && p.googleMeetUrl ? `\n🔗 *Google Meet Link:*\n${p.googleMeetUrl}\n` : ""}
+🏥 *Mode:* ${isOnline ? (p.googleMeetUrl ? "Online (Google Meet)" : "Online Video Consultation") : "In-Person Clinic (Kalyan)"}
+${isOnline && p.googleMeetUrl ? `\n🔗 *Google Meet Link:*\n${p.googleMeetUrl}\n` : isOnline ? `\nDr. Pratima Agale will connect with you via video call at your scheduled time.\n` : ""}
 📍 *Clinic Address:* ${CLINIC_DEFAULT_ADDRESS}
 
 Please be ready 5 minutes prior to your time.
@@ -293,7 +294,8 @@ Dear ${p.patientName}, your appointment has been *RESCHEDULED*.
 
 📅 *New Date:* ${dateFormatted}
 🕒 *New Time:* ${p.appointmentTime} IST
-${isOnline && p.googleMeetUrl ? `\n🔗 *Google Meet Link:*\n${p.googleMeetUrl}\n` : ""}
+🏥 *Mode:* ${isOnline ? "Online Video Consultation" : "In-Person Clinic (Kalyan)"}
+${isOnline ? `\nDr. Pratima Agale will connect with you via video call at your rescheduled time.\n` : ""}
 📞 ${CLINIC_PHONE}
 🌐 ${CLINIC_SITE}`;
   }
@@ -311,5 +313,5 @@ To book a new appointment, please visit:
   return `*Dr. Pratima Agale Homeopathy Clinic* 🌿
 
 Reminder: You have an upcoming consultation with Dr. Pratima Agale on *${dateFormatted}* at *${p.appointmentTime} IST*.
-${isOnline && p.googleMeetUrl ? `\n🔗 *Join Google Meet:* ${p.googleMeetUrl}` : ""}`;
+${isOnline ? `\nMode: Online Video Consultation. Dr. Pratima will connect with you at your appointment time.` : ""}`;
 }

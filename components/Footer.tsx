@@ -163,8 +163,8 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-sage-500 flex-shrink-0 mt-0.5" />
                 <span className="text-sage-400 text-sm leading-snug">
-                  Yogidham, Phase 3,<br />
-                  {locale === "hi" ? "कल्याण, महाराष्ट्र 421301" : locale === "mr" ? "कल्याण, महाराष्ट्र ४२१३०१" : "Kalyan, Maharashtra 421301"}
+                  100% Online Video Clinic<br />
+                  <span className="text-xs text-sage-500">Dispatch: Kalyan, Maharashtra 421301</span>
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -230,10 +230,10 @@ export default function Footer() {
           </div>
           <p className="text-sage-700 text-xs">
             {locale === "hi"
-              ? "कल्याण · अंधेरी · मुंबई · महाराष्ट्र में सेवा"
+              ? "100% ऑनलाइन क्लिनिक · पूरे भारत और विश्व स्तर पर सेवा"
               : locale === "mr"
-              ? "कल्याण · अंधेरी · मुंबई · महाराष्ट्र येथे सेवा"
-              : "Serving Kalyan · Andheri · Mumbai · Maharashtra"}
+              ? "100% ऑनलाइन क्लिनिक · संपूर्ण भारत आणि जगभरात सेवा"
+              : "100% Online Clinic · Serving Across India & Worldwide"}
           </p>
         </div>
       </div>

@@ -166,11 +166,10 @@ export default function ContactPage() {
               {[
                 {
                   icon: MapPin,
-                  label: t.contact.addressLabel,
+                  label: "Consultation Format",
                   value:
-                    "Yogidham, Phase 3,\nKalyan, Maharashtra 421301",
-                  href:
-                    "https://maps.google.com/?q=Yogidham+Phase+3+Kalyan+West+Maharashtra+421301",
+                    "100% Online Global Video Clinic\nDoorstep Medicine Delivery Worldwide",
+                  href: "#",
                 },
                 {
                   icon: Phone,
@@ -456,19 +455,26 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Google Maps Section */}
+      {/* Global Telehealth Coverage Banner */}
       <section className="pb-20 px-6">
-        <div className="max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-xl border border-sage-100 h-[450px]">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3767.123!2d73.1305!3d19.2403!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7963333333333%3A0x3333333333333333!2sYogidham+Phase+3+Kalyan!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Clinic Location"
-          ></iframe>
+        <div className="max-w-6xl mx-auto rounded-3xl p-8 sm:p-12 shadow-xl border border-sage-100 dark:border-emerald-950/80 bg-gradient-to-br from-[#f4f7f4] to-[#e8f1ec] dark:from-[#121c15] dark:to-[#0f1711] text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-[#184433] text-white flex items-center justify-center mx-auto shadow-md">
+            <span className="text-2xl">🌐</span>
+          </div>
+          <h3
+            className="font-serif text-2xl sm:text-3xl font-bold text-[var(--text-primary)]"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
+            Serving Patients Across India &amp; Worldwide
+          </h3>
+          <p className="max-w-2xl mx-auto text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+            Dr. Pratima Agale Homeopathy operates exclusively as a digital telehealth clinic. No matter where you reside, you can book an individualized online video consultation and have authentic, customized remedies delivered directly to your doorstep.
+          </p>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm font-medium text-emerald-900 dark:text-emerald-300">
+            <span className="flex items-center gap-2">✓ HD Video Consultations</span>
+            <span className="flex items-center gap-2">✓ Tracked Medicine Courier</span>
+            <span className="flex items-center gap-2">✓ Digital Follow-up Support</span>
+          </div>
         </div>
       </section>
     </div>

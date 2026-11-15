@@ -2,17 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   buildEnterpriseSystemPrompt,
   validateAndSanitizeGroqResponse,
+  isProfaneMessage,
+  EMERGENCY_REGEX,
   type ConversationContextState,
 } from "@/lib/ai/conversationContext";
+import { formatRetrievedKnowledgeForPrompt } from "@/lib/ai/rag/retriever";
+import { buildConversationSummary, formatSummaryForPrompt } from "@/lib/ai/memory/conversationSummary";
+import { callGroqChat, type GroqMessage } from "@/lib/ai/groqClient";
+import { persistMessageToFirestore } from "@/lib/ai/memory/longTermMemory";
 
-// Primary Groq models supported by Groq API
-const PRIMARY_MODEL = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
-const FALLBACK_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, history, context } = body;
+    const { message, history, context, userId, conversationId } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
@@ -20,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     const conversationHistory = Array.isArray(history)
       ? history.map((m: any) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
+          role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
           content: typeof m.content === "string" ? m.content : "",
         }))
       : [];
@@ -28,65 +32,94 @@ export async function POST(req: NextRequest) {
     const existingContext: Partial<ConversationContextState> =
       context && typeof context === "object" ? context : {};
 
-    const systemPrompt = buildEnterpriseSystemPrompt(existingContext);
+    // 0. Emergency Immediate Safety Triage
+    if (EMERGENCY_REGEX.test(message)) {
+      return NextResponse.json({
+        reply:
+          "If you or someone nearby is experiencing severe chest pain, difficulty breathing, profuse bleeding, or unconsciousness, please seek emergency medical care immediately by calling 108 / 112 or going to the nearest emergency hospital.",
+        language: "en",
+        intent: "emergency",
+        emotion: "concerned",
+        sentiment: "negative",
+        conversation_topic: "emergency",
+        context_update: {
+          current_topic: "emergency",
+          current_emotion: "alarmed",
+          reported_symptoms: ["emergency"],
+          recovery_status: "none",
+        },
+        gif: { should_show: false, category: "none", search_query: "", reason: "Emergency suppressed", confidence: 1.0 },
+        safety: { is_medical: true, is_emergency: true, requires_professional_response: true },
+        analysis: {
+          detectedCondition: "Emergency Medical Triage",
+          duration: "Immediate",
+          severity: "Urgent",
+          careStream: "Immediate Hospital Emergency Care",
+          prepTip: "Please go to the nearest emergency room without delay.",
+          readyToBook: false,
+        },
+      });
+    }
 
-    const messages = [
+    // 0b. Zero-Tolerance Profanity & Conduct Boundary
+    if (isProfaneMessage(message)) {
+      return NextResponse.json({
+        reply:
+          "I am here to assist you with medical guidance and appointments in a respectful and safe environment. Please refrain from using offensive or abusive language. How can I assist you with your health concerns or Dr. Pratima's clinic today?",
+        language: "en",
+        intent: "profanity_boundary",
+        emotion: "neutral",
+        sentiment: "neutral",
+        conversation_topic: "conduct_boundary",
+        context_update: {
+          current_topic: "general",
+          current_emotion: "neutral",
+          reported_symptoms: existingContext?.reportedSymptoms || [],
+          recovery_status: "none",
+        },
+        gif: { should_show: false, category: "none", search_query: "", reason: "Profanity strictly suppressed", confidence: 1.0 },
+        safety: { is_medical: false, is_emergency: false, requires_professional_response: false },
+        analysis: {
+          detectedCondition: "General Consultation",
+          duration: "Standard",
+          severity: "Standard",
+          careStream: "General Practice",
+          prepTip: "Please maintain respectful communication.",
+          readyToBook: false,
+        },
+      });
+    }
+
+    // 1. RAG Knowledge Retrieval & Conversation Summary
+    const ragContext = formatRetrievedKnowledgeForPrompt(message);
+    const summary = buildConversationSummary(conversationHistory);
+    const summaryContext = formatSummaryForPrompt(summary);
+
+    const systemPrompt = buildEnterpriseSystemPrompt(existingContext, ragContext, summaryContext);
+
+    const messages: GroqMessage[] = [
       { role: "system", content: systemPrompt },
       ...conversationHistory.slice(-10),
       { role: "user", content: message },
     ];
 
-    // Enterprise Groq API Call with timeout and model fallback cascade
     let groqRawData: any = null;
     const apiKey = process.env.GROQ_API_KEY;
 
     if (apiKey) {
-      const callGroq = async (model: string) => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
-
-        try {
-          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model,
-              messages,
-              temperature: 0.3,
-              response_format: { type: "json_object" },
-            }),
-            signal: controller.signal,
-          });
-          return res;
-        } finally {
-          clearTimeout(timeout);
-        }
-      };
-
       try {
-        let res = await callGroq(PRIMARY_MODEL);
+        const groqResult = await callGroqChat(messages, {
+          temperature: 0.3,
+          maxTokens: 1024,
+          enableTools: true,
+        });
 
-        if (!res.ok) {
-          console.warn(`Groq primary model (${PRIMARY_MODEL}) failed with status ${res.status}. Cascading to fallbacks...`);
-          for (const fallbackModel of FALLBACK_MODELS) {
-            try {
-              res = await callGroq(fallbackModel);
-              if (res.ok) break;
-            } catch (fallbackErr) {
-              console.warn(`Fallback model ${fallbackModel} failed:`, fallbackErr);
-            }
+        if (groqResult.content) {
+          try {
+            groqRawData = JSON.parse(groqResult.content);
+          } catch {
+            groqRawData = { reply: groqResult.content };
           }
-        }
-
-        if (res.ok) {
-          const data = await res.json();
-          const content = data?.choices?.[0]?.message?.content ?? "{}";
-          groqRawData = JSON.parse(content);
-        } else {
-          console.error("All Groq models failed. Last status:", res.status);
         }
       } catch (groqErr) {
         console.warn("Groq API call exception, using clinical fallback engine:", groqErr);
@@ -95,13 +128,29 @@ export async function POST(req: NextRequest) {
       console.warn("GROQ_API_KEY is not configured, running on built-in clinical fallback engine.");
     }
 
-    // Server-side validation, sanitization & safety guard
+    // 2. Server-side validation, sanitization & safety guard
     const sanitizedResponse = validateAndSanitizeGroqResponse(
       groqRawData,
       message,
       existingContext,
       conversationHistory
     );
+
+    // 3. Persist to long-term Firestore memory if user is signed in
+    if (userId && conversationId) {
+      persistMessageToFirestore(userId, conversationId, {
+        role: "user",
+        content: message,
+      }).catch(() => {});
+      persistMessageToFirestore(userId, conversationId, {
+        role: "assistant",
+        content: sanitizedResponse.reply,
+        metadata: {
+          symptoms: sanitizedResponse.context_update.reported_symptoms,
+          isEmergency: sanitizedResponse.safety.is_emergency,
+        },
+      }).catch(() => {});
+    }
 
     return NextResponse.json(sanitizedResponse, { status: 200 });
   } catch (err) {

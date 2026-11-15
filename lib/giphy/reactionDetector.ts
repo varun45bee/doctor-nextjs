@@ -1,5 +1,10 @@
 import type { IGif } from "@giphy/js-types";
-import { getGiphyClient } from "./giphyClient.ts";
+import {
+  type ReactionCategory,
+  PREDEFINED_CATEGORY_QUERIES,
+  CURATED_CATEGORY_POOLS,
+  selectGifFromPool,
+} from "./categoryPools.ts";
 
 export type ReactionCategoryId =
   | "greeting"
@@ -19,6 +24,20 @@ export interface ReactionContextResult {
   name: string;
   query: string;
   confidence: number;
+}
+
+/**
+ * 0. Profanity, curse words, abusive language, and insults.
+ * If ANY of these occur, reaction GIF MUST BE STRICTLY SUPPRESSED (return null).
+ */
+export const PROFANITY_PATTERNS: RegExp[] = [
+  /\b(f+u+c+k+|f+u+k+|f+k+|s+h+i+t+|b+i+t+c+h+|a+s+s+h+o+l+e+|b+a+s+t+a+r+d+|d+i+c+k+|c+o+c+k+|c+u+n+t+|p+u+s+s+y+|m+o+t+h+e+r+f+u+c+k+|d+u+m+b+a+s+s+|s+t+f+u|s+h+u+t\s*u+p|s+c+r+e+w\s*y+o+u|g+o\s*t+o\s*h+e+l+l|p+i+s+s\s*o+f+f|c+h+u+t+i+y+a+|c+h+u+t+i+y+e+|m+a+d+a+r+c+h+o+d+|b+h+e+n+c+h+o+d+|b+h+o+s+d+i+k+e+|b+s+d+k|g+a+a?n+d+u?|h+a+r+a+m+i|k+a+m+i+n+a|k+a+m+e+e+n+a|l+a+v+d+e|l+a+u+d+a|l+o+d+a|j+h+a+a?t+u|r+a+n+d+i?|स+ा+ल+े|चूतिया|चूतिये|मादरचोद|बहनचोद|भेनचोद|भोसडीके|गांडू|हरामी|कमीना|लवडे|लौड़ा|रांड|कुत्ता)\b/i,
+  /\b(f[\*_#@!]+ck|f[\*_#@!]+k|sh[\*_#@!]+t|b[\*_#@!]+tch|a[\*_#@!]+hole|d[\*_#@!]+ck)\b/i,
+];
+
+export function isProfanity(text: string): boolean {
+  if (!text || !text.trim()) return false;
+  return PROFANITY_PATTERNS.some((p) => p.test(text));
 }
 
 /**
@@ -68,27 +87,27 @@ export const RECOVERY_PATTERNS: RegExp[] = [
 export const ILLNESS_PATTERNS: { subType: string; query: string; pattern: RegExp }[] = [
   {
     subType: "fever",
-    query: "caring sick thermometer rest cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.fever,
     pattern: /\b(fever|high\s*temp(erature)?|chills|burning\s*up)\b/i,
   },
   {
     subType: "headache",
-    query: "gentle headache rest sympathy character",
+    query: PREDEFINED_CATEGORY_QUERIES.headache,
     pattern: /\b(headache|migraine|head\s*hurts|head\s*pounding)\b/i,
   },
   {
     subType: "cold_cough",
-    query: "stay warm tea cozy caring cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.cold,
     pattern: /\b(cold|cough(ing)?|runny\s*nose|stuffy\s*nose|sneezing|congestion)\b/i,
   },
   {
     subType: "stomach_pain",
-    query: "gentle comforting hug caring cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.stomach,
     pattern: /\b(stomach\s*pain|stomach\s*ache|tummy\s*ache|cramps|indigestion|acid\s*reflux)\b/i,
   },
   {
     subType: "body_pain",
-    query: "get well rest caring cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.body_pain,
     pattern: /\b(body\s*(pain|aches?|hurts?|is\s*aching)|aching\s*body|muscle\s*(aches?|pain)|back\s*pain|joint\s*pain)\b/i,
   },
   {
@@ -98,76 +117,113 @@ export const ILLNESS_PATTERNS: { subType: string; query: string; pattern: RegExp
   },
   {
     subType: "weakness_fatigue",
-    query: "get well soon rest caring cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.fever,
     pattern: /\b(weakness|feeling\s*weak|exhausted|fatigue|drained|no\s*energy)\b/i,
   },
   {
     subType: "throat_flu_tooth",
-    query: "feel better soon caring gentle cartoon",
+    query: PREDEFINED_CATEGORY_QUERIES.cold,
     pattern: /\b(sore\s*throat|throat\s*pain|flu|influenza|toothache|tooth\s*pain)\b/i,
   },
 ];
 
-/**
- * Checks whether user message is an emergency or severe clinical situation.
- */
 export function isEmergencySituation(text: string): boolean {
   if (!text || !text.trim()) return false;
   return EMERGENCY_PATTERNS.some((regex) => regex.test(text));
 }
 
-/**
- * Checks whether user message is an informational/educational question rather than a personal report.
- */
 export function isInformationalMedicalQuestion(text: string): boolean {
   if (!text || !text.trim()) return false;
-  // If it matches question structure and doesn't contain first-person symptom claims
-  const hasQuestionPattern = MEDICAL_QUESTION_PATTERNS.some((regex) => regex.test(text)) || text.trim().endsWith("?");
-  const hasFirstPersonReport = /\b(i\s*have|i'?m\s*having|my\s+|i\s*feel|i\s*am\s*suffering)\b/i.test(text);
+  const hasQuestionPattern =
+    MEDICAL_QUESTION_PATTERNS.some((regex) => regex.test(text)) || text.trim().endsWith("?");
+  const hasFirstPersonReport =
+    /\b(i\s*have|i'?m\s*having|my\s+|i\s*feel|i\s*am\s*suffering)\b/i.test(text);
   return hasQuestionPattern && !hasFirstPersonReport;
 }
 
-/**
- * Checks if a specific symptom keyword is negated in the sentence.
- */
 export function isSymptomNegated(text: string, symptom: string): boolean {
   const clean = text.toLowerCase();
-  // e.g. "don't have fever", "no fever", "not sick"
-  const regex = new RegExp(`(?:don'?t\\s*have|do\\s*not\\s*have|no\\s+|without|haven'?t\\s*got|free\\s*from|not\\s*)\\s*${symptom}`, "i");
+  const regex = new RegExp(
+    `(?:don'?t\\s*have|do\\s*not\\s*have|no\\s+|without|haven'?t\\s*got|free\\s*from|not\\s*)\\s*${symptom}`,
+    "i"
+  );
   return regex.test(clean) || NEGATION_PATTERNS.some((p) => p.test(clean));
 }
 
 /**
+ * Maps any query or category name to a verified ReactionCategory.
+ * If unknown or unconfident, returns null.
+ */
+export function resolveReactionCategory(categoryOrQuery: string): ReactionCategory | null {
+  if (!categoryOrQuery || typeof categoryOrQuery !== "string") return null;
+  const lower = categoryOrQuery.toLowerCase().trim();
+
+  // Exact category name matches
+  if (lower in PREDEFINED_CATEGORY_QUERIES) {
+    return lower as ReactionCategory;
+  }
+
+  // Predefined keyword mapping
+  if (/morning/i.test(lower)) return "morning";
+  if (/afternoon/i.test(lower)) return "afternoon";
+  if (/evening/i.test(lower)) return "evening";
+  if (/headache|migraine/i.test(lower)) return "headache";
+  if (/fever|thermometer/i.test(lower)) return "fever";
+  if (/cold|cough|tea/i.test(lower)) return "cold";
+  if (/stomach|tummy/i.test(lower)) return "stomach";
+  if (/pain|joint\s*pain|muscle\s*ache/i.test(lower)) return "body_pain";
+  if (/recovery|healed|feeling\s*better|celebrat/i.test(lower)) return "recovery";
+  if (/thank|apprec|grateful/i.test(lower)) return "appreciation";
+  if (/bye|farewell|good\s*night/i.test(lower)) return "farewell";
+  if (/laugh|humor|joke/i.test(lower)) return "humor";
+  if (/fitness|gym|workout|water/i.test(lower)) return "fitness";
+  if (/puppy|waving\s*hi|greeting|hello|namaste|\bhi\b/i.test(lower)) return "greeting";
+
+  return null;
+}
+
+/**
  * Context-Aware Reaction Classification Engine
+ * Evaluates ONLY the CURRENT user message (independent of previous turns).
+ * Returns a confident category result or null.
  */
 export function detectContextualReaction(userText: string): ReactionContextResult | null {
   if (!userText || !userText.trim()) return null;
   const text = userText.trim();
   const lower = text.toLowerCase();
 
+  // 0. STRICT CONDUCT GATE: Profanity, curse words, and abuse return NULL immediately
+  if (isProfanity(lower)) {
+    return null;
+  }
+
   // 1. STRICT MEDICAL SAFETY GATE: Emergencies return NULL immediately
   if (isEmergencySituation(lower)) {
     return null;
   }
 
-  // 2. INFORMATIONAL MEDICAL QUESTIONS: e.g. "What causes fever?" returns NULL
+  // 2. INFORMATIONAL MEDICAL QUESTIONS: e.g. "What causes a headache?" returns NULL
   if (isInformationalMedicalQuestion(lower)) {
     return null;
   }
 
-  // 3. RECOVERY & RESOLUTION: e.g. "My fever is gone", "feeling better"
+  // 3. NEGATION ONLY: e.g. "I don't have a headache", "no fever" returns NULL
+  if (NEGATION_PATTERNS.some((p) => p.test(lower)) && /\b(fever|headache|cold|cough|pain|sick|migraine)\b/i.test(lower)) {
+    return null;
+  }
+
+  // 4. RECOVERY & RESOLUTION: e.g. "My fever is gone", "feeling better"
   if (RECOVERY_PATTERNS.some((p) => p.test(lower))) {
     return {
       categoryId: "recovery",
       subType: "recovery",
       name: "Recovery",
-      query: "happy celebration yay feeling better",
+      query: PREDEFINED_CATEGORY_QUERIES.recovery,
       confidence: 0.95,
     };
   }
 
-  // 4. EMOTIONAL STATES COMBINED WITH ILLNESS (Fear, Anxiety, Worry)
-  // e.g. "I am scared of fever", "Worried about my headache" -> Comforting GIF
+  // 5. EMOTIONAL STATES COMBINED WITH ILLNESS (Fear, Anxiety)
   const hasFearOrAnxiety = /\b(scared|terrified|afraid|worried|anxious|panic)\b/i.test(lower);
   const mentionsIllness = ILLNESS_PATTERNS.some((item) => item.pattern.test(lower));
 
@@ -176,21 +232,17 @@ export function detectContextualReaction(userText: string): ReactionContextResul
       categoryId: "emotion",
       subType: "comforting_fear",
       name: "Comforting Support",
-      query: "gentle comforting hug calm warm cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.stomach,
       confidence: 0.95,
     };
   }
 
-  // 5. ILLNESS & SYMPTOMS (Active, Non-Negated)
-  // Check if user has an illness symptom:
+  // 6. ILLNESS & SYMPTOMS (Active, Non-Negated)
   for (const item of ILLNESS_PATTERNS) {
     if (item.pattern.test(lower)) {
-      // Check for negation: "I don't have fever"
       if (isSymptomNegated(lower, item.subType)) {
-        // Negated symptom: Do NOT show sick GIF
         continue;
       }
-      // Note: If user says "I have fever 😂", illness priority takes precedence over laughing
       return {
         categoryId: "illness",
         subType: item.subType,
@@ -201,12 +253,7 @@ export function detectContextualReaction(userText: string): ReactionContextResul
     }
   }
 
-  // 6. NEGATION ONLY: e.g. "I don't have fever", "No symptoms"
-  if (NEGATION_PATTERNS.some((p) => p.test(lower)) && /\b(fever|headache|cold|cough|pain|sick)\b/i.test(lower)) {
-    return null;
-  }
-
-  // 7. EMOTIONAL STATES (Sadness, Lonely, Crying, Stress, Happy, Excited, Bored, Tired, Confused, Frustrated)
+  // 6b. EMOTIONAL STATES (Sadness, Lonely, Crying, Stress, Happy, Bored, Tired)
   if (/\b(lonely|alone|isolated)\b/i.test(lower)) {
     return {
       categoryId: "emotion",
@@ -267,77 +314,13 @@ export function detectContextualReaction(userText: string): ReactionContextResul
     };
   }
 
-  if (/\b(confused|don'?t\s*understand|puzzled|perplexed)\b/i.test(lower)) {
-    return {
-      categoryId: "emotion",
-      subType: "confused",
-      name: "Thinking Question",
-      query: "thinking curious cute cartoon",
-      confidence: 0.85,
-    };
-  }
-
-  if (/\b(frustrated|annoyed|irritated|angry)\b/i.test(lower)) {
-    return {
-      categoryId: "emotion",
-      subType: "frustrated",
-      name: "Calming Deep Breath",
-      query: "calm deep breath relaxing cartoon",
-      confidence: 0.85,
-    };
-  }
-
-  // 8. APPRECIATION: "thank you", "thanks", "amazing", "awesome", "well done", "great job", "love"
-  if (/\b(thank\s*you|thanks|tysm|thx|appreciate\s*it|grateful|amazing|awesome|well\s*done|great\s*job|much\s*love)\b/i.test(lower)) {
-    return {
-      categoryId: "appreciation",
-      subType: "appreciation",
-      name: "Appreciation",
-      query: "cute thank you heart animated cartoon",
-      confidence: 0.92,
-    };
-  }
-
-  // 9. HUMOR: "haha", "LOL", "LMAO", "joking", "OMG", "seriously", "surprise", "funny"
-  if (/\b(haha+|hehe+|lmao|lol|rofl|lmfao|joking|joke|hilarious|funny|seriously|omg)\b/i.test(lower)) {
-    return {
-      categoryId: "humor",
-      subType: "humor",
-      name: "Humor",
-      query: "funny laughing cute cartoon",
-      confidence: 0.9,
-    };
-  }
-
-  // 10. FITNESS AND LIFESTYLE: gym, exercise, dieting, healthy eating, hydration, sleep, motivation
-  if (/\b(gym|workout|exercise|diet|dieting|healthy\s*eating|hydration|drink(ing)?\s*water|fitness|active\s*lifestyle)\b/i.test(lower)) {
-    return {
-      categoryId: "fitness",
-      subType: "fitness",
-      name: "Fitness & Lifestyle",
-      query: "healthy fitness water workout motivation cartoon",
-      confidence: 0.88,
-    };
-  }
-
-  // 11. CONVERSATION: agree, exactly, cool, perfect, okay, wait, tell me a joke
-  if (/\b(agree|exactly|cool|perfect|okay|ok|tell\s*me\s*a\s*joke)\b/i.test(lower)) {
-    return {
-      categoryId: "conversation",
-      subType: "conversation",
-      name: "Conversation",
-      query: "cool thumbs up awesome cartoon",
-      confidence: 0.85,
-    };
-  }
-
-  // 12. TIME-OF-DAY GREETINGS
+  // 7. TIME-OF-DAY GREETINGS (Checked BEFORE generic greetings to guarantee specific match)
   if (/\b(good\s*morning|mornin|gm)\b/i.test(lower)) {
     return {
       categoryId: "time_of_day",
       subType: "morning",
       name: "Morning Greeting",
-      query: "cute good morning coffee cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.morning,
       confidence: 0.95,
     };
   }
@@ -346,7 +329,7 @@ export function detectContextualReaction(userText: string): ReactionContextResul
       categoryId: "time_of_day",
       subType: "afternoon",
       name: "Afternoon Greeting",
-      query: "warm good afternoon sunny cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.afternoon,
       confidence: 0.95,
     };
   }
@@ -355,141 +338,112 @@ export function detectContextualReaction(userText: string): ReactionContextResul
       categoryId: "time_of_day",
       subType: "evening",
       name: "Evening Greeting",
-      query: "pleasant good evening cozy cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.evening,
       confidence: 0.95,
     };
   }
 
-  // 13. GREETINGS AND WELCOME: "hi", "hello", "hey", "welcome", "greetings", "namaste"
+  // 8. APPRECIATION: "thank you", "thanks", "grateful"
+  if (/\b(thank\s*you|thanks|tysm|thx|appreciate\s*it|grateful)\b/i.test(lower)) {
+    return {
+      categoryId: "appreciation",
+      subType: "appreciation",
+      name: "Appreciation",
+      query: PREDEFINED_CATEGORY_QUERIES.appreciation,
+      confidence: 0.95,
+    };
+  }
+
+  // 9. GREETINGS AND WELCOME: "hi", "hello", "hey", "welcome", "greetings", "namaste"
   if (/\b(hi|hello|heyy*|hey|hola|namaste|welcome|greetings)\b/i.test(lower)) {
     return {
       categoryId: "greeting",
       subType: "greeting",
       name: "Greeting",
-      query: "cute puppy waving hi cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.greeting,
       confidence: 0.95,
     };
   }
 
-  // 14. FAREWELL: bye, goodbye, see you, take care, good night
+  // 10. FAREWELL: bye, goodbye, see you, take care, good night
   if (/\b(bye|goodbye|see\s*you|cya|take\s*care|good\s*night)\b/i.test(lower)) {
     return {
       categoryId: "farewell",
       subType: "farewell",
       name: "Farewell",
-      query: "sweet goodbye waving good night cartoon",
+      query: PREDEFINED_CATEGORY_QUERIES.farewell,
       confidence: 0.92,
     };
   }
 
+  // 11. HUMOR: "haha", "lol", "lmao"
+  if (/\b(haha+|hehe+|lmao|lol|rofl|lmfao|joke|hilarious)\b/i.test(lower)) {
+    return {
+      categoryId: "humor",
+      subType: "humor",
+      name: "Humor",
+      query: PREDEFINED_CATEGORY_QUERIES.humor,
+      confidence: 0.9,
+    };
+  }
+
+  // 12. FITNESS AND LIFESTYLE
+  if (/\b(gym|workout|exercise|hydration|drink(ing)?\s*water|active\s*lifestyle)\b/i.test(lower)) {
+    return {
+      categoryId: "fitness",
+      subType: "fitness",
+      name: "Fitness & Lifestyle",
+      query: PREDEFINED_CATEGORY_QUERIES.fitness,
+      confidence: 0.88,
+    };
+  }
+
+  // 13. NO CONFIDENT INTENT MATCH: Return NULL (Never fallback to greeting!)
   return null;
 }
 
-// Curated clinical-safe fallback GIFs for guaranteed 100% display reliability
-const CURATED_FALLBACK_GIFS: Record<string, { id: string; title: string; url: string }> = {
-  greeting: {
-    id: "cura_fallback_greeting",
-    title: "Puppy Waving Hello",
-    url: "https://media4.giphy.com/media/v1.Y2lkPWI5OGJhZDk4a2J0bjJ5YnlndTl1cTRwNjRmY2I1ZjFjbjZ5MWxodGo5NDhqM3phcSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/31Zp9nzMFgqOHUKtiE/200w.gif",
-  },
-  sick: {
-    id: "cura_fallback_sick",
-    title: "Get Well Rest Tea",
-    url: "https://media3.giphy.com/media/v1.Y2lkPWI5OGJhZDk4ZjRxZXlubGJ2c2c0ajNqNmlhMTlvYzJ3emV0OWcwN3Ezc3c0a3lkbiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/U25VJEFwDEoQrWfo2z/200w.gif",
-  },
-  recovery: {
-    id: "cura_fallback_recovery",
-    title: "Happy Recovery Dance",
-    url: "https://media1.giphy.com/media/v1.Y2lkPWI5OGJhZDk4Zmlnb3B5dWVwOHI1cjN1ODZrcGk1dms5ZTN0eHdxN29rZmpveGg2cCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/artj92V8o75VPL7AeQ/200w.gif",
-  },
-  appreciation: {
-    id: "cura_fallback_appreciation",
-    title: "Thank You Warm Hug",
-    url: "https://media2.giphy.com/media/v1.Y2lkPWI5OGJhZDk4a28xbWVxcmszMmZ6ZTRpMHRkMnNmdG1oamoxOXhhbmtlcmxwdnphdyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUA7aZhmzXeNq7gWNq/200w.gif",
-  },
-};
-
-function buildFallbackIGif(query: string): IGif {
-  const lower = query.toLowerCase();
-  let item = CURATED_FALLBACK_GIFS.greeting;
-  if (/sick|fever|headache|pain|cold|cough|rest|care|tea|warm/i.test(lower)) {
-    item = CURATED_FALLBACK_GIFS.sick;
-  } else if (/better|recovery|healed|great|happy|dance/i.test(lower)) {
-    item = CURATED_FALLBACK_GIFS.recovery;
-  } else if (/thank|appreciation|love|hug/i.test(lower)) {
-    item = CURATED_FALLBACK_GIFS.appreciation;
-  }
-
-  return {
-    id: item.id as any,
-    title: item.title,
-    images: {
-      fixed_width: { url: item.url, width: 200, height: 200 } as any,
-      original: { url: item.url, width: 200, height: 200 } as any,
-      downsized: { url: item.url, width: 200, height: 200 } as any,
-    } as any,
-  } as IGif;
-}
-
-// In-memory GIF query cache to minimize GIPHY API calls
-const gifQueryCache = new Map<string, IGif[]>();
-let lastServedGifId = "";
-
 /**
- * Fetches relevant GIFs from GIPHY API with in-memory caching, duplicate prevention, and randomized selection.
- * Always strictly enforces rating: "g" for clinical safety.
+ * Fetches or selects a relevant non-repeating GIF.
+ * - In browser environment: calls server route `/api/reaction-gif` (keeping API keys server-side).
+ * - In server/test environment: selects directly from the curated category pool with rotation history.
+ * - Handles empty API responses without showing an unrelated GIF.
  */
-export async function fetchReactionGif(query: string): Promise<IGif | null> {
-  const client = getGiphyClient();
-  if (!client) {
-    return buildFallbackIGif(query);
+export async function fetchReactionGif(
+  categoryOrQuery: string,
+  options?: { conversationId?: string; recentGifIds?: string[] }
+): Promise<IGif | null> {
+  const resolvedCategory = resolveReactionCategory(categoryOrQuery);
+  if (!resolvedCategory) {
+    return null;
   }
 
-  try {
-    let gifs = gifQueryCache.get(query);
+  const recentIds = options?.recentGifIds || [];
 
-    if (!gifs || gifs.length === 0) {
-      const response = await client.search(query, {
-        limit: 15,
-        rating: "g",
-        sort: "relevant",
-        lang: "en",
+  // Browser environment: Call secure server endpoint
+  if (typeof window !== "undefined" && typeof fetch === "function") {
+    try {
+      const res = await fetch("/api/reaction-gif", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: resolvedCategory,
+          conversationId: options?.conversationId,
+          recentGifIds: recentIds,
+        }),
       });
-      gifs = response.data;
-      if (gifs && gifs.length > 0) {
-        gifQueryCache.set(query, gifs);
-      } else {
-        // Fallback: search simplified keywords if the multi-word phrase returned 0 results
-        const words = query.trim().split(/\s+/).filter(Boolean);
-        const simplified = words.length > 2 ? words.slice(0, 2).join(" ") : "cute hello";
-        const fallbackResp = await client.search(simplified, {
-          limit: 10,
-          rating: "g",
-          sort: "relevant",
-        });
-        gifs = fallbackResp.data;
-        if (gifs && gifs.length > 0) {
-          gifQueryCache.set(query, gifs);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.gif) {
+          return data.gif;
         }
       }
+    } catch (clientErr) {
+      console.warn("Client reaction GIF fetch failed, using local curated pool:", clientErr);
     }
-
-    if (!gifs || gifs.length === 0) {
-      return buildFallbackIGif(query);
-    }
-
-    // Filter out the last served gif to avoid immediate repetition
-    const candidates = gifs.filter((g) => g.id !== lastServedGifId);
-    const pool = candidates.length > 0 ? candidates : gifs;
-
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    const selected = pool[randomIndex];
-    if (selected?.id) {
-      lastServedGifId = String(selected.id);
-    }
-    return selected;
-  } catch (error) {
-    console.warn("GIPHY API fetch error, using curated fallback:", error);
-    return buildFallbackIGif(query);
   }
+
+  // Server, test, or offline fallback: select from curated category pool
+  const pool = CURATED_CATEGORY_POOLS[resolvedCategory] || [];
+  return selectGifFromPool(resolvedCategory, pool, recentIds);
 }

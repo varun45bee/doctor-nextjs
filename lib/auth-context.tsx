@@ -11,6 +11,10 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
@@ -36,9 +40,21 @@ type AuthContextType = {
   accessDenied: boolean;
   authError: string | null;
   isLoginModalOpen: boolean;
-  openLoginModal: (preferredRedirect?: string) => void;
+  openLoginModal: (preferredRedirect?: string, initialMode?: "signin" | "signup") => void;
   closeLoginModal: () => void;
   signInWithGoogle: (preferredRedirect?: string) => Promise<boolean>;
+  signInWithEmail: (
+    email: string,
+    password: string,
+    preferredRedirect?: string
+  ) => Promise<boolean>;
+  signUpWithEmail: (
+    fullName: string,
+    email: string,
+    password: string,
+    preferredRedirect?: string
+  ) => Promise<boolean>;
+  sendPasswordReset: (email: string) => Promise<boolean>;
   signInWithPhoneOrEmail: (
     details: { fullName: string; phone?: string; email?: string },
     preferredRedirect?: string
@@ -58,8 +74,23 @@ function getAuthErrorMessage(err: unknown): string {
       ? (err as { code: string }).code
       : "";
 
+  if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
+    return "Invalid email or password. Please check your credentials.";
+  }
+  if (code === "auth/email-already-in-use") {
+    return "An account already exists with this email address. Please sign in instead.";
+  }
+  if (code === "auth/weak-password") {
+    return "Password should be at least 6 characters long.";
+  }
+  if (code === "auth/invalid-email") {
+    return "Please enter a valid email address.";
+  }
+  if (code === "auth/too-many-requests") {
+    return "Too many failed attempts. Please wait a few moments before trying again.";
+  }
   if (code === "auth/configuration-not-found") {
-    return "Google sign-in is not enabled in Firebase. Open Firebase Console → Authentication → Sign-in method → enable Google.";
+    return "Sign-in method is not enabled in Firebase. Open Firebase Console → Authentication → Sign-in method.";
   }
   if (code === "auth/popup-closed-by-user") {
     return "Sign-in was cancelled.";
@@ -68,7 +99,8 @@ function getAuthErrorMessage(err: unknown): string {
     return "This domain is not authorized. Add domain in Firebase → Authentication → Settings → Authorized domains.";
   }
 
-  return "Sign-in failed. Please try again.";
+  const rawMessage = err instanceof Error ? err.message : "";
+  return rawMessage || "Authentication failed. Please check your details and try again.";
 }
 
 function saveSessionToStorage(
@@ -123,9 +155,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login Modal State
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginRedirectUrl, setLoginRedirectUrl] = useState<string | null>(null);
+  const [loginInitialMode, setLoginInitialMode] = useState<"signin" | "signup">("signin");
 
-  const openLoginModal = useCallback((preferredRedirect?: string) => {
+  const openLoginModal = useCallback((preferredRedirect?: string, initialMode?: "signin" | "signup") => {
     setLoginRedirectUrl(preferredRedirect || "/patient/profile");
+    setLoginInitialMode(initialMode || "signin");
     setIsLoginModalOpen(true);
   }, []);
 
@@ -352,6 +386,129 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [router]
   );
 
+  // Email & Password Sign In
+  const signInWithEmail = useCallback(
+    async (
+      email: string,
+      password: string,
+      preferredRedirect?: string
+    ): Promise<boolean> => {
+      setAccessDenied(false);
+      setAuthError(null);
+
+      try {
+        const cleanEmail = email.trim().toLowerCase();
+        const result = await signInWithEmailAndPassword(auth, cleanEmail, password);
+        const userEmail = result.user.email?.toLowerCase();
+        const allowedDoctor = userEmail ? await isDoctorEmail(userEmail) : false;
+
+        if (allowedDoctor) {
+          setIsDoctor(true);
+          setRole("doctor");
+          const docProfile = await getPatientProfile(result.user.uid);
+          setUserProfile(docProfile);
+          saveSessionToStorage({
+            uid: result.user.uid,
+            email: userEmail,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL || undefined,
+            role: "doctor",
+          });
+          setIsLoginModalOpen(false);
+          router.push(preferredRedirect || "/doctor");
+          return true;
+        } else {
+          setIsDoctor(false);
+          setRole("patient");
+          const profile = await initializePatientProfileIfNew({
+            uid: result.user.uid,
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL || null,
+          });
+          setUserProfile(profile);
+          saveSessionToStorage({
+            ...profile,
+            uid: result.user.uid,
+            role: "patient",
+          });
+          setIsLoginModalOpen(false);
+          router.push(preferredRedirect || "/patient/profile");
+          return true;
+        }
+      } catch (err) {
+        console.error("Email sign-in error:", err);
+        setAuthError(getAuthErrorMessage(err));
+        return false;
+      }
+    },
+    [router]
+  );
+
+  // Email & Password Sign Up
+  const signUpWithEmail = useCallback(
+    async (
+      fullName: string,
+      email: string,
+      password: string,
+      preferredRedirect?: string
+    ): Promise<boolean> => {
+      setAccessDenied(false);
+      setAuthError(null);
+
+      try {
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanName = fullName.trim() || "Patient";
+        const result = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+
+        try {
+          await updateProfile(result.user, { displayName: cleanName });
+        } catch (upErr) {
+          console.warn("Could not set displayName on user:", upErr);
+        }
+
+        setIsDoctor(false);
+        setRole("patient");
+        const profile = await initializePatientProfileIfNew({
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: cleanName,
+          photoURL: null,
+        });
+        setUserProfile(profile);
+        saveSessionToStorage({
+          ...profile,
+          uid: result.user.uid,
+          role: "patient",
+        });
+        setIsLoginModalOpen(false);
+        router.push(preferredRedirect || "/patient/profile");
+        return true;
+      } catch (err) {
+        console.error("Email sign-up error:", err);
+        setAuthError(getAuthErrorMessage(err));
+        return false;
+      }
+    },
+    [router]
+  );
+
+  // Send Password Reset Email
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<boolean> => {
+      setAuthError(null);
+      try {
+        await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+        return true;
+      } catch (err) {
+        console.error("Password reset error:", err);
+        setAuthError(getAuthErrorMessage(err));
+        return false;
+      }
+    },
+    []
+  );
+
   // Phone / Name Sign In for instant access without OAuth popup
   const signInWithPhoneOrEmail = useCallback(
     async (
@@ -457,6 +614,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         openLoginModal,
         closeLoginModal,
         signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
+        sendPasswordReset,
         signInWithPhoneOrEmail,
         signOut,
         refreshProfile,
@@ -470,6 +630,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isOpen={isLoginModalOpen}
         onClose={closeLoginModal}
         redirectUrl={loginRedirectUrl}
+        initialMode={loginInitialMode}
       />
     </AuthContext.Provider>
   );

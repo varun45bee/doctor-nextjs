@@ -1,12 +1,8 @@
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import type { AppointmentStatus } from "@/lib/types/appointment";
-
-export function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) return `91${digits}`;
-  return digits;
-}
+import { db } from "./firebase.ts";
+import type { AppointmentStatus } from "./types/appointment.ts";
+import { normalizePhone } from "./utils/phone.ts";
+export { normalizePhone };
 
 export async function createAppointmentLookup(data: {
   patientPhone: string;

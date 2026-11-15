@@ -1,3 +1,5 @@
+import { retrieveClinicKnowledge } from "./rag/retriever.ts";
+
 export interface ConversationContextState {
   currentTopic: string;
   currentEmotion: string;
@@ -75,9 +77,29 @@ export const RECOVERY_REGEX =
   /\b(fever|headache|pain|cold|cough|sore\s*throat|migraine|nausea|stomach\s*ache)\s+(is\s+)?(gone|cured|disappeared|resolved|over|better)\b|\b(feeling|felt|am)\s+(much\s+)?(better|fine|recovered|healed|great\s*now)\b|\b(recovered\s*from|got\s*over|no\s*longer\s*have|healed\s*from|pain\s*is\s*gone)\b|\b(my\s+.*\s+is\s+gone)\b/i;
 
 /**
+ * Profanity, curse words, abusive language, and insults.
+ * Zero-tolerance boundary: returns calm, professional refusal and strictly suppresses all GIFs.
+ */
+export const PROFANITY_REGEX =
+  /\b(f+u+c+k+|f+u+k+|f+k+|s+h+i+t+|b+i+t+c+h+|a+s+s+h+o+l+e+|b+a+s+t+a+r+d+|d+i+c+k+|c+o+c+k+|c+u+n+t+|p+u+s+s+y+|m+o+t+h+e+r+f+u+c+k+|d+u+m+b+a+s+s+|s+t+f+u|s+h+u+t\s*u+p|s+c+r+e+w\s*y+o+u|g+o\s*t+o\s*h+e+l+l|p+i+s+s\s*o+f+f|c+h+u+t+i+y+a+|c+h+u+t+i+y+e+|m+a+d+a+r+c+h+o+d+|b+h+e+n+c+h+o+d+|b+h+o+s+d+i+k+e+|b+s+d+k|g+a+a?n+d+u?|h+a+r+a+m+i|k+a+m+i+n+a|k+a+m+e+e+n+a|l+a+v+d+e|l+a+u+d+a|l+o+d+a|j+h+a+a?t+u|r+a+n+d+i?|स+ा+ल+े|चूतिया|चूतिये|मादरचोद|बहनचोद|भेनचोद|भोसडीके|गांडू|हरामी|कमीना|लवडे|लौड़ा|रांड|कुत्ता)\b/i;
+
+export const MASKED_PROFANITY_REGEX =
+  /\b(f[\*_#@!]+ck|f[\*_#@!]+k|sh[\*_#@!]+t|b[\*_#@!]+tch|a[\*_#@!]+hole|d[\*_#@!]+ck)\b/i;
+
+export function isProfaneMessage(text: string): boolean {
+  if (!text || typeof text !== "string" || !text.trim()) return false;
+  return PROFANITY_REGEX.test(text) || MASKED_PROFANITY_REGEX.test(text);
+}
+
+/**
  * Builds the enterprise clinical system prompt for Groq with conversation context injection.
  */
-export function buildEnterpriseSystemPrompt(contextState?: Partial<ConversationContextState>): string {
+export function buildEnterpriseSystemPrompt(
+  contextState?: Partial<ConversationContextState>,
+  ragContext?: string,
+  summaryContext?: string,
+  outputFormat: "json" | "text" = "json"
+): string {
   const activeSymptoms = contextState?.reportedSymptoms?.length
     ? contextState.reportedSymptoms.join(", ")
     : "None reported yet";
@@ -86,7 +108,10 @@ export function buildEnterpriseSystemPrompt(contextState?: Partial<ConversationC
   const activeDuration = contextState?.duration || "unspecified";
   const recoveryStatus = contextState?.recoveryStatus || "none";
 
-  return `You are CuraAI, the enterprise-grade AI conversational healthcare assistant on the official website of Dr. Pratima Agale (BHMS, MD Homeopathy).
+  return `You are HealthXcare AI (integrated as Nirvana on the official clinic platform of Dr. Pratima Agale, BHMS, MD Homeopathy). You are an enterprise-grade clinical healthcare conversational assistant.
+
+Your purpose is to help users understand health conditions, symptoms, medical reports, medications, treatments, preventive healthcare, nutrition, fitness, and general medical information.
+You are an informational healthcare assistant, not a replacement for a qualified doctor, physician, pharmacist, or emergency medical service.
 
 ACTIVE CONVERSATION MEMORY:
 - Current Topic: "${activeTopic}"
@@ -95,59 +120,135 @@ ACTIVE CONVERSATION MEMORY:
 - Reported Duration: "${activeDuration}"
 - Recovery Status: "${recoveryStatus}"
 
-CORE DIRECTIVES & INTELLIGENCE RULES:
+============================================================
+HEALTHXCARE ENTERPRISE CLINICAL PRINCIPLES & SAFETY RULES
+============================================================
 
-1. NATURAL LANGUAGE & MULTILINGUAL FLUENCY:
-   - Detect the language of the user's message and respond fluently in the SAME language:
-     * English: Use warm, clear, professional English.
-     * Hindi (Devanagari): Respond in natural, polite Hindi (e.g., "नमस्ते! मैं आपकी किस प्रकार सहायता कर सकती हूँ?").
-     * Marathi (Devanagari): Respond in authentic, fluent Marathi (e.g., "नमस्कार! तुम्हाला काय त्रास होत आहे?").
-     * Hinglish (Roman script Hindi/Urdu): Respond in natural, conversational Hinglish (e.g., "Main samajh sakti hoon, ye takleef kab se ho rahi hai?").
-   - Maintain the established language throughout the conversation unless the user explicitly switches.
-   - Comprehend typos, informal slang, abbreviations, and mixed phrasing effortlessly.
+1. PRIORITIES & MEDICAL ACCURACY:
+   - Always prioritize: (1) Patient safety, (2) Medical accuracy, (3) Evidence-based information, (4) Clear communication, (5) Patient privacy, (6) Responsible medical guidance.
+   - Ground information in reputable clinical guidance (WHO, NHS, CDC, NIH, ICMR, peer-reviewed medical guidelines).
+   - Never invent medical facts, statistics, clinical guidelines, or research citations.
+   - Clearly distinguish established medical consensus from emerging clinical evidence.
+   - Explain clinical terminology in clear, everyday language.
+   - Account for the user's age, symptoms, medical history, and medications when available.
+   - Never assume a definitive diagnosis from limited information. Avoid false reassurance. Communicate uncertainty clearly.
 
-2. CONVERSATIONAL TONE & ADAPTIVE FORMATTING:
-   - Sound conversational, intelligent, warm, confident, and empathetic (comparable to ChatGPT or Claude).
-   - NEVER begin responses with robotic filler phrases like "Sure!", "Of course!", "Certainly!", "I'd be glad to help!", or "As an AI...". Jump directly into the empathetic or informative response.
-   - Adapt response depth to the query:
-     * Brief queries, greetings, or acknowledgments: 1-2 natural, warm sentences.
-     * Health education, symptom explanations, or multi-part questions: Use structured Markdown formatting with clean headings (###), bullet points (- ), numbered steps (1. ), or Markdown comparison tables (| ... |) for readability.
+2. STANDARD MEDICAL RESPONSE FORMAT (Adapt to patient need):
+   When addressing healthcare concerns or symptom questions, structure answers logically using:
+   - 1. Understanding the concern: Briefly summarize what the user is experiencing or asking about.
+   - 2. Possible explanations: Describe relevant possible causes without declaring a definitive diagnosis.
+   - 3. Symptoms to watch for: Explain common warning signs and red flags.
+   - 4. What you can do: Safe, practical self-care steps supported by medical evidence (rest, hydration, ergonomics, non-pharmacological comfort).
+   - 5. When to consult a doctor: Explain whether routine, prompt, or urgent clinical evaluation is appropriate.
+   - 6. Important precautions: Mention contraindications, interactions, and safety limits.
+   (Do not force every section into simple questions or brief greetings; adapt depth to the user's inquiry.)
 
-3. CONVERSATION MEMORY & PRONOUN RESOLUTION:
-   - Resolve pronouns ("it", "they", "this pain", "since yesterday", "comes and goes") using the active symptoms stored in memory.
-   - Distinguish past symptoms from current symptoms.
-   - Handle user corrections immediately (e.g., "Actually it started 5 days ago, not 2").
-   - If the user changes topic (e.g., asks about clinic timings, weather, or casual topics), seamlessly pivot to the new topic and DO NOT cling to previous symptoms.
+3. SYMPTOM ASSESSMENT RULES:
+   When users describe symptoms:
+   - Ask when symptoms started (duration).
+   - Inquire about severity and progression (worsening, improving, episodic).
+   - Ask about associated symptoms and modalities (what triggers, worsens, or relieves the condition).
+   - Inquire about existing medical conditions and current medications when relevant.
+   - Identify potential emergency red flags immediately.
+   - Never diagnose a disease from symptoms alone.
+   - Never recommend delaying medical care to continue chatting.
 
-4. MEDICAL SAFETY & CLINICAL TRIAGE:
-   - General health education ONLY. Never claim to diagnose a patient.
-   - Never independently prescribe medicines or specific dosages.
-   - Never recommend stopping or altering any prescribed conventional medications.
-   - Never present homeopathy as a replacement for emergency or urgent life-saving care.
-   - Always encourage booking an official consultation with Dr. Pratima Agale for individualized constitutional evaluation.
-   - CRITICAL EMERGENCY DETECTION:
-     If the user reports emergency symptoms (severe chest pain, difficulty breathing, profuse bleeding, unconsciousness, stroke symptoms, acute poisoning, severe allergic reaction/anaphylaxis):
-     * Immediately direct them to emergency services: Call 108 / 112 (India) or visit the nearest hospital emergency room without delay.
-     * Set safety.is_emergency = true.
-     * Set gif.should_show = false (STRICTLY SUPPRESS all decorative GIFs during medical emergencies).
+4. MEDICAL EMERGENCY PROTOCOL (Zero-Tolerance Immediate Triage):
+   Treat the following as medical emergencies:
+   - Chest pain, chest pressure, radiating arm/jaw pain, suspected cardiac events.
+   - Severe breathing difficulty, shortness of breath, choking, gasping, suffocation.
+   - Signs of stroke: sudden facial drooping, arm weakness, speech difficulty (FAST protocol).
+   - Unconsciousness, fainting, severe confusion, or coma.
+   - Severe uncontrolled bleeding, vomiting blood, coughing blood.
+   - Anaphylaxis or severe allergic reactions with breathing difficulty or throat swelling.
+   - Seizures (especially first-time or prolonged).
+   - Suspected poisoning or overdose.
+   - Suicidal intent or immediate risk of self-harm.
+   When an emergency is suspected:
+   1. Immediately state clearly that urgent emergency medical attention is required.
+   2. Direct the user to call emergency services (Call 112 / 108 in India or local emergency number) or proceed to the nearest emergency department.
+   3. Encourage the patient not to drive themselves if seriously unwell.
+   4. Never delay urgent emergency advice with lengthy educational explanations.
+   5. Set safety.is_emergency = true and STRICTLY SUPPRESS all decorative GIFs (gif.should_show = false).
 
-5. CLINIC & APPOINTMENT INTELLIGENCE:
-   - Doctor: Dr. Pratima Agale (BHMS, MD Homeopathy).
-   - Consultations: In-clinic consultations (10:30 AM - 9:00 PM) and Online Video Consultations worldwide with doorstep medicine courier delivery.
-   - Guide the patient naturally to book a consultation when they are ready.
+5. MEDICATION AND PRESCRIPTION SAFETY:
+   - When discussing medications, use generic drug names where possible, explaining purpose, mechanism, common/serious side effects, and known contraindications.
+   - Never prescribe controlled or prescription-only medicines independently.
+   - Never recommend starting, stopping, or altering prescribed medications without consulting the treating physician or pharmacist.
+   - Do not invent dosages or treatment durations.
 
-6. CONTEXT-AWARE GIPHY SELECTION:
-   - Recommend a GIF ONLY when it genuinely enhances the conversational warmth.
-   - Suppress GIFs (gif.should_show = false) for:
-     * Medical emergencies.
-     * Informational/educational queries (e.g., "What causes fever?", "What is migraine?").
-     * Negation of symptoms (e.g., "I don't have fever").
-   - For valid emotional, greeting, recovery, or sympathy moments, provide a safe G-rated 3-5 word search query (e.g., "cute comforting sick cartoon", "happy celebration recovery").
+6. MEDICAL REPORT AND LAB RESULT INTERPRETATION:
+   - Identify test name, numerical/qualitative result, unit, and laboratory reference range.
+   - Explain what the result generally means (normal, high, or low based on provided reference ranges).
+   - Clarify that laboratory reference ranges can vary between diagnostic facilities.
+   - Never diagnose a disease from an isolated laboratory result.
+   - Emphasize that lab results must always be interpreted alongside clinical examination, symptoms, and comprehensive medical history.
 
-OUTPUT FORMAT:
+7. SPECIAL POPULATIONS & HIGH-RISK GROUPS:
+   - Exercise extra caution with: pregnancy, breastfeeding, infants, young children, elderly patients, immunocompromised individuals, and patients with chronic multimorbidities.
+   - Do not apply standard adult health advice automatically to these vulnerable groups; emphasize appropriate clinical evaluation.
+
+8. NUTRITION, DIET, FITNESS & MISINFORMATION PROTECTION:
+   - Provide safe, practical, evidence-based nutrition and lifestyle advice.
+   - Avoid extreme diets, unsafe weight-loss regimens, or promoting unverified supplements as cures.
+   - Never guarantee treatment outcomes or cures.
+   - Respectfully correct medical misinformation using established clinical evidence.
+
+9. PATIENT PRIVACY & CONFIDENTIALITY:
+   - Treat all patient information as confidential. Never expose authentication credentials, tokens, or private medical records.
+
+10. MODEL TRANSPARENCY:
+    - If asked which AI model powers HealthXcare / Nirvana, refer to the actual model identifier provided by the backend or explain it is an enterprise healthcare conversational assistant. Never guess or claim other brand names without verified runtime info. Never expose API keys or internal infrastructure.
+
+11. NATURAL LANGUAGE & MULTILINGUAL FLUENCY:
+    - Detect the user's language and respond fluently in the SAME language:
+      * English: Warm, clear, evidence-based, professional.
+      * Hindi (Devanagari): Polite, natural, culturally respectful Hindi.
+      * Marathi (Devanagari): Fluent, authentic, empathetic Marathi.
+      * Hinglish (Roman script Hindi): Natural conversational Hinglish.
+    - Resolve pronouns dynamically using active conversation memory ("it", "the fever", "started yesterday").
+    - NEVER begin responses with robotic filler phrases like "Sure!", "Of course!", "Certainly!", "I'd be glad to help!", or "As an AI...". Jump directly into the empathetic or informative response.
+    - DIRECT ANSWER RULE: When the user asks a question or reports symptoms, DO NOT begin with a greeting (e.g., "Hello!", "Hi!", "Good day!"). Jump directly into addressing the question or symptoms. Only use a greeting if the user's message itself is purely a greeting.
+
+12. CLINIC CONTEXT & APPOINTMENT GUIDANCE:
+    - Doctor: Dr. Pratima Agale (BHMS, MD Homeopathy).
+    - Mode of Practice: 100% ONLINE GLOBAL CLINIC. All consultations are conducted exclusively online via secure video appointments, followed by tracked doorstep courier delivery of authentic homeopathic remedies across India and worldwide.
+    - CRITICAL CLINIC RULE: There are NO physical in-clinic visits, walk-ins, or physical examination facilities. If a patient asks for a clinic address or asks to visit in person, politely and clearly explain that Dr. Pratima Agale now practices exclusively online to deliver accessible, individualized care directly to patients worldwide with doorstep medicine courier delivery.
+    - Guide the patient naturally to book an online video consultation on the website when they are ready.
+
+13. CONTEXT-AWARE GIPHY SELECTION:
+    - Recommend an animated GIF ONLY when it genuinely enhances human warmth.
+    - STRICTLY SUPPRESS GIFs (gif.should_show = false) for:
+      * Medical emergencies.
+      * Informational / educational queries (e.g., "What causes fever?").
+      * Negation of symptoms (e.g., "I don't have fever").
+    - For valid emotional, greeting, recovery, or sympathy moments, provide a safe G-rated 3-5 word search query.
+
+14. CHATGPT-LEVEL CONVERSATIONAL BRIEVITY & HUMAN WARMTH (HIGH PRIORITY):
+    - Simple questions (definitions, clinic details, single facts): 1–3 clear sentences.
+    - General inquiries: 3–5 sentences maximum.
+    - Normal conversations: Short, natural, and conversational.
+    - Complex inquiries: Use concise headings and 3-4 bullet points.
+    - Follow-up questions: Ask only ONE question at a time.
+    - Never produce unnecessarily long answers or redundant conclusions.
+    - NEVER repeat the user's question back to them.
+    - AVOID robotic phrases ("As an AI language model...", "Thank you for reaching out", "I hope this message finds you well", "Certainly!", "Sure!").
+    - Tolerate typos ("caugh", "headach", "pcod prob", "timings?") and informal colloquial human language naturally without commenting on spelling mistakes.
+
+15. ZERO-TOLERANCE PROFANITY & CONDUCT BOUNDARY:
+    - If the user uses profanity, curse words, insults, or abusive language (e.g. "fuck you", "stfu", vulgarities), remain calm, professional, and dignified.
+    - NEVER validate abusive language or treat curse words as medical symptoms. NEVER ask "tell me more about what you're experiencing".
+    - Respond with a firm, polite professional boundary: "I am here to assist you with medical guidance and appointments in a respectful and safe environment. Please refrain from using offensive or abusive language. How can I assist you with your health concerns or Dr. Pratima's clinic today?"
+    - STRICTLY SUPPRESS ALL GIFs (gif.should_show = false).
+${summaryContext || ""}${ragContext || ""}
+${outputFormat === "text"
+  ? `OUTPUT FORMAT:
+Respond directly with the conversational natural language message. Speak warmly, clearly, and concisely as Nirvana.
+CRITICAL: Do NOT wrap in JSON, brackets, quotes, or code fences. Output ONLY the natural message text to the patient.`
+  : `OUTPUT FORMAT:
 You MUST output valid, parseable JSON matching this schema:
 {
-  "reply": "Conversational markdown response (rich formatting for educational/complex queries, concise for greetings/simple queries)",
+  "reply": "Conversational markdown response (rich formatting with headings/bullets/tables for educational/complex queries, concise for greetings/simple queries)",
   "language": "en | hi | mr | hinglish",
   "intent": "greeting | medical_symptom | medical_followup | medical_education | recovery | clinic_info | appointment | emotional_support | appreciation | humor | farewell | general",
   "emotion": "happy | sad | anxious | tired | concerned | relieved | grateful | amused | neutral",
@@ -182,7 +283,7 @@ You MUST output valid, parseable JSON matching this schema:
     "prepTip": "Practical advice for their appointment (e.g. keep past blood tests or prescription history ready)",
     "readyToBook": false
   }
-}`;
+}`}`;
 }
 
 /**
@@ -196,14 +297,104 @@ export function generateEnterpriseConversationResponse(
 ): GroqChatbotResponse {
   const text = (userMessage || "").trim();
   const lower = text.toLowerCase();
+  const normalizedLower = lower
+    .replace(/\bheadach(e)?s?\b/g, "headache")
+    .replace(/\bcaugh(ing)?\b/g, "cough")
+    .replace(/\bclicnic\b/g, "clinic")
+    .replace(/\bwhr\b/g, "where")
+    .replace(/\btimings?\b/g, "hours")
+    .replace(/\bpcod\s*prob(lem)?\b/g, "pcod")
+    .replace(/\bstomac(k|h)\s*(ache|pain)?\b/g, "stomach ache")
+    .replace(/\bfeelin\b/g, "feeling");
+
+  const isDevanagari = /[\u0900-\u097F]/.test(text);
+  const isMarathi = isDevanagari && /(मला|माझे|आहे|दुखत|नाही|दोन|खूप|खोकला|डोकेदुखी|रुग्णालय|पोट|त्रास)/i.test(text);
+  const isHindi = isDevanagari && !isMarathi;
+  const isHinglish = !isDevanagari && /\b(mujhe|mera|hai|dard|nahi|bohot|kal|se|ho\s*raha|kya|aaram|pareshani|aur|saans|dikkat|lene)\b/i.test(lower);
+
+  const detectedLanguage: "en" | "hi" | "mr" | "hinglish" = isMarathi
+    ? "mr"
+    : isHindi
+    ? "hi"
+    : isHinglish
+    ? "hinglish"
+    : "en";
 
   const previousSymptoms = contextState?.reportedSymptoms || [];
   const currentDuration = contextState?.duration || "";
 
-  // 1. EMERGENCY CHECK
-  if (EMERGENCY_REGEX.test(lower)) {
+  // 0. PROFANITY & HARASSMENT BOUNDARY CHECK (Zero-Tolerance)
+  if (isProfaneMessage(text)) {
+    let boundaryReply =
+      "I am here to assist you with medical guidance and appointments in a respectful and safe environment. Please refrain from using offensive or abusive language. How can I assist you with your health concerns or Dr. Pratima's clinic today?";
+    if (isMarathi) {
+      boundaryReply =
+        "मी तुम्हाला आदराच्या आणि सुरक्षित वातावरणात आरोग्य मार्गदर्शन करण्यासाठी येथे आहे. कृपया अपमानास्पद भाषेचा वापर टाळा. मी तुमच्या आरोग्याबाबत कशी मदत करू शकेन?";
+    } else if (isHindi) {
+      boundaryReply =
+        "मैं यहां एक सम्मानजनक और सुरक्षित वातावरण में आपकी स्वास्थ्य संबंधी सहायता के लिए उपस्थित हूं। कृपया अभद्र भाषा का प्रयोग न करें। मैं आज आपकी क्या मदद कर सकता हूं?";
+    } else if (isHinglish) {
+      boundaryReply =
+        "Main yahan aapko respectful environment me health guidance dene ke liye hoon. Please abusive language use na karein. Aaj main aapki health me kaise madad kar sakta hoon?";
+    }
+
     return {
-      reply: "If you or someone nearby is experiencing severe chest pain, difficulty breathing, profuse bleeding, or unconsciousness, please seek emergency medical care immediately by calling 108 / 112 or going to the nearest emergency hospital.",
+      reply: boundaryReply,
+      language: detectedLanguage,
+      intent: "profanity_boundary",
+      emotion: "neutral",
+      sentiment: "neutral",
+      conversation_topic: "conduct_boundary",
+      context_update: {
+        current_topic: "general",
+        current_emotion: "neutral",
+        reported_symptoms: previousSymptoms,
+        recovery_status: "none",
+        duration: currentDuration,
+      },
+      gif: {
+        should_show: false,
+        category: "none",
+        search_query: "",
+        reason: "Profanity / abusive language strictly suppressed all GIFs",
+        confidence: 1.0,
+      },
+      safety: {
+        is_medical: false,
+        is_emergency: false,
+        requires_professional_response: false,
+      },
+      analysis: {
+        detectedCondition: "General Consultation",
+        duration: "Standard",
+        severity: "Standard",
+        careStream: "General Practice",
+        modalities: "None",
+        prepTip: "Please maintain respectful communication.",
+        readyToBook: false,
+      },
+    };
+  }
+
+  // 1. EMERGENCY CHECK
+  const isEmergencyDevanagari = isDevanagari && (
+    EMERGENCY_REGEX.test(lower) ||
+    /छाती|दर्द|श्वास|सांस|बेहोश|बेशुद्ध|रक्त|उल्टी/i.test(text)
+  );
+
+  if (EMERGENCY_REGEX.test(lower) || isEmergencyDevanagari) {
+    let emergencyReply = "If you or someone nearby is experiencing severe chest pain, difficulty breathing, profuse bleeding, or unconsciousness, please seek emergency medical care immediately by calling 108 / 112 or going to the nearest emergency hospital.";
+    if (isMarathi) {
+      emergencyReply = "जर तुम्हाला किंवा जवळच्या व्यक्तीला छातीत तीव्र वेदना, श्वास घेण्यास गंभीर त्रास किंवा बेशुद्धी जाणवत असेल, तर कृपया त्वरित 112 किंवा 108 डायल करा आणि जवळच्या आपत्कालीन रुग्णालयात संपर्क साधा.";
+    } else if (isHindi) {
+      emergencyReply = "यदि आपको या आपके किसी परिजन को सीने में तेज दर्द, सांस लेने में गंभीर तकलीफ, अत्यधिक रक्तस्राव या बेहोशी हो रही है, तो कृपया तुरंत 112 या 108 पर कॉल करें या नजदीकी आपातकालीन अस्पताल जाएं।";
+    } else if (isHinglish) {
+      emergencyReply = "Agar aapko severe chest pain ya saans lene me dikkat ho rahi hai, toh please turant 112 / 108 par call karein ya nearest emergency hospital jayein.";
+    }
+
+    return {
+      reply: emergencyReply,
+      language: detectedLanguage,
       intent: "emergency",
       emotion: "concerned",
       sentiment: "negative",
@@ -314,7 +505,66 @@ export function generateEnterpriseConversationResponse(
     };
   }
 
-  // 4. INFORMATIONAL MEDICAL QUESTIONS (e.g. "What causes fever?", "What is migraine?")
+  // 4a. VERIFIED CLINIC & DOCTOR KNOWLEDGE RETRIEVAL (RAG MATCH)
+  const isClinicOrDocQuery = /\b(clinic|clicnic|timing|hours|open|address|location|where\s*is|visit|pratima|doctor|qualification|experience|book\s*appointment|how\s*to\s*book|cost|fee|allopathy|safe|pcod|pcos|thyroid|eczema|psoriasis|check\s*appointment)\b/i.test(normalizedLower);
+  if (isClinicOrDocQuery) {
+    const ragMatches = retrieveClinicKnowledge(normalizedLower, 1, 1.5);
+    if (ragMatches.length > 0) {
+      const doc = ragMatches[0].document;
+      let clinicReply = "";
+
+      if (doc.id === "clinic_mode_100_percent_online") {
+        clinicReply = "Dr. Pratima Agale Clinic is a 100% Online Global Clinic. All consultations take place via secure video and audio appointments, and genuine homeopathic remedies are delivered directly to your doorstep across India and worldwide.";
+      } else if (doc.id === "clinic_hours_and_timings") {
+        clinicReply = "Online consultations are available Monday to Saturday from 10:00 AM to 7:00 PM IST. The clinic is closed on Sundays.";
+      } else if (doc.id === "doctor_profile") {
+        clinicReply = "Dr. Pratima Agale is a Gold Medalist homeopath with BHMS and MD (Homeopathy) qualifications and over 15 years of clinical experience, specializing in women's health, pediatric care, allergies, and chronic conditions.";
+      } else if (doc.id === "appointment_booking_and_lookup") {
+        clinicReply = "You can book an online appointment on the website with your 10-digit mobile number, or check your appointment status anytime on the Check Appointment page (/check-appointment).";
+      } else if (doc.id === "homeopathy_safety_and_allopathy") {
+        clinicReply = "Homeopathic remedies are non-toxic, steroid-free, and safe to take alongside allopathic medicines with a 30-minute interval. Please do not stop any prescribed medications without consulting your doctor.";
+      } else {
+        clinicReply = doc.content.split("\n")[0] || doc.content;
+      }
+
+      return {
+        reply: clinicReply,
+        language: detectedLanguage,
+        intent: "clinic_info",
+        emotion: "neutral",
+        sentiment: "positive",
+        conversation_topic: doc.category,
+        context_update: {
+          current_topic: "clinic",
+          current_emotion: "neutral",
+          reported_symptoms: previousSymptoms,
+          recovery_status: "none",
+        },
+        gif: {
+          should_show: false,
+          category: "none",
+          search_query: "",
+          reason: "Factual clinic inquiry: GIF suppressed",
+          confidence: 0.95,
+        },
+        safety: {
+          is_medical: false,
+          is_emergency: false,
+          requires_professional_response: false,
+        },
+        analysis: {
+          detectedCondition: "Clinic Information Inquiry",
+          duration: "N/A",
+          severity: "Standard",
+          careStream: "Patient Care Guidance",
+          prepTip: "Book online for dedicated consultation time.",
+          readyToBook: true,
+        },
+      };
+    }
+  }
+
+  // 4b. INFORMATIONAL MEDICAL QUESTIONS (e.g. "What causes fever?", "What is migraine?")
   const isQuestion = MEDICAL_QUESTION_REGEX.test(lower) || (lower.endsWith("?") && !/\b(i\s*have|my\s+|i'?m\s*having)\b/i.test(lower));
   if (isQuestion) {
     let medicalAnswer = "In constitutional homeopathy, symptoms represent the body's natural vital reaction to an underlying trigger or imbalance. Dr. Pratima evaluates both physical complaints and individualized modalities to guide healing.";
@@ -326,6 +576,7 @@ export function generateEnterpriseConversationResponse(
 
     return {
       reply: medicalAnswer,
+      language: detectedLanguage,
       intent: "medical_education",
       emotion: "neutral",
       sentiment: "neutral",
@@ -359,13 +610,16 @@ export function generateEnterpriseConversationResponse(
     };
   }
 
-  // 5. FOLLOW-UP DURATION CHECK ("Since yesterday", "for 2 days", "started 3 days ago")
-  const isDurationOnly = /^(since\s+|for\s+\d+|started\s+|\d+\s*days?|\d+\s*weeks?|\d+\s*months?|yesterday|today|last\s*night)\b/i.test(lower);
-  if (isDurationOnly && previousSymptoms.length > 0) {
-    const symptomStr = previousSymptoms.join(" and ");
+  // 5. FOLLOW-UP DURATION CHECK ("Since yesterday", "for 2 days", "started 3 days ago", "Actually it started 4 days ago")
+  const isDurationOnly = /(?:actually\s+(?:it\s+)?)?(?:since\s+|for\s+\d+|started\s+|\d+\s*days?|\d+\s*weeks?|\d+\s*months?|yesterday|today|last\s*night)\b/i.test(lower);
+  if (isDurationOnly && (previousSymptoms.length > 0 || currentDuration)) {
+    const symptomStr = previousSymptoms.length > 0 ? previousSymptoms.join(" and ") : "symptoms";
+    const durationMatch = text.match(/(?:actually\s+(?:it\s+)?)?(?:started\s+)?(\d+\s*days?\s*ago|\d+\s*days?|yesterday|today|last\s*night|since\s+[^,.!?]+)/i);
+    const notedDuration = durationMatch ? durationMatch[1] || durationMatch[0] : text;
     return {
-      reply: `Thank you for noting that your ${symptomStr} started ${text}. Is it constant or coming in waves, and does rest or warmth provide any relief?`,
+      reply: `Thank you for noting that your ${symptomStr} started ${notedDuration}. Is it constant or coming in waves, and does rest or warmth provide any relief?`,
       intent: "medical_followup",
+      language: detectedLanguage,
       emotion: "concerned",
       sentiment: "neutral",
       conversation_topic: `${symptomStr}_duration`,
@@ -373,7 +627,7 @@ export function generateEnterpriseConversationResponse(
         current_topic: "illness",
         current_emotion: "concerned",
         reported_symptoms: previousSymptoms,
-        duration: text,
+        duration: notedDuration,
         recovery_status: "not_recovered",
       },
       gif: {
@@ -390,7 +644,7 @@ export function generateEnterpriseConversationResponse(
       },
       analysis: {
         detectedCondition: `${symptomStr} Intake`,
-        duration: text,
+        duration: notedDuration,
         severity: "Standard",
         careStream: "Classical Individualized Homeopathy",
         prepTip: "Keep any past lab tests or prescription history handy.",
@@ -400,27 +654,50 @@ export function generateEnterpriseConversationResponse(
   }
 
   // 6. ILLNESS & ACTIVE SYMPTOM CHECK
-  const hasFever = /\b(fever|high\s*temp(erature)?|chills|burning\s*up)\b/i.test(lower);
-  const hasHeadache = /\b(headache|migraine|head\s*hurts|head\s*pounding)\b/i.test(lower);
-  const hasCold = /\b(cold|cough(ing)?|runny\s*nose|stuffy\s*nose|sneezing|congestion|sore\s*throat)\b/i.test(lower);
-  const hasStomach = /\b(stomach\s*(pain|ache)|tummy\s*ache|cramps|indigestion|acid\s*reflux|nausea|vomit(ing)?)\b/i.test(lower);
-  const hasBodyPain = /\b(body\s*(pain|aches?|is\s*aching)|aching\s*body|muscle\s*ache|back\s*pain|joint\s*pain|weakness|exhausted)\b/i.test(lower);
-  const isGeneralSick = /\b(i\s*am\s*sick|i'?m\s*sick|feel(ing)?\s*sick|unwell|not\s*well|down\s*with)\b/i.test(lower);
+  const hasFever = /\b(fever|high\s*temp(erature)?|chills|burning\s*up|ताप|बुखार)\b/i.test(normalizedLower);
+  const hasHeadache = /\b(headache|migraine|head\s*hurts|head\s*pounding|सिरदर्द|डोकेदुखी)\b/i.test(normalizedLower);
+  const hasCold = /\b(cold|cough(ing)?|runny\s*nose|stuffy\s*nose|sneezing|congestion|sore\s*throat|खोकला|सर्दी)\b/i.test(normalizedLower);
+  const hasStomach = /\b(stomach\s*(pain|ache)|tummy\s*ache|cramps|indigestion|acid\s*reflux|nausea|vomit(ing)?|पोट\s*दुख|पेट\s*दर्द)\b/i.test(normalizedLower);
+  const hasBodyPain = /\b(body\s*(pain|aches?|is\s*aching)|aching\s*body|muscle\s*ache|back\s*pain|joint\s*pain|weakness|exhausted|अंगदुखी)\b/i.test(normalizedLower);
+  const isGeneralSick = /\b(i\s*am\s*sick|i'?m\s*sick|am\s*feelin(?:g)?\s*sick|feel(?:ing|in)?\s*sick|unwell|not\s*well|down\s*with|तबीयत|अस्वस्थ|आजार)\b/i.test(normalizedLower);
 
-  if (hasFever || hasHeadache || hasCold || hasStomach || hasBodyPain || isGeneralSick) {
+  if (hasFever || hasHeadache || hasCold || hasStomach || hasBodyPain || isGeneralSick || isDevanagari || isHinglish) {
     const reportedList: string[] = [...previousSymptoms];
     if (hasFever && !reportedList.includes("fever")) reportedList.push("fever");
     if (hasHeadache && !reportedList.includes("headache")) reportedList.push("headache");
     if (hasCold && !reportedList.includes("cold & cough")) reportedList.push("cold & cough");
     if (hasStomach && !reportedList.includes("stomach complaint")) reportedList.push("stomach complaint");
     if (hasBodyPain && !reportedList.includes("body pain")) reportedList.push("body pain");
+    if (isGeneralSick && !reportedList.includes("feeling unwell") && reportedList.length === previousSymptoms.length) {
+      reportedList.push("feeling unwell");
+    }
     if (reportedList.length === 0) reportedList.push("feeling unwell");
 
     let reply = "Oh no, I'm really sorry to hear that you are not feeling well! What specific symptoms are you experiencing, and how long have you had them?";
     let category = "caring";
     let searchQuery = "caring comforting sick cartoon";
 
-    if (hasFever && hasHeadache) {
+    if (isMarathi) {
+      if (hasStomach) {
+        reply = "पोटदुखीचा त्रास खूप अस्वस्थ करणारा असतो. पोटात मुरडा येत आहे का, आणि विश्रांती घेतल्याने काही आराम वाटतो का?";
+      } else if (hasFever && hasCold) {
+        reply = "मला हे ऐकून वाईट वाटले की आपल्याला ताप आणि खोकल्याचा त्रास होत आहे. हा त्रास किती दिवसांपासून आहे आणि अंगात कळ आहे का?";
+      } else if (hasHeadache) {
+        reply = "डोकेदुखीचा त्रास खूप त्रासदायक असतो. हे डोके सतत दुखते की अधूनमधून, आणि विश्रांती घेतल्याने आराम मिळतो का?";
+      } else {
+        reply = "आपल्याला त्रास होत आहे हे ऐकून मला वाईट वाटले. कृपया सांगा की आपल्याला नक्की काय लक्षणे जाणवत आहेत आणि हा त्रास कधीपासून आहे?";
+      }
+    } else if (isHindi) {
+      if (hasFever) {
+        reply = "मुझे यह जानकर चिंता हुई कि आपको बुखार है। क्या आपने तापमान नापा है, और क्या इसके साथ बदन दर्द या ठंड भी लग रही है?";
+      } else if (hasHeadache) {
+        reply = "सिरदर्द काफी कष्टदायी हो सकता है। क्या यह दर्द लगातार बना रहता है या बीच-बीच में होता है?";
+      } else {
+        reply = "मुझे यह जानकर चिंता हुई कि आपकी तबीयत ठीक नहीं है। कृपया बताएं कि आपको क्या लक्षण महसूस हो रहे हैं और यह समस्या कब से है?";
+      }
+    } else if (isHinglish) {
+      reply = "Mujhe samajh aa raha hai ki aap bohot pareshan hain. Ye kitne time se ho raha hai aur kya aaram mil raha hai?";
+    } else if (hasFever && hasHeadache) {
       reply = "I understand how uncomfortable a fever and headache can be. How high has your temperature been, and how long have you been experiencing this?";
       category = "caring";
       searchQuery = "caring sick fever thermometer cartoon";
@@ -448,6 +725,7 @@ export function generateEnterpriseConversationResponse(
 
     return {
       reply,
+      language: detectedLanguage,
       intent: "medical_symptom",
       emotion: "concerned",
       sentiment: "negative",
@@ -796,7 +1074,7 @@ export function generateEnterpriseConversationResponse(
 
   if (/\b(hi|hello|heyy*|hey|hola|namaste|welcome)\b/i.test(lower)) {
     return {
-      reply: "Hey! Nice to meet you. I'm CuraAI, Dr. Pratima's personal digital assistant. How can I help you with your health today?",
+      reply: "Hi! I'm Nirvana 💜 Your personal health companion at Dr. Pratima Agale's clinic. How can I help you feel better today?",
       intent: "greeting",
       emotion: "happy",
       sentiment: "positive",
@@ -866,11 +1144,11 @@ export function generateEnterpriseConversationResponse(
       duration: currentDuration,
     },
     gif: {
-      should_show: true,
-      category: "greeting",
-      search_query: "cute puppy waving hi cartoon",
-      reason: "Conversational engagement",
-      confidence: 0.75,
+      should_show: false,
+      category: "none",
+      search_query: "",
+      reason: "No confident intent detected: GIF suppressed",
+      confidence: 0,
     },
     safety: {
       is_medical: true,
@@ -898,8 +1176,33 @@ export function validateAndSanitizeGroqResponse(
   existingContext?: Partial<ConversationContextState>,
   history: Array<{ role: string; content: string }> = []
 ): GroqChatbotResponse {
+  // If rawJson is a string, try parsing it as JSON first!
+  let normalizedJson = rawJson;
+  if (typeof rawJson === "string") {
+    try {
+      normalizedJson = JSON.parse(rawJson);
+    } catch {
+      normalizedJson = { reply: rawJson };
+    }
+  }
+
+  // If normalizedJson has a reply that is stringified JSON, unwrap it
+  if (typeof normalizedJson?.reply === "string" && normalizedJson.reply.trim().startsWith("{")) {
+    try {
+      const nested = JSON.parse(normalizedJson.reply);
+      if (nested && typeof nested === "object") {
+        normalizedJson = { ...nested, ...normalizedJson, reply: nested.reply || normalizedJson.reply };
+      }
+    } catch {
+      const match = normalizedJson.reply.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"/);
+      if (match) {
+        normalizedJson.reply = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+      }
+    }
+  }
+
   // If Groq raw data is missing or incomplete, seamlessly run the Enterprise Conversational Engine!
-  if (!rawJson || typeof rawJson !== "object" || !rawJson.reply) {
+  if (!normalizedJson || typeof normalizedJson !== "object" || !normalizedJson.reply) {
     return generateEnterpriseConversationResponse(userMessage, history, existingContext);
   }
 
@@ -910,40 +1213,57 @@ export function validateAndSanitizeGroqResponse(
 
   const fallbackEngine = generateEnterpriseConversationResponse(userMessage, history, existingContext);
 
-  let reply = typeof rawJson?.reply === "string" && rawJson.reply.trim()
-    ? rawJson.reply.trim()
+  let reply = typeof normalizedJson?.reply === "string" && normalizedJson.reply.trim()
+    ? normalizedJson.reply.trim()
     : fallbackEngine.reply;
 
   // Strip robotic filler introductions if model inadvertently included them
   reply = reply.replace(/^(sure(!|,)?|certainly(!|,)?|of course(!|,)?|i would be happy to help(!|,)?|as an ai assistant(!|,)?)\s*/i, "");
+
+  // If the user's message is asking a question or describing symptoms rather than greeting, strip any leading greeting pleasantries
+  const isUserGreeting = /^(hi|hello|heyy*|hey|hola|namaste|good\s*(morning|afternoon|evening)|welcome)\b/i.test(userMessage.trim());
+  if (!isUserGreeting) {
+    reply = reply.replace(/^(hello(!|,)?|hi(!|,)?|heyy*(!|,)?|hey(!|,)?|greetings(!|,)?|good\s*(morning|afternoon|evening)(!|,)?)\s*/i, "");
+  }
+
   if (reply.length > 0) {
     reply = reply.charAt(0).toUpperCase() + reply.slice(1);
   }
 
-  let language = typeof rawJson?.language === "string" ? rawJson.language : undefined;
-  let intent = typeof rawJson?.intent === "string" ? rawJson.intent : "general";
-  let emotion = typeof rawJson?.emotion === "string" ? rawJson.emotion : "neutral";
-  let sentiment = typeof rawJson?.sentiment === "string" ? rawJson.sentiment : "neutral";
-  let conversation_topic = typeof rawJson?.conversation_topic === "string" ? rawJson.conversation_topic : "general";
+  let language = typeof normalizedJson?.language === "string" ? normalizedJson.language : undefined;
+  let intent = typeof normalizedJson?.intent === "string" ? normalizedJson.intent : "general";
+  let emotion = typeof normalizedJson?.emotion === "string" ? normalizedJson.emotion : "neutral";
+  let sentiment = typeof normalizedJson?.sentiment === "string" ? normalizedJson.sentiment : "neutral";
+  let conversation_topic = typeof normalizedJson?.conversation_topic === "string" ? normalizedJson.conversation_topic : "general";
 
   // Context updates
   const context_update = {
-    current_topic: rawJson?.context_update?.current_topic || existingContext?.currentTopic || "general",
-    current_emotion: rawJson?.context_update?.current_emotion || emotion,
-    reported_symptoms: Array.isArray(rawJson?.context_update?.reported_symptoms)
-      ? rawJson.context_update.reported_symptoms
+    current_topic: normalizedJson?.context_update?.current_topic || existingContext?.currentTopic || "general",
+    current_emotion: normalizedJson?.context_update?.current_emotion || emotion,
+    reported_symptoms: Array.isArray(normalizedJson?.context_update?.reported_symptoms)
+      ? normalizedJson.context_update.reported_symptoms
       : existingContext?.reportedSymptoms || [],
-    recovery_status: (rawJson?.context_update?.recovery_status as any) || "none",
-    duration: rawJson?.context_update?.duration || existingContext?.duration || "",
-    modalities: rawJson?.context_update?.modalities || existingContext?.modalities || "",
+    recovery_status: (normalizedJson?.context_update?.recovery_status as any) || "none",
+    duration: normalizedJson?.context_update?.duration || existingContext?.duration || "",
+    modalities: normalizedJson?.context_update?.modalities || existingContext?.modalities || "",
   };
 
   // GIF Decision
-  let should_show = Boolean(rawJson?.gif?.should_show);
-  let category = typeof rawJson?.gif?.category === "string" ? rawJson.gif.category : "none";
-  let search_query = typeof rawJson?.gif?.search_query === "string" ? rawJson.gif.search_query.replace(/[^a-zA-Z0-9\s]/g, " ").trim() : "";
-  let reason = typeof rawJson?.gif?.reason === "string" ? rawJson.gif.reason : "";
-  let confidence = typeof rawJson?.gif?.confidence === "number" ? rawJson.gif.confidence : 0.8;
+  let should_show = normalizedJson?.gif?.should_show !== undefined
+    ? Boolean(normalizedJson.gif.should_show)
+    : fallbackEngine.gif.should_show;
+  let category = typeof normalizedJson?.gif?.category === "string" && normalizedJson.gif.category !== "none"
+    ? normalizedJson.gif.category
+    : fallbackEngine.gif.category;
+  let search_query = typeof normalizedJson?.gif?.search_query === "string" && normalizedJson.gif.search_query.trim()
+    ? normalizedJson.gif.search_query.replace(/[^a-zA-Z0-9\s]/g, " ").trim()
+    : fallbackEngine.gif.search_query;
+  let reason = typeof normalizedJson?.gif?.reason === "string"
+    ? normalizedJson.gif.reason
+    : fallbackEngine.gif.reason;
+  let confidence = typeof normalizedJson?.gif?.confidence === "number"
+    ? normalizedJson.gif.confidence
+    : fallbackEngine.gif.confidence;
 
   // Safety flags
   let is_medical = Boolean(rawJson?.safety?.is_medical || isEmergency || isMedicalQuestion);
@@ -964,6 +1284,21 @@ export function validateAndSanitizeGroqResponse(
   // =========================================================================
   // STRICT SERVER-SIDE SAFETY ENFORCEMENT
   // =========================================================================
+
+  // 0. PROFANITY & HARASSMENT OVERRIDE:
+  if (isProfaneMessage(userMessage)) {
+    reply =
+      "I am here to assist you with medical guidance and appointments in a respectful and safe environment. Please refrain from using offensive or abusive language. How can I assist you with your health concerns or Dr. Pratima's clinic today?";
+    should_show = false;
+    category = "none";
+    search_query = "";
+    reason = "Profanity / abusive language strictly suppressed all GIFs";
+    is_medical = false;
+    is_emergency = false;
+    requires_professional_response = false;
+    intent = "profanity_boundary";
+    context_update.reported_symptoms = existingContext?.reportedSymptoms || [];
+  }
 
   // 1. EMERGENCY OVERRIDE:
   if (isEmergency) {

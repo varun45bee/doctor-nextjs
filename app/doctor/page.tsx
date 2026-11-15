@@ -12,7 +12,6 @@ import DoctorCalendar from "@/components/doctor/DoctorCalendar";
 import DoctorAnalytics from "@/components/doctor/DoctorAnalytics";
 import DoctorAvailability from "@/components/doctor/DoctorAvailability";
 import DoctorChat from "@/components/doctor/DoctorChat";
-import GoogleCalendarSyncCard from "@/components/doctor/GoogleCalendarSyncCard";
 import {
   fetchAppointments,
   filterAppointments,
@@ -139,9 +138,6 @@ export default function DoctorDashboardPage() {
           </div>
         ))}
       </div>
-
-      {/* Google Calendar & Meet Sync Status */}
-      <GoogleCalendarSyncCard />
 
       {/* Premium Navigation Toolbar */}
       <div

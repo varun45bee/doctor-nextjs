@@ -2,7 +2,7 @@
 const nextConfig = {
   experimental: {
     cpus: 1,
-    serverComponentsExternalPackages: ["firebase-admin", "googleapis"],
+    serverComponentsExternalPackages: ["firebase-admin"],
   },
   images: {
     remotePatterns: [

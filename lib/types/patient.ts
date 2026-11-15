@@ -13,12 +13,20 @@ export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
 
 export type UserRole = "patient" | "doctor" | "admin";
 
+export type AuthProviderType = "password" | "google.com" | string;
+
+export type UserStatus = "active" | "suspended" | "pending";
+
 export interface UserProfile {
   uid: string;
   fullName: string;
   email: string;
   phone: string;
   photoURL?: string | null;
+  profileImage?: string | null;
+  provider?: AuthProviderType;
+  emailVerified?: boolean;
+  status?: UserStatus;
   dateOfBirth?: string; // YYYY-MM-DD
   gender?: Gender;
   address?: string;

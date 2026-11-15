@@ -8,7 +8,7 @@ import {
   buildWhatsAppTextMessage,
   EmailTemplateParams,
 } from "@/lib/notifications/templates";
-import { getAppBaseUrl } from "@/lib/services/google-calendar";
+import { getAppBaseUrl } from "@/lib/utils/url";
 
 export async function sendEmailWithBrevo(
   to: string,

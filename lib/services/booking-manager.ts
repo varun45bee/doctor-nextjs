@@ -6,11 +6,6 @@ import {
   buildSlotLockId,
 } from "@/lib/services/slot-service";
 import {
-  createGoogleCalendarEvent,
-  updateGoogleCalendarEvent,
-  deleteGoogleCalendarEvent,
-} from "@/lib/services/google-calendar";
-import {
   enqueueNotificationJob,
   executeNotificationJob,
 } from "@/lib/services/notification-service";
@@ -90,54 +85,20 @@ export async function createAppointmentBooking(
     createdAt: new Date(),
   };
 
-  let calendarEventId: string | undefined;
-  let meetUrl: string | undefined;
-  let calendarSyncStatus: Appointment["calendarSyncStatus"] = "not_applicable";
-  let calendarError: string | undefined;
-
-  // 3. Attempt Google Calendar + Google Meet sync
-  try {
-    const calResult = await createGoogleCalendarEvent(tempAppointment);
-    calendarEventId = calResult.eventId;
-    meetUrl = calResult.meetUrl;
-    calendarSyncStatus = "synced";
-  } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    console.warn("Google Calendar sync warning during booking:", errMsg);
-    calendarSyncStatus = "failed";
-    calendarError = errMsg;
-    // Note: Do not abort the entire booking if Google integration is not yet connected or has temporary downtime.
-    // We mark the appointment Confirmed, save the error, and allow background worker or doctor to sync.
-  }
-
-  // 4. Update appointment to Confirmed
+  // 3. Mark appointment Confirmed
   const updates: Record<string, unknown> = {
     status: "Confirmed",
-    googleCalendarEventId: calendarEventId || null,
-    googleMeetUrl: meetUrl || null,
-    googleMeetLink: meetUrl || null,
-    meetingStatus:
-      input.consultationType === "online"
-        ? meetUrl
-          ? "ready"
-          : calendarSyncStatus === "failed"
-          ? "failed"
-          : "pending"
-        : "not_applicable",
-    meetingCreatedAt: meetUrl ? new Date() : null,
-    meetingCreatedBy: meetUrl ? doctorId : null,
-    meetingError: calendarError || null,
-    calendarSyncStatus,
-    calendarError: calendarError || null,
+    calendarSyncStatus: "not_applicable",
+    meetingStatus: "not_applicable",
     updatedAt: new Date(),
   };
 
   await apptRef.update(updates);
 
-  // 5. Confirm slot lock
+  // 4. Confirm slot lock
   await confirmSlotLock(slotLockId, appointmentId);
 
-  // 6. Create / update appointment lookup for legacy / phone lookup
+  // 5. Create / update appointment lookup for legacy / phone lookup
   try {
     const phoneClean = input.patientPhone.replace(/\D/g, "");
     const phoneKey = phoneClean.length === 10 ? `91${phoneClean}` : phoneClean;
@@ -167,7 +128,7 @@ export async function createAppointmentBooking(
     appointmentDate: input.appointmentDate,
     appointmentTime: input.appointmentTime,
     consultationType: input.consultationType,
-    googleMeetUrl: meetUrl,
+    googleMeetUrl: undefined,
   });
 
   // Attempt non-blocking immediate dispatch for fastest user experience
@@ -195,7 +156,7 @@ export async function createAppointmentBooking(
       date: input.appointmentDate,
       time: input.appointmentTime,
       type: input.consultationType,
-      calendarSyncStatus,
+      calendarSyncStatus: "not_applicable",
     },
     timestamp: new Date().toISOString(),
   });
@@ -242,20 +203,7 @@ export async function cancelAppointmentBooking(params: {
   );
   await releaseSlotLock(slotLockId);
 
-  // 2. Cancel Google Calendar event if exists
-  if (appt.googleCalendarEventId) {
-    try {
-      await deleteGoogleCalendarEvent(
-        appt.doctorId,
-        appt.googleCalendarEventId,
-        appt.calendarId
-      );
-    } catch (calErr) {
-      console.warn("Could not delete Google Calendar event on cancellation:", calErr);
-    }
-  }
-
-  // 3. Update appointment in Firestore
+  // 2. Update appointment in Firestore
   const nowIso = new Date().toISOString();
   await apptRef.update({
     status: "Cancelled",
@@ -367,35 +315,12 @@ export async function rescheduleAppointmentBooking(params: {
   const oldLockId = buildSlotLockId(appt.doctorId, oldDate, oldTime);
   await releaseSlotLock(oldLockId);
 
-  // 3. Update Google Calendar event if exists
-  let meetUrl = appt.googleMeetUrl;
-  if (appt.googleCalendarEventId) {
-    try {
-      const calRes = await updateGoogleCalendarEvent({
-        ...appt,
-        appointmentDate: params.newDate,
-        appointmentTime: params.newTime,
-      });
-      meetUrl = calRes.meetUrl || meetUrl;
-    } catch (calErr) {
-      console.warn("Could not update Google Calendar event on reschedule:", calErr);
-    }
-  }
-
-  // 4. Update appointment doc
+  // 3. Update appointment doc
   const nowIso = new Date().toISOString();
   await apptRef.update({
     appointmentDate: params.newDate,
     appointmentTime: params.newTime,
     rescheduledFrom: `${oldDate} ${oldTime}`,
-    googleMeetUrl: meetUrl || null,
-    googleMeetLink: meetUrl || null,
-    meetingStatus:
-      appt.consultationType === "online"
-        ? meetUrl
-          ? "ready"
-          : "pending"
-        : "not_applicable",
     updatedAt: new Date(),
   });
 
@@ -427,7 +352,7 @@ export async function rescheduleAppointmentBooking(params: {
     appointmentDate: params.newDate,
     appointmentTime: params.newTime,
     consultationType: appt.consultationType,
-    googleMeetUrl: meetUrl,
+    googleMeetUrl: appt.googleMeetUrl,
   });
 
   // 7. Audit log

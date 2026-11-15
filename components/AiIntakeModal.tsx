@@ -16,6 +16,7 @@ import {
   Home,
 } from "lucide-react";
 import { useAppointment } from "@/lib/appointment-context";
+import { useAuth } from "@/lib/auth-context";
 import { detectContextualReaction, fetchReactionGif } from "@/lib/giphy/reactionDetector";
 import ChatMessage, { type ChatMessageType } from "@/components/chatbot/ChatMessage";
 import {
@@ -48,8 +49,18 @@ function getGreeting() {
 const formatCurrentTime = () =>
   new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+const createWelcomeMessage = (): ChatMessageType => ({
+  id: "welcome-nirvana",
+  role: "assistant",
+  content:
+    "Hi! I'm Nirvana 💜 Your personal health companion. How can I help you feel better today?",
+  timestamp: formatCurrentTime(),
+});
+
 export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
   const { openAppointment } = useAppointment();
+  const { user } = useAuth();
+  const [conversationId] = useState(() => `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
 
   const [chatMessages, setChatMessages] = useState<ChatMessageType[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -281,141 +292,290 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
     setAiLoading(true);
 
     try {
-      const res = await fetch("/api/consult-ai", {
+      // 1. Attempt Real-Time Token Streaming via /api/consult-ai/stream
+      const streamRes = await fetch("/api/consult-ai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: textToSend,
           history: newMessages,
           context: conversationContext,
+          userId: user?.uid,
+          conversationId,
         }),
         signal: controller.signal,
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      if (streamRes.ok && streamRes.body) {
+        const reader = streamRes.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedReply = "";
+        let finalMetadata: any = null;
 
-        // 1. Instantly display assistant response without waiting for GIF
-        const shouldShowGif = Boolean(data.gif?.should_show && data.gif?.search_query);
-        const assistantMessage: ChatMessageType = {
-          id: botMessageId,
-          role: "assistant",
-          content:
-            data.reply ||
-            "I am here to guide your care. How can I help you today?",
-          isGifLoading: shouldShowGif,
-          gif: null,
-          timestamp: formatCurrentTime(),
-        };
+        // Add assistant placeholder to receive streamed tokens
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: botMessageId,
+            role: "assistant",
+            content: "",
+            isGifLoading: false,
+            gif: null,
+            timestamp: formatCurrentTime(),
+          },
+        ]);
 
-        setChatMessages((prev) => [...prev, assistantMessage]);
+        let streamDone = false;
+        let sseBuffer = "";
 
-        // 2. Update multi-turn conversation memory context
-        if (data.context_update) {
-          setConversationContext((prev) => ({
-            ...prev,
-            ...data.context_update,
-            turnCount: prev.turnCount + 1,
-          }));
+        while (!streamDone) {
+          const { value, done: readerDone } = await reader.read();
+          if (readerDone) {
+            streamDone = true;
+            break;
+          }
+
+          sseBuffer += decoder.decode(value, { stream: true });
+          const events = sseBuffer.split("\n\n");
+          sseBuffer = events.pop() || "";
+
+          for (const event of events) {
+            const trimmed = event.trim();
+            if (!trimmed.startsWith("data: ")) continue;
+
+            try {
+              const data = JSON.parse(trimmed.slice(6));
+              if (data.token) {
+                accumulatedReply += data.token;
+                // If model output is wrapped in JSON, extract the clean reply field for streaming display
+                let textToDisplay = accumulatedReply;
+                if (textToDisplay.trim().startsWith("{")) {
+                  const match = textToDisplay.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"?/);
+                  if (match) {
+                    textToDisplay = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+                  }
+                }
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMessageId
+                      ? { ...m, content: textToDisplay }
+                      : m
+                  )
+                );
+                scrollToBottom(false);
+              }
+              if (data.done) {
+                finalMetadata = data;
+              }
+            } catch {
+              // Frame parse ignore
+            }
+          }
         }
 
-        // 3. Update Doctor Appointment Analysis
-        if (data.analysis) {
-          setAnalysis(data.analysis);
-        }
+        // Apply metadata updates from the stream completion
+        if (finalMetadata) {
+          const rawFinalText = finalMetadata.fullText || accumulatedReply;
+          let cleanFinalText = rawFinalText;
+          if (cleanFinalText.trim().startsWith("{")) {
+            try {
+              const p = JSON.parse(cleanFinalText);
+              if (p.reply) cleanFinalText = p.reply;
+            } catch {
+              const m = cleanFinalText.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"/);
+              if (m) cleanFinalText = m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+            }
+          }
 
-        // 4. Asynchronously load GIPHY reaction without blocking the chat
-        if (shouldShowGif) {
-          fetchReactionGif(data.gif.search_query)
-            .then((reactionGif) => {
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId
-                    ? { ...m, gif: reactionGif, isGifLoading: false }
-                    : m
-                )
-              );
+          setChatMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMessageId
+                ? { ...m, content: cleanFinalText }
+                : m
+            )
+          );
+
+          if (finalMetadata.context_update) {
+            setConversationContext((prev) => ({
+              ...prev,
+              ...finalMetadata.context_update,
+              turnCount: prev.turnCount + 1,
+            }));
+          }
+
+          if (finalMetadata.analysis) {
+            setAnalysis(finalMetadata.analysis);
+          }
+
+          // Determine GIF reaction from server metadata or client contextual detector
+          let targetQuery = "";
+          let detectedCategory = "";
+          if (finalMetadata.gif?.should_show && finalMetadata.gif?.search_query) {
+            targetQuery = finalMetadata.gif.search_query;
+            detectedCategory = finalMetadata.gif.category || finalMetadata.gif.subType || "";
+          } else if (finalMetadata.gif?.should_show !== false) {
+            // Client contextual fallback detection ONLY if server didn't explicitly suppress GIFs
+            const detected = detectContextualReaction(textToSend);
+            if (detected && detected.query) {
+              targetQuery = detected.query;
+              detectedCategory = detected.subType || detected.categoryId || "";
+            }
+          }
+
+          if (targetQuery) {
+            const currentRecentGifIds = chatMessages
+              .map((m) => m.gif?.id)
+              .filter(Boolean)
+              .map(String);
+
+            setChatMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMessageId ? { ...m, isGifLoading: true } : m
+              )
+            );
+            fetchReactionGif(detectedCategory || targetQuery, {
+              conversationId,
+              recentGifIds: currentRecentGifIds,
             })
-            .catch(() => {
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId ? { ...m, isGifLoading: false } : m
-                )
-              );
-            });
+              .then((reactionGif) => {
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMessageId
+                      ? { ...m, gif: reactionGif, isGifLoading: false }
+                      : m
+                  )
+                );
+              })
+              .catch(() => {
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMessageId ? { ...m, isGifLoading: false } : m
+                  )
+                );
+              });
+          }
         }
       } else {
-        // Fallback for API error using Enterprise Conversation Engine
-        const fallback = generateEnterpriseConversationResponse(
-          textToSend,
-          newMessages.map((m) => ({ role: m.role, content: m.content })),
-          conversationContext
-        );
-        const shouldShowGif = Boolean(fallback.gif?.should_show && fallback.gif?.search_query);
-        const assistantMessage: ChatMessageType = {
-          id: botMessageId,
-          role: "assistant",
-          content: fallback.reply,
-          isGifLoading: shouldShowGif,
-          gif: null,
-          timestamp: formatCurrentTime(),
-        };
-        setChatMessages((prev) => [...prev, assistantMessage]);
+        // Fallback to non-streaming /api/consult-ai
+        const res = await fetch("/api/consult-ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: textToSend,
+            history: newMessages,
+            context: conversationContext,
+            userId: user?.uid,
+            conversationId,
+          }),
+          signal: controller.signal,
+        });
 
-        if (fallback.context_update) {
-          setConversationContext((prev) => ({
-            ...prev,
-            ...fallback.context_update,
-            turnCount: prev.turnCount + 1,
-          }));
-        }
+        if (res.ok) {
+          const data = await res.json();
+          let targetQuery = "";
+          let detectedCategory = "";
+          if (data.gif?.should_show && data.gif?.search_query) {
+            targetQuery = data.gif.search_query;
+            detectedCategory = data.gif.category || data.gif.subType || "";
+          } else if (data.gif?.should_show !== false) {
+            const detected = detectContextualReaction(textToSend);
+            if (detected && detected.query) {
+              targetQuery = detected.query;
+              detectedCategory = detected.subType || detected.categoryId || "";
+            }
+          }
+          const shouldShowGif = Boolean(targetQuery);
+          const assistantMessage: ChatMessageType = {
+            id: botMessageId,
+            role: "assistant",
+            content: data.reply || "I am here to guide your care. How can I help you today?",
+            isGifLoading: shouldShowGif,
+            gif: null,
+            timestamp: formatCurrentTime(),
+          };
 
-        if (fallback.analysis) {
-          setAnalysis(fallback.analysis);
-        }
+          setChatMessages((prev) => [...prev, assistantMessage]);
 
-        if (shouldShowGif) {
-          fetchReactionGif(fallback.gif.search_query)
-            .then((reactionGif) => {
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId
-                    ? { ...m, gif: reactionGif, isGifLoading: false }
-                    : m
-                )
-              );
+          if (data.context_update) {
+            setConversationContext((prev) => ({
+              ...prev,
+              ...data.context_update,
+              turnCount: prev.turnCount + 1,
+            }));
+          }
+
+          if (data.analysis) {
+            setAnalysis(data.analysis);
+          }
+
+          if (shouldShowGif) {
+            const currentRecentGifIds = newMessages
+              .map((m) => m.gif?.id)
+              .filter(Boolean)
+              .map(String);
+            fetchReactionGif(detectedCategory || targetQuery, {
+              conversationId,
+              recentGifIds: currentRecentGifIds,
             })
-            .catch(() => {
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId ? { ...m, isGifLoading: false } : m
-                )
-              );
-            });
+              .then((reactionGif) => {
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMessageId
+                      ? { ...m, gif: reactionGif, isGifLoading: false }
+                      : m
+                  )
+                );
+              })
+              .catch(() => {
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMessageId ? { ...m, isGifLoading: false } : m
+                  )
+                );
+              });
+          }
+        } else {
+          throw new Error("Server returned non-ok");
         }
       }
     } catch (e: any) {
       if (e?.name === "AbortError") {
         return;
       }
-      console.warn("AI Intake network exception, activating client clinical engine:", e);
+      console.warn("AI Intake network exception, activating clinical fallback engine:", e);
       const fallback = generateEnterpriseConversationResponse(
         textToSend,
         newMessages.map((m) => ({ role: m.role, content: m.content })),
         conversationContext
       );
       const shouldShowGif = Boolean(fallback.gif?.should_show && fallback.gif?.search_query);
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: botMessageId,
-          role: "assistant",
-          content: fallback.reply,
-          isGifLoading: shouldShowGif,
-          gif: null,
-          timestamp: formatCurrentTime(),
-        },
-      ]);
+
+      setChatMessages((prev) => {
+        const exists = prev.some((m) => m.id === botMessageId);
+        if (exists) {
+          return prev.map((m) =>
+            m.id === botMessageId
+              ? {
+                  ...m,
+                  content: fallback.reply,
+                  isGifLoading: shouldShowGif,
+                  gif: null,
+                }
+              : m
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: botMessageId,
+            role: "assistant",
+            content: fallback.reply,
+            isGifLoading: shouldShowGif,
+            gif: null,
+            timestamp: formatCurrentTime(),
+          },
+        ];
+      });
 
       if (fallback.context_update) {
         setConversationContext((prev) => ({
@@ -430,7 +590,14 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       }
 
       if (shouldShowGif) {
-        fetchReactionGif(fallback.gif.search_query)
+        const currentRecentGifIds = newMessages
+          .map((m) => m.gif?.id)
+          .filter(Boolean)
+          .map(String);
+        fetchReactionGif(fallback.gif.category || fallback.gif.search_query, {
+          conversationId,
+          recentGifIds: currentRecentGifIds,
+        })
           .then((reactionGif) => {
             setChatMessages((prev) =>
               prev.map((m) =>
@@ -534,23 +701,23 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
 
   return (
     <>
-      {/* Backdrop to prevent background touch bleed and page scroll */}
+      {/* Backdrop to intercept outside clicks and prevent page scroll without adding gray overlay */}
       <div
         ref={backdropRef}
         data-lenis-prevent
-        className="fixed inset-0 z-[99999] bg-black/40 sm:bg-black/35 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 z-[99999] bg-transparent transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Floating Chatbox UI matching Reference Image */}
+      {/* Floating Chatbox UI with Pure Transparent Frosted Glass */}
       <div
         ref={modalContainerRef}
         data-lenis-prevent
-        className="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 z-[100000] w-full sm:w-[420px] md:w-[440px] sm:max-w-[calc(100vw-24px)] h-[90dvh] sm:h-[690px] max-h-[92dvh] sm:max-h-[calc(100vh-48px)] rounded-t-[32px] sm:rounded-[32px] bg-[#f4f7f4] dark:bg-[#121c15] border border-[#cde2d4] dark:border-emerald-950/80 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overscroll-contain"
+        className="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 z-[100000] w-full sm:w-[420px] md:w-[440px] sm:max-w-[calc(100vw-24px)] h-[90dvh] sm:h-[690px] max-h-[92dvh] sm:max-h-[calc(100vh-48px)] rounded-t-[36px] sm:rounded-[36px] bg-transparent backdrop-blur-2xl backdrop-saturate-150 border border-black/15 dark:border-white/30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.12),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(255,255,255,0.1)] overscroll-contain"
         role="dialog"
         aria-modal="true"
-        aria-label="CuraAI Health Assistant"
+        aria-label="Nirvana Health Assistant"
         onWheel={(e) => {
           e.stopPropagation();
         }}
@@ -564,152 +731,131 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           onChange={handleFileUpload}
         />
 
-        {/* Top Header Hero matching Reference Image */}
+        {/* Clean Specular Edge Rim Highlights for iPhone Liquid Glass */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+          <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-black/20 dark:via-white/50 to-transparent" />
+          <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-gradient-to-r from-transparent via-black/10 dark:via-white/20 to-transparent" />
+        </div>
+
+        {/* Top Header: Doctor Branding & Circular Glass Action Controls */}
         <div
           onTouchMove={(e) => e.stopPropagation()}
-          className="relative bg-[#103b2b] text-white shrink-0 select-none overflow-hidden touch-none"
+          className="relative z-20 flex items-center justify-between px-5 pt-4 pb-2.5 shrink-0 select-none touch-none"
         >
-          {/* Subtle Organic Background Waves */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
-            <svg
-              viewBox="0 0 500 200"
-              preserveAspectRatio="none"
-              className="w-full h-full fill-emerald-700/40"
+          <div className="flex items-center gap-2 select-none">
+            <span className="font-serif font-bold text-[17px] sm:text-lg tracking-wide text-black dark:text-white border-b-2 border-emerald-500 pb-0.5">
+              Dr. Pratima Agale
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleResetChat}
+              className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 active:scale-95 border border-black/10 dark:border-white/20 backdrop-blur-md flex items-center justify-center text-black dark:text-white hover:opacity-80 transition-all cursor-pointer shadow-xs"
+              title="Reset conversation"
+              aria-label="Reset conversation"
             >
-              <path d="M0,100 C180,180 320,40 500,120 L500,200 L0,200 Z" />
-            </svg>
+              <RotateCcw className="w-4 h-4 stroke-[2.2]" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 active:scale-95 border border-black/10 dark:border-white/20 backdrop-blur-md flex items-center justify-center text-black dark:text-white hover:opacity-80 transition-all cursor-pointer shadow-xs"
+              title="Close"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 stroke-[2.2]" />
+            </button>
           </div>
+        </div>
 
-          {/* Row 1: Doctor Branding & Navigation Controls */}
-          <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5 relative z-20">
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-2 select-none">
-                <span className="font-serif font-bold text-[15px] sm:text-base tracking-wide text-white border-b-2 border-emerald-400 pb-0.5">
-                  Dr. Pratima Agale
-                </span>
-
-                {/* Compact Online Status Pill when Header is Collapsed */}
-                <div
-                  className={`flex items-center gap-1.5 transition-all duration-300 ${
-                    hasChatStarted
-                      ? "opacity-100 scale-100 translate-x-0 ml-1"
-                      : "opacity-0 scale-95 -translate-x-2 pointer-events-none w-0 overflow-hidden"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-400/30 text-[10.5px] font-medium text-emerald-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    CuraAI
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleResetChat}
-                className="p-1.5 rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
-                title="Reset conversation"
-                aria-label="Reset conversation"
-              >
-                <RotateCcw className="w-4 h-4 stroke-[2.2]" />
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1.5 rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
-                title="Close"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5 stroke-[2.2]" />
-              </button>
+        {/* Dropdown Menu when Hamburger is Clicked */}
+        {showMenu && (
+          <div className="absolute top-12 left-4 z-50 w-64 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-2 text-zinc-800 dark:text-zinc-200 text-xs animate-in fade-in zoom-in-95 duration-150">
+            <button
+              type="button"
+              onClick={handleBookNow}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-indigo-50 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
+            >
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <span className="font-semibold text-indigo-950 dark:text-indigo-300">
+                Book Video Consultation
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={handleResetChat}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
+            >
+              <RotateCcw className="w-4 h-4 text-zinc-500" />
+              <span>Start New Conversation</span>
+            </button>
+            <a
+              href="tel:+919136509988"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
+            >
+              <Phone className="w-4 h-4 text-zinc-500" />
+              <span>Call Clinic (+91 91365 09988)</span>
+            </a>
+            <div className="px-3 py-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-700 mt-1 flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <span>Clinic: 10:30 AM - 9:00 PM</span>
             </div>
           </div>
+        )}
 
-          {/* Dropdown Menu when Hamburger is Clicked */}
-          {showMenu && (
-            <div className="absolute top-12 left-4 z-50 w-64 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-2 text-zinc-800 dark:text-zinc-200 text-xs animate-in fade-in zoom-in-95 duration-150">
-              <button
-                type="button"
-                onClick={handleBookNow}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
-              >
-                <Calendar className="w-4 h-4 text-emerald-600" />
-                <span className="font-semibold text-emerald-950 dark:text-emerald-300">
-                  Book Video Consultation
+        {/* Row 2: Chatbot Preview Hero Card (Smoothly slides UP and collapses once chat starts) */}
+        <div
+          className={`transition-all duration-400 ease-in-out overflow-hidden px-4 ${
+            hasChatStarted
+              ? "max-h-0 opacity-0 -translate-y-4 pointer-events-none pb-0"
+              : "max-h-[240px] opacity-100 translate-y-0 pb-3"
+          }`}
+        >
+          <div className="relative rounded-3xl bg-black/[0.03] dark:bg-white/10 border border-black/10 dark:border-white/20 backdrop-blur-xl p-4 sm:p-5 flex items-center justify-between shadow-xs overflow-hidden">
+            {/* Left Column: Assistant Title & Companion Subtitle */}
+            <div className="flex flex-col gap-1 pr-2 relative z-10">
+              <h2 className="text-base sm:text-lg font-bold text-black dark:text-white leading-snug">
+                I&apos;m Nirvana, Dr. Pratima&apos;s
+              </h2>
+              <p className="text-xs sm:text-sm font-normal text-black/80 dark:text-white/90 leading-snug">
+                personal digital assistant.
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium tracking-wide">
+                  Your Personal Health Companion
                 </span>
-              </button>
-              <button
-                type="button"
-                onClick={handleResetChat}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
-              >
-                <RotateCcw className="w-4 h-4 text-zinc-500" />
-                <span>Start New Conversation</span>
-              </button>
-              <a
-                href="tel:+919136509988"
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer text-left"
-              >
-                <Phone className="w-4 h-4 text-zinc-500" />
-                <span>Call Clinic (+91 91365 09988)</span>
-              </a>
-              <div className="px-3 py-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-700 mt-1 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                <span>Clinic: 10:30 AM - 9:00 PM</span>
               </div>
             </div>
-          )}
 
-          {/* Row 2: Hero Greeting & CuraAI 3D Avatar (Smoothly slides UP and collapses once chat starts) */}
-          <div
-            className={`transition-all duration-400 ease-in-out overflow-hidden ${
-              hasChatStarted
-                ? "max-h-0 opacity-0 -translate-y-4 pointer-events-none pb-0"
-                : "max-h-[220px] opacity-100 translate-y-0 pb-2 sm:pb-3"
-            }`}
-          >
-            <div className="flex items-center justify-between px-4 sm:px-5 relative z-10 py-1 sm:py-2">
-              {/* Left Column: Blue House Icon + Assistant Title (Exact Feddy/Reference Layout) */}
-              <div className="flex items-center gap-3 pr-2">
-                
-                <div>
-                  <h2 className="text-sm sm:text-base font-bold text-white leading-snug">
-                    I&apos;m CuraAI, Dr. Pratima&apos;s
-                  </h2>
-                  <p className="text-xs sm:text-sm font-normal text-white/90 leading-snug mt-0.5">
-                    personal digital assistant.
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Column: CuraAI Doctor 3D Character */}
-              <div className="relative shrink-0 flex items-end justify-center">
-                <div className="relative w-24 h-28 sm:w-28 sm:h-32 pointer-events-none drop-shadow-md">
-                  <Image
-                    src="/cura-avatar.png"
-                    alt="CuraAI - Dr. Pratima's Digital Assistant"
-                    fill
-                    className="object-contain object-bottom"
-                    sizes="(max-width: 640px) 96px, 112px"
-                    priority
-                  />
-                </div>
+            {/* Right Column: Avatar Doctor Character Waving */}
+            <div className="relative shrink-0 flex items-end justify-center">
+              <div className="relative w-28 h-32 sm:w-32 sm:h-36 pointer-events-none drop-shadow-md">
+                <Image
+                  src="/cura-avatar.png"
+                  alt="Nirvana - Personal Digital Assistant"
+                  fill
+                  className="object-contain object-bottom"
+                  sizes="(max-width: 640px) 112px, 128px"
+                  priority
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Action Chips Bar (Suggestions) - Smoothly hides once chat starts */}
+        {/* Row 3: Quick Action Navigation Capsule - Smoothly hides once chat starts */}
         <div
           onTouchMove={(e) => e.stopPropagation()}
-          className={`transition-all duration-300 ease-in-out shrink-0 overflow-hidden ${
+          className={`transition-all duration-300 ease-in-out shrink-0 overflow-hidden px-4 ${
             hasChatStarted
               ? "max-h-0 opacity-0 pointer-events-none py-0 -translate-y-2"
-              : "max-h-32 opacity-100 py-2.5 translate-y-0"
-          } px-3 bg-[#f4f7f4] dark:bg-[#121c15]`}
+              : "max-h-24 opacity-100 pb-3 translate-y-0"
+          }`}
         >
-          <div className="grid grid-cols-3 bg-[#def0e5] dark:bg-[#1c3024] rounded-2xl border border-[#cde5d5] dark:border-[#274633] p-1.5 sm:p-2 divide-x divide-[#c2ddcb] dark:divide-[#274633] shadow-xs">
+          <div className="rounded-full bg-black/[0.03] dark:bg-white/10 border border-black/10 dark:border-white/20 backdrop-blur-xl p-1 sm:p-1.5 flex items-stretch divide-x divide-black/10 dark:divide-white/20 shadow-xs">
             {/* Tab 1: Health Queries */}
             <button
               type="button"
@@ -718,10 +864,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                   "I have a health query about my symptoms. Can you help me understand them?"
                 )
               }
-              className="flex flex-col items-center justify-center text-center px-1 py-1 hover:bg-[#d0e6d7] dark:hover:bg-[#233d2e] rounded-xl transition cursor-pointer group"
+              className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer group"
             >
-              <Stethoscope className="w-5 h-5 text-[#184433] dark:text-emerald-300 group-hover:scale-105 transition-transform stroke-[2]" />
-              <span className="text-[11px] sm:text-xs font-semibold text-[#184433] dark:text-emerald-200 mt-1 line-clamp-1 leading-tight">
+              <Stethoscope className="w-5 h-5 text-black dark:text-white group-hover:scale-110 transition-transform stroke-[2]" />
+              <span className="text-[11px] sm:text-xs font-medium text-black dark:text-white mt-1 line-clamp-1 leading-tight">
                 Health Queries
               </span>
             </button>
@@ -734,11 +880,11 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                   "Can you explain how constitutional homeopathy guidance can treat root causes?"
                 )
               }
-              className="flex flex-col items-center justify-center text-center px-1 py-1 hover:bg-[#d0e6d7] dark:hover:bg-[#233d2e] rounded-xl transition cursor-pointer group"
+              className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer group"
             >
-              <Leaf className="w-5 h-5 text-[#184433] dark:text-emerald-300 group-hover:scale-105 transition-transform stroke-[2]" />
-              <span className="text-[11px] sm:text-xs font-semibold text-[#184433] dark:text-emerald-200 mt-1 line-clamp-1 leading-tight">
-                Homeopathy Guidance
+              <Leaf className="w-5 h-5 text-black dark:text-white group-hover:scale-110 transition-transform stroke-[2]" />
+              <span className="text-[11px] sm:text-xs font-medium text-black dark:text-white mt-1 line-clamp-1 leading-tight">
+                Homeopathy...
               </span>
             </button>
 
@@ -746,10 +892,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
             <button
               type="button"
               onClick={handleBookNow}
-              className="flex flex-col items-center justify-center text-center px-1 py-1 hover:bg-[#d0e6d7] dark:hover:bg-[#233d2e] rounded-xl transition cursor-pointer group"
+              className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer group"
             >
-              <Calendar className="w-5 h-5 text-[#184433] dark:text-emerald-300 group-hover:scale-105 transition-transform stroke-[2]" />
-              <span className="text-[11px] sm:text-xs font-semibold text-[#184433] dark:text-emerald-200 mt-1 line-clamp-1 leading-tight">
+              <Calendar className="w-5 h-5 text-black dark:text-white group-hover:scale-110 transition-transform stroke-[2]" />
+              <span className="text-[11px] sm:text-xs font-medium text-black dark:text-white mt-1 line-clamp-1 leading-tight">
                 Book Appointment
               </span>
             </button>
@@ -760,7 +906,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         <div
           ref={chatContainerRef}
           data-lenis-prevent
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain chat-scroll-area p-3.5 sm:p-4 space-y-3 bg-[#f4f7f4] dark:bg-[#121c15] touch-pan-y"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain chat-scroll-area p-3.5 sm:p-4 space-y-3 bg-transparent touch-pan-y"
           style={{
             WebkitOverflowScrolling: "touch",
             overscrollBehavior: "contain",
@@ -774,7 +920,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         >
           {/* Centered Date Badge matching Reference Image */}
           <div className="flex justify-center pt-0.5 pb-1">
-            <span className="px-3.5 py-0.5 rounded-full bg-[#d7e7de] dark:bg-[#1f3629] text-[#3d5a49] dark:text-emerald-300 text-[11px] font-medium shadow-2xs select-none">
+            <span className="px-4 py-0.5 rounded-full bg-black/5 dark:bg-white/15 border border-black/10 dark:border-white/20 backdrop-blur-md text-black/75 dark:text-white/85 text-[11px] font-medium shadow-2xs select-none">
               Today
             </span>
           </div>
@@ -798,36 +944,27 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           {/* Typing Indicator with Stop Generation Button */}
           {aiLoading && (
             <div className="flex items-center justify-between pl-2 pr-1 animate-in fade-in duration-200">
-              <div className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 italic bg-white/80 dark:bg-black/30 backdrop-blur-xs py-1.5 px-3 rounded-full shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:0.2s]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:0.4s]" />
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                  CuraAI is generating...
+              <div className="flex items-center gap-2 text-xs text-black/80 dark:text-white/90 italic bg-black/5 dark:bg-white/15 backdrop-blur-md border border-black/10 dark:border-white/20 py-1.5 px-3 rounded-full shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]" />
+                <span className="font-medium text-black dark:text-white">
+                  Nirvana is thinking...
                 </span>
               </div>
-              {/* <button
-                type="button"
-                onClick={handleStopGeneration}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 shadow-2xs transition-colors cursor-pointer text-xs font-medium"
-                title="Stop generating"
-              >
-                <Square className="w-3 h-3 fill-current text-red-500" />
-                <span>Stop</span>
-              </button> */}
             </div>
           )}
 
           {/* Consultation Ready CTA Card */}
           {analysis.readyToBook && (
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 shadow-md border border-emerald-300 dark:border-emerald-700 text-center space-y-2 mt-2">
-              <p className="text-xs font-semibold text-emerald-950 dark:text-emerald-200">
+            <div className="p-3.5 rounded-3xl bg-black/5 dark:bg-white/15 backdrop-blur-xl shadow-lg border border-emerald-500/30 text-center space-y-2 mt-2">
+              <p className="text-xs font-semibold text-black dark:text-white">
                 Symptom summary prepared for Dr. Pratima Agale.
               </p>
               <button
                 type="button"
                 onClick={handleBookNow}
-                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-[#184433] hover:bg-[#123628] text-white font-medium text-xs shadow-sm transition-all cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white dark:text-[#0d3326] font-semibold text-xs shadow-md transition-all cursor-pointer"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Book Video Consultation with Doctor</span>
@@ -841,13 +978,13 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         {/* Bottom Pill Input Bar matching Reference Image */}
         <div
           onTouchMove={(e) => e.stopPropagation()}
-          className="p-3 bg-[#f4f7f4] dark:bg-[#121c15] shrink-0 sticky bottom-0 pb-[max(12px,env(safe-area-inset-bottom))] touch-none"
+          className="p-3.5 bg-transparent shrink-0 sticky bottom-0 pb-[max(14px,env(safe-area-inset-bottom))] touch-none"
         >
-          {/* Quick Suggestions Chips matching Feddy reference pill (e.g. "Hi!") */}
+          {/* Quick Suggestions Chips matching Reference Image */}
           {!hasChatStarted && (
-            <div className="overflow-hidden pb-1 -mb-1">
+            <div className="overflow-hidden mb-2.5">
               <div
-                className="flex items-center gap-1.5 overflow-x-auto pb-4 -mb-4 px-0.5 no-scrollbar select-none"
+                className="flex items-center gap-2 overflow-x-auto py-1 px-0.5 no-scrollbar select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:!hidden [&::-webkit-scrollbar]:!w-0 [&::-webkit-scrollbar]:!h-0 [&::-webkit-scrollbar-track]:!bg-transparent [&::-webkit-scrollbar-thumb]:!bg-transparent"
                 style={{
                   scrollbarWidth: "none",
                   msOverflowStyle: "none",
@@ -856,7 +993,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                 <button
                   type="button"
                   onClick={() => handleSendMessage("Hi")}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-semibold text-[#184433] dark:text-emerald-300 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/20 backdrop-blur-md text-xs font-medium text-black dark:text-white shadow-xs transition-all cursor-pointer shrink-0"
                 >
                   <span>👋</span>
                   <span>Hi!</span>
@@ -864,7 +1001,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                 <button
                   type="button"
                   onClick={() => handleSendMessage("I am not feeling well")}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/20 backdrop-blur-md text-xs font-medium text-black dark:text-white shadow-xs transition-all cursor-pointer shrink-0"
                 >
                   <span>🤒</span>
                   <span>I&apos;m not feeling well</span>
@@ -872,7 +1009,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                 <button
                   type="button"
                   onClick={() => handleSendMessage("I have a health question")}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/20 backdrop-blur-md text-xs font-medium text-black dark:text-white shadow-xs transition-all cursor-pointer shrink-0"
                 >
                   <span>💬</span>
                   <span>Ask Doctor</span>
@@ -880,10 +1017,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
                 <button
                   type="button"
                   onClick={handleBookNow}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-zinc-800 border border-[#cde2d4] dark:border-emerald-950/80 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-2xs hover:bg-[#def0e5] dark:hover:bg-[#1c3024] transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/20 backdrop-blur-md text-xs font-medium text-black dark:text-white shadow-xs transition-all cursor-pointer shrink-0"
                 >
                   <span>📅</span>
-                  <span>Book Video Visit</span>
+                  <span>Book Video</span>
                 </button>
               </div>
             </div>
@@ -894,10 +1031,8 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="flex items-center rounded-full bg-white dark:bg-zinc-800 border border-[#cadfd2] dark:border-zinc-700 shadow-sm px-3.5 py-1.5 sm:py-2 gap-2.5 focus-within:border-[#184433] dark:focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-[#184433]/15 transition-all"
+            className="flex items-center rounded-full bg-black/[0.04] dark:bg-white/10 border border-black/10 dark:border-white/25 backdrop-blur-xl shadow-xs px-4 py-1.5 sm:py-2 gap-2.5 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/25 transition-all"
           >
-           
-
             {/* Input Field */}
             <input
               type="text"
@@ -906,7 +1041,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               placeholder="Ask Dr. Pratima's assistant..."
               disabled={aiLoading}
               autoComplete="off"
-              className="flex-1 bg-transparent text-[16px] sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none"
+              className="flex-1 bg-transparent text-[16px] sm:text-sm text-black dark:text-white placeholder:text-black/60 dark:placeholder:text-white/60 placeholder-black/60 dark:placeholder-white/60 focus:outline-none caret-black dark:caret-white"
               style={{ fontSize: "16px" }}
             />
 
@@ -915,7 +1050,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               <button
                 type="button"
                 onClick={handleStopGeneration}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-green-900 hover:bg-red-700 active:scale-95 text-white flex items-center justify-center shrink-0 transition-transform cursor-pointer shadow-xs"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white flex items-center justify-center shrink-0 transition-transform cursor-pointer shadow-md"
                 aria-label="Stop generating"
                 title="Stop generating"
               >
@@ -925,7 +1060,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               <button
                 type="submit"
                 disabled={!chatInput.trim()}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#184433] hover:bg-[#123628] active:scale-95 text-white flex items-center justify-center shrink-0 transition-transform disabled:opacity-40 disabled:hover:bg-[#184433] cursor-pointer shadow-xs"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#34d399] hover:bg-[#2ed093] active:scale-95 text-white flex items-center justify-center shrink-0 transition-all disabled:opacity-40 disabled:hover:bg-[#34d399] cursor-pointer shadow-[0_0_18px_rgba(52,211,153,0.55)]"
                 aria-label="Send message"
               >
                 <svg

@@ -277,7 +277,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       nodes.push(
         <ul key={`ul-${i}`} className="my-1.5 space-y-1 pl-4 list-disc marker:text-emerald-600 dark:marker:text-emerald-400 text-xs sm:text-sm">
           {listItems.map((item, idx) => (
-            <li key={idx} className="leading-relaxed text-zinc-800 dark:text-zinc-200">
+            <li key={idx} className="leading-relaxed text-black dark:text-white">
               {renderInlineText(item)}
             </li>
           ))}
@@ -296,7 +296,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       nodes.push(
         <ol key={`ol-${i}`} className="my-1.5 space-y-1 pl-4 list-decimal marker:text-emerald-700 dark:marker:text-emerald-400 marker:font-semibold text-xs sm:text-sm">
           {listItems.map((item, idx) => (
-            <li key={idx} className="leading-relaxed text-zinc-800 dark:text-zinc-200">
+            <li key={idx} className="leading-relaxed text-black dark:text-white">
               {renderInlineText(item)}
             </li>
           ))}
@@ -314,7 +314,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
     // 8. Regular text paragraph
     nodes.push(
-      <p key={`p-${i}`} className="leading-relaxed text-xs sm:text-sm text-zinc-800 dark:text-zinc-100 font-normal">
+      <p key={`p-${i}`} className="leading-relaxed text-xs sm:text-sm text-black dark:text-white font-normal">
         {renderInlineText(line)}
       </p>
     );

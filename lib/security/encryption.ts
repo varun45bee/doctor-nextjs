@@ -5,10 +5,17 @@ const IV_LENGTH = 12; // 96 bits for GCM
 const AUTH_TAG_LENGTH = 16;
 
 function getEncryptionKey(): Buffer {
-  const secret =
-    process.env.GOOGLE_ENCRYPTION_KEY ||
-    process.env.APP_SECRET ||
-    "default-insecure-encryption-key-for-dev-only-32bytes!";
+  const secret = process.env.GOOGLE_ENCRYPTION_KEY || process.env.APP_SECRET;
+
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FATAL_CONFIG_ERROR: GOOGLE_ENCRYPTION_KEY or APP_SECRET environment variable is strictly required in production."
+      );
+    }
+    // Local development fallback only
+    return crypto.createHash("sha256").update("dev-only-encryption-key-for-local-testing!").digest();
+  }
 
   // Derive a fixed 32-byte (256-bit) key using SHA-256
   return crypto.createHash("sha256").update(secret).digest();
@@ -59,11 +66,24 @@ export function decryptToken(encryptedPayload: string): string {
   return decrypted;
 }
 
+function getOAuthStateSecret(): string {
+  const secret = process.env.APP_SECRET || process.env.GOOGLE_ENCRYPTION_KEY;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FATAL_CONFIG_ERROR: APP_SECRET or GOOGLE_ENCRYPTION_KEY is strictly required for OAuth state signing in production."
+      );
+    }
+    return "dev-only-oauth-state-secret";
+  }
+  return secret;
+}
+
 /**
  * Generates an HMAC signature for OAuth state or sensitive verification tokens.
  */
 export function signOAuthState(payload: object): string {
-  const secret = process.env.APP_SECRET || "default-oauth-secret";
+  const secret = getOAuthStateSecret();
   const jsonStr = JSON.stringify(payload);
   const dataB64 = Buffer.from(jsonStr).toString("base64url");
   const signature = crypto
@@ -79,7 +99,7 @@ export function signOAuthState(payload: object): string {
  */
 export function verifyOAuthState<T = Record<string, unknown>>(state: string): T | null {
   if (!state || !state.includes(".")) return null;
-  const secret = process.env.APP_SECRET || "default-oauth-secret";
+  const secret = getOAuthStateSecret();
   const [dataB64, signature] = state.split(".");
 
   const expectedSig = crypto

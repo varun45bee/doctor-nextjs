@@ -344,7 +344,7 @@ export default function PatientProfilePage() {
                 1. Personal Details
               </h2>
               <p className="text-xs text-[var(--text-secondary)]">
-                Contact information for consultation reminders & Google Meet invites.
+                Contact information for consultation reminders & appointment updates.
               </p>
             </div>
           </div>

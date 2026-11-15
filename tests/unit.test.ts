@@ -78,22 +78,20 @@ test("Timezone Utilities: Past slot detection", () => {
   assert.strictEqual(futureSlot, false, "Future slot must return false");
 });
 
-test("Email & Notification Templates: Online Google Meet confirmation", () => {
+test("Email & Notification Templates: Online consultation confirmation", () => {
   const email = buildConfirmationEmail({
     patientName: "Aarav Patil",
     doctorName: "Dr. Pratima Agale",
     appointmentDate: "2026-11-20",
     appointmentTime: "11:00",
     consultationType: "online",
-    googleMeetUrl: "https://meet.google.com/abc-defg-hij",
     appointmentId: "appt_test_123",
     accessSecret: "secret_456",
   });
 
   assert.ok(email.subject.includes("Appointment Confirmed"));
   assert.ok(email.html.includes("Aarav Patil"));
-  assert.ok(email.html.includes("https://meet.google.com/abc-defg-hij"));
-  assert.ok(email.html.includes("Google Meet"));
+  assert.ok(email.html.includes("Online Video Consultation"));
 });
 
 test("Email & Notification Templates: Cancellation email", () => {
@@ -115,11 +113,9 @@ test("WhatsApp Messages: Online confirmation text format", () => {
     appointmentDate: "2026-11-20",
     appointmentTime: "15:00",
     consultationType: "online",
-    googleMeetUrl: "https://meet.google.com/xyz-uvwx-rst",
   });
 
   assert.ok(msg.includes("*CONFIRMED*"));
   assert.ok(msg.includes("Sneha Sharma"));
-  assert.ok(msg.includes("https://meet.google.com/xyz-uvwx-rst"));
-  assert.ok(msg.includes("Google Meet"));
+  assert.ok(msg.includes("Online Video Consultation"));
 });

@@ -6,9 +6,25 @@ import {
 } from "@/lib/notifications/patient-message";
 import { sendStatusEmail } from "@/lib/notifications/send-email";
 import { sendWhatsAppMessage } from "@/lib/notifications/send-whatsapp";
+import { authenticateDoctorRequest, verifyWorkerSecret } from "@/lib/security/api-auth";
 import type { AppointmentStatus } from "@/lib/types/appointment";
+
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
+    // 1. Enforce Doctor Authentication or Internal Worker Secret
+    if (!verifyWorkerSecret(req)) {
+      try {
+        await authenticateDoctorRequest(req);
+      } catch {
+        return NextResponse.json(
+          { error: "UNAUTHORIZED: Only authorized clinic personnel can dispatch patient notifications." },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await req.json();
     const {
       patientName,

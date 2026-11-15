@@ -36,14 +36,26 @@ export default function ChatMessage({
     message.timestamp ||
     new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+  // Defensive unwrap: if message content was accidentally raw JSON, extract the clean reply text
+  let cleanContent = message.content || "";
+  if (cleanContent.trim().startsWith("{") && cleanContent.includes('"reply"')) {
+    try {
+      const parsed = JSON.parse(cleanContent);
+      if (parsed.reply) cleanContent = parsed.reply;
+    } catch {
+      const match = cleanContent.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"/);
+      if (match) cleanContent = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+    }
+  }
+
   const handleCopyText = async () => {
     try {
-      await navigator.clipboard.writeText(message.content);
+      await navigator.clipboard.writeText(cleanContent);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const el = document.createElement("textarea");
-      el.value = message.content;
+      el.value = cleanContent;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
@@ -53,17 +65,17 @@ export default function ChatMessage({
     }
   };
 
-  // Patient / User message bubble (Deep forest green matching reference screenshot)
+  // Patient / User message bubble (Frosted glass bubble)
   if (!isBot) {
     return (
       <div className="flex justify-end select-text animate-in fade-in slide-in-from-bottom-2 duration-200">
-        <div className="max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-tr-xs px-4 py-2.5 bg-[#184433] text-white shadow-xs">
+        <div className="max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-tr-xs px-4 py-2.5 bg-black/5 dark:bg-white/20 backdrop-blur-xl border border-black/10 dark:border-white/30 text-black dark:text-white shadow-xs">
           <p className="text-xs sm:text-sm font-normal leading-relaxed whitespace-pre-wrap break-words">
             {message.content}
           </p>
-          <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-emerald-100/75 select-none">
+          <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-black/60 dark:text-white/70 select-none">
             <span>{timeDisplay}</span>
-            <CheckCheck className="w-3.5 h-3.5 text-[#34d399] stroke-[2.5]" />
+            <CheckCheck className="w-3.5 h-3.5 text-black/70 dark:text-white/90 stroke-[2.5]" />
           </div>
         </div>
       </div>
@@ -73,20 +85,20 @@ export default function ChatMessage({
   const hasGif = Boolean(message.gif);
   const isGifLoading = Boolean(message.isGifLoading && !hasGif);
   const isShortMessage =
-    message.content.length <= 320 &&
-    !message.content.includes("###") &&
-    !message.content.includes("|") &&
-    !message.content.includes("\n\n");
+    cleanContent.length <= 320 &&
+    !cleanContent.includes("###") &&
+    !cleanContent.includes("|") &&
+    !cleanContent.includes("\n\n");
   const useSideLayout = (hasGif || isGifLoading) && isShortMessage;
 
-  // Assistant message bubble (Clean white card with Dr. Pratima CuraAI circular avatar)
+  // Assistant message bubble (Frosted translucent glass card)
   return (
     <div className="flex gap-2.5 items-start justify-start select-text animate-in fade-in slide-in-from-bottom-2 duration-200 group">
-      {/* CuraAI Avatar Badge (Transparent background - only picture of her) */}
-      <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 border border-[#c6dfce]/60 dark:border-emerald-800 bg-transparent shadow-xs">
+      {/* Nirvana Avatar Badge */}
+      <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 border border-black/10 dark:border-white/30 bg-black/5 dark:bg-white/10 shadow-xs">
         <Image
           src="/cura-avatar.png"
-          alt="CuraAI"
+          alt="Nirvana"
           fill
           className="object-cover object-top"
           sizes="32px"
@@ -95,26 +107,26 @@ export default function ChatMessage({
 
       {/* Assistant Bubble Card: Side-by-side Feddy layout for short/greeting messages, or vertical for long clinical messages */}
       {useSideLayout ? (
-        <div className="max-w-[94%] sm:max-w-[88%] rounded-2xl sm:rounded-3xl rounded-tl-xs bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.05)] border border-[#e4ede7] dark:border-zinc-700/60 overflow-hidden flex flex-row items-stretch">
+        <div className="max-w-[94%] sm:max-w-[88%] rounded-2xl sm:rounded-3xl rounded-tl-xs bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25 overflow-hidden flex flex-row items-stretch">
           {/* Left Text Column */}
           <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0">
-            <div className="text-xs sm:text-sm leading-relaxed text-[#1e2e25] dark:text-zinc-100 break-words pr-2">
-              <MarkdownRenderer content={message.content} />
+            <div className="text-xs sm:text-sm leading-relaxed text-black dark:text-white break-words pr-2">
+              <MarkdownRenderer content={cleanContent} />
             </div>
 
             {/* Action Toolbar */}
-            <div className="flex items-center justify-between mt-2.5 pt-1 border-t border-zinc-100/80 dark:border-zinc-700/50 text-[10px] text-zinc-400 select-none">
+            <div className="flex items-center justify-between mt-2.5 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none">
               <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                 <button
                   type="button"
                   onClick={handleCopyText}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                   title="Copy response"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
+                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">Copied</span>
                     </>
                   ) : (
                     <>
@@ -125,14 +137,14 @@ export default function ChatMessage({
                 </button>
 
               </div>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+              <span className="text-[10px] text-black/60 dark:text-white/60 font-medium">
                 {timeDisplay}
               </span>
             </div>
           </div>
 
           {/* Right Side GIF Column (Federal Bank Feddy Layout) */}
-          <div className="w-28 sm:w-36 md:w-44 shrink-0 self-stretch relative bg-zinc-100 dark:bg-zinc-900 border-l border-zinc-100 dark:border-zinc-700/50">
+          <div className="w-28 sm:w-36 md:w-44 shrink-0 self-stretch relative bg-black/5 dark:bg-white/10 border-l border-black/10 dark:border-white/15">
             {hasGif ? (
               <GifReaction
                 gif={message.gif!}
@@ -147,15 +159,15 @@ export default function ChatMessage({
           </div>
         </div>
       ) : (
-        <div className="max-w-[88%] sm:max-w-[82%] rounded-2xl rounded-tl-xs p-3.5 sm:p-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#e4ede7] dark:border-zinc-700/60">
+        <div className="max-w-[88%] sm:max-w-[82%] rounded-2xl rounded-tl-xs p-3.5 sm:p-4 bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25">
           {/* Assistant Response with Enterprise Markdown Rendering */}
-          <div className="text-xs sm:text-sm leading-relaxed text-[#1e2e25] dark:text-zinc-100 break-words">
-            <MarkdownRenderer content={message.content} />
+          <div className="text-xs sm:text-sm leading-relaxed text-black dark:text-white break-words">
+            <MarkdownRenderer content={cleanContent} />
           </div>
 
           {/* Loading placeholder when GIF is loading asynchronously */}
           {isGifLoading && (
-            <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-700/50">
+            <div className="mt-3 pt-2 border-t border-black/10 dark:border-white/15">
               <div className="max-w-[240px] rounded-xl overflow-hidden">
                 <GifLoading />
               </div>
@@ -172,19 +184,19 @@ export default function ChatMessage({
           )}
 
           {/* Action Toolbar: Copy Response, Regenerate & Timestamp */}
-          <div className="flex items-center justify-between mt-2 pt-1 border-t border-zinc-100/80 dark:border-zinc-700/50 text-[10px] text-zinc-400 select-none">
+          <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none">
             <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
               {/* Copy Button */}
               <button
                 type="button"
                 onClick={handleCopyText}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                 title="Copy response"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">
                       Copied
                     </span>
                   </>
@@ -201,7 +213,7 @@ export default function ChatMessage({
 
             {/* Timestamp */}
             {!hasGif && (
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium ml-auto">
+              <span className="text-[10px] text-black/50 dark:text-white/50 font-medium ml-auto">
                 {timeDisplay}
               </span>
             )}

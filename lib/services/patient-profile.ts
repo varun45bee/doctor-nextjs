@@ -12,9 +12,14 @@ import {
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../firebase.ts";
-import { calculateProfileCompletion } from "../types/patient.ts";
-import type { UserProfile, MedicalRecord } from "../types/patient.ts";
+import { db } from "../firebase";
+import {
+  calculateProfileCompletion,
+  type UserProfile,
+  type MedicalRecord,
+  type UserRole,
+  type UserStatus,
+} from "../types/patient";
 
 /**
  * Fetch patient profile document from Firestore `users/{uid}`
@@ -63,30 +68,64 @@ export async function getPatientProfileByEmail(email: string): Promise<UserProfi
 }
 
 /**
- * Initial creation on first login without overwriting existing data.
+ * Initial creation on first login or signup without overwriting existing data.
  */
 export async function initializePatientProfileIfNew(user: {
   uid: string;
   email: string | null;
   displayName: string | null;
-  photoURL: string | null;
+  photoURL?: string | null;
+  profileImage?: string | null;
+  provider?: string;
+  emailVerified?: boolean;
+  role?: UserRole;
+  status?: UserStatus;
 }): Promise<UserProfile> {
   const docRef = doc(db, "users", user.uid);
   const snap = await getDoc(docRef);
 
+  const img = user.profileImage || user.photoURL || null;
+  const prov = user.provider || "google.com";
+  const verified = Boolean(user.emailVerified);
+  const userRole = user.role || "patient";
+  const userStatus = user.status || "active";
+
   if (snap.exists()) {
     const existing = snap.data() as UserProfile;
-    // If it exists, return it as-is (do not overwrite patient customizations)
-    return { ...existing, uid: snap.id };
+    // Update verification status and provider if needed without overwriting existing patient data
+    const syncUpdates: Record<string, any> = {
+      updatedAt: serverTimestamp(),
+    };
+    if (verified && !existing.emailVerified) {
+      syncUpdates.emailVerified = true;
+    }
+    if (!existing.provider) {
+      syncUpdates.provider = prov;
+    }
+    if (!existing.status) {
+      syncUpdates.status = userStatus;
+    }
+    if (img && !existing.profileImage && !existing.photoURL) {
+      syncUpdates.profileImage = img;
+      syncUpdates.photoURL = img;
+    }
+    if (Object.keys(syncUpdates).length > 1) {
+      await updateDoc(docRef, syncUpdates);
+    }
+    return { ...existing, ...syncUpdates, uid: snap.id };
   }
 
   // Create new patient profile
   const newProfile: Omit<UserProfile, "uid"> = {
     fullName: user.displayName || "Patient",
-    email: user.email || "",
+    email: (user.email || "").trim().toLowerCase(),
     phone: "",
-    photoURL: user.photoURL || undefined,
-    role: "patient",
+    profileImage: img,
+    photoURL: img || undefined,
+    provider: prov,
+    emailVerified: verified,
+    role: userRole,
+    status: userStatus,
     profileCompleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -123,8 +162,9 @@ export async function updatePatientProfile(
     updatedAt: serverTimestamp(),
   };
 
-  // Ensure role cannot be elevated to doctor from client update
+  // Ensure role and status cannot be modified from client update
   delete cleanedUpdates.role;
+  delete cleanedUpdates.status;
   delete cleanedUpdates.uid;
 
   await updateDoc(docRef, cleanedUpdates);
