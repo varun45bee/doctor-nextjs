@@ -1,4 +1,6 @@
 import { retrieveClinicKnowledge } from "./rag/retriever.ts";
+import { PREDEFINED_CATEGORY_QUERIES } from "../giphy/categoryPools.ts";
+import { isSensitiveMedicalSituation } from "../giphy/reactionDetector.ts";
 
 export interface ConversationContextState {
   currentTopic: string;
@@ -216,13 +218,35 @@ HEALTHXCARE ENTERPRISE CLINICAL PRINCIPLES & SAFETY RULES
     - CRITICAL CLINIC RULE: There are NO physical in-clinic visits, walk-ins, or physical examination facilities. If a patient asks for a clinic address or asks to visit in person, politely and clearly explain that Dr. Pratima Agale now practices exclusively online to deliver accessible, individualized care directly to patients worldwide with doorstep medicine courier delivery.
     - Guide the patient naturally to book an online video consultation on the website when they are ready.
 
-13. CONTEXT-AWARE GIPHY SELECTION:
-    - Recommend an animated GIF ONLY when it genuinely enhances human warmth.
-    - STRICTLY SUPPRESS GIFs (gif.should_show = false) for:
-      * Medical emergencies.
-      * Informational / educational queries (e.g., "What causes fever?").
-      * Negation of symptoms (e.g., "I don't have fever").
-    - For valid emotional, greeting, recovery, or sympathy moments, provide a safe G-rated 3-5 word search query.
+13. CONTEXT-AWARE MEME & REACTION GIF ENGINE:
+    - Display relevant, expressive, funny, G-rated animated reaction GIFs matching the context of the user message and assistant reply:
+      * Greetings: cute hello, waving hand
+      * Questions & Puzzled: thinking, curious, scratching head
+      * Learning & Breakthroughs: mind blown, eureka, smart glasses, enlightened
+      * Technology & Coding: programmer typing, debugging, developer coffee
+      * Success & Milestones: celebration, victory dance, high five
+      * Mistakes & Facepalms: facepalm, funny disappointment, oops
+      * Humor & Entertainment: laughing, LOL, hilarious chuckle
+      * Surprise & Shock: wide-eyed, jaw dropped, astonished
+      * Appreciation & Wholesome: thank you, wholesome heart, warm gratitude
+      * Agreement & Approval: enthusiastic nodding, thumbs up, spot on
+      * Disagreement & Skeptical: funny side-eye, skeptical doubt
+      * Motivation & Energy: determined, let's go, hustle
+      * Sadness & Comfort: wholesome comforting hug, gentle support
+      * Stress & Calming: deep breath, soothing relaxation
+      * Fitness & Active: workout, hydration, athletic motivation
+      * Food & Dining: chef kiss, mouth watering, delicious craving
+      * Travel & Adventure: excited vacation packing, journey adventure
+      * Farewell: sweet goodbye, peaceful good night
+      * Gentle Clinical Care: caring sympathy for active symptom disclosures
+    - STRICT QUALITY & SAFETY SUPPRESSION RULES:
+      * NEVER display a GIF for medical emergencies (chest pain, stroke, breathing emergency, unconsciousness, suicide).
+      * NEVER display a GIF for sensitive or distressing situations (death, bereavement, hospice, cancer diagnosis, miscarriage, ICU) where humor or memes would trivialize the situation.
+      * NEVER display a GIF for serious informational/diagnostic medical questions (e.g., "What causes fever?").
+      * NEVER display a GIF for negated symptoms (e.g., "I don't have fever").
+      * NEVER display a GIF for profanity, insults, or abusive language.
+      * For neutral, purely factual, or low-confidence statements, suppress GIFs (set should_show = false).
+      * FIRST-MESSAGE ONLY RULE: Only display a GIF for the very first message/greeting of the conversation (turnCount <= 1 or when conversation history has no prior user messages). For all subsequent follow-up messages or turns in the conversation, ALWAYS set "should_show": false, "category": "none", "search_query": "". Never show GIFs after the first message.
 
 14. CHATGPT-LEVEL CONVERSATIONAL BRIEVITY & HUMAN WARMTH (HIGH PRIORITY):
     - Simple questions (definitions, clinic details, single facts): 1–3 clear sentences.
@@ -264,7 +288,7 @@ You MUST output valid, parseable JSON matching this schema:
   },
   "gif": {
     "should_show": true,
-    "category": "greeting | morning | caring | sympathy | comforting | recovery | celebration | appreciation | humor | fitness | farewell | none",
+    "category": "greeting | morning | afternoon | evening | caring | appointment | doctor | skincare | nutrition | wellness | pediatric | headache | fever | cold | stomach | body_pain | recovery | appreciation | humor | fitness | farewell | none",
     "search_query": "safe G-rated 3-5 word search query",
     "reason": "Brief reason for selection",
     "confidence": 0.95
@@ -290,7 +314,7 @@ You MUST output valid, parseable JSON matching this schema:
  * Enterprise Conversational Intelligence Engine
  * Generates rich, human-like, multi-turn clinical responses with dynamic GIPHY animated reactions.
  */
-export function generateEnterpriseConversationResponse(
+function _generateEnterpriseResponseCore(
   userMessage: string,
   history: Array<{ role: string; content: string }>,
   contextState?: Partial<ConversationContextState>
@@ -429,6 +453,44 @@ export function generateEnterpriseConversationResponse(
     };
   }
 
+  // 1b. SENSITIVE & DISTRESSING SITUATIONS (Death, bereavement, miscarriage, cancer, ICU)
+  if (isSensitiveMedicalSituation(normalizedLower)) {
+    return {
+      reply: "I am deeply sorry you are going through such a difficult and distressing situation. Please know that we are here to support you with gentle care and compassion. If you need dedicated medical guidance or a listening ear, Dr. Pratima's clinic is here for you.",
+      intent: "sensitive_support",
+      emotion: "concerned",
+      sentiment: "negative",
+      conversation_topic: "sensitive_care",
+      context_update: {
+        current_topic: "sensitive_care",
+        current_emotion: "concerned",
+        reported_symptoms: previousSymptoms,
+        recovery_status: "none",
+        duration: currentDuration,
+      },
+      gif: {
+        should_show: false,
+        category: "none",
+        search_query: "",
+        reason: "Sensitive or distressing medical situation: GIF strictly suppressed",
+        confidence: 1.0,
+      },
+      safety: {
+        is_medical: true,
+        is_emergency: false,
+        requires_professional_response: true,
+      },
+      analysis: {
+        detectedCondition: "Compassionate Sensitive Care",
+        duration: "Active",
+        severity: "Sensitive",
+        careStream: "Individualized Supportive Care",
+        prepTip: "We are here to support you with utmost care and gentleness.",
+        readyToBook: true,
+      },
+    };
+  }
+
   // 2. RECOVERY & SYMPTOM RESOLUTION CHECK
   if (RECOVERY_REGEX.test(lower)) {
     return {
@@ -541,10 +603,12 @@ export function generateEnterpriseConversationResponse(
           recovery_status: "none",
         },
         gif: {
-          should_show: false,
-          category: "none",
-          search_query: "",
-          reason: "Factual clinic inquiry: GIF suppressed",
+          should_show: true,
+          category: /dr\.?\s*pratima|doctor|qualification|experience/i.test(normalizedLower) ? "doctor" : "appointment",
+          search_query: /dr\.?\s*pratima|doctor|qualification|experience/i.test(normalizedLower)
+            ? PREDEFINED_CATEGORY_QUERIES.doctor
+            : PREDEFINED_CATEGORY_QUERIES.appointment,
+          reason: "Warm visual guidance for clinic appointment inquiry",
           confidence: 0.95,
         },
         safety: {
@@ -631,10 +695,10 @@ export function generateEnterpriseConversationResponse(
         recovery_status: "not_recovered",
       },
       gif: {
-        should_show: false,
-        category: "none",
-        search_query: "",
-        reason: "Duration follow-up: keeping conversation focused on intake",
+        should_show: true,
+        category: "caring",
+        search_query: PREDEFINED_CATEGORY_QUERIES.caring,
+        reason: "Supportive caring presence for medical follow-up",
         confidence: 0.9,
       },
       safety: {
@@ -699,28 +763,28 @@ export function generateEnterpriseConversationResponse(
       reply = "Mujhe samajh aa raha hai ki aap bohot pareshan hain. Ye kitne time se ho raha hai aur kya aaram mil raha hai?";
     } else if (hasFever && hasHeadache) {
       reply = "I understand how uncomfortable a fever and headache can be. How high has your temperature been, and how long have you been experiencing this?";
-      category = "caring";
-      searchQuery = "caring sick fever thermometer cartoon";
+      category = "headache";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.headache;
     } else if (hasFever) {
       reply = "I understand that can be exhausting. How high has your fever been, and are you experiencing chills or body aches alongside it?";
-      category = "caring";
-      searchQuery = "caring sick thermometer rest cartoon";
+      category = "fever";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.fever;
     } else if (hasHeadache) {
       reply = "Headaches can be very draining. Is the pain throbbing, sharp, or dull, and does bright light or noise make it feel worse?";
-      category = "sympathy";
-      searchQuery = "gentle headache rest sympathy character";
+      category = "headache";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.headache;
     } else if (hasCold) {
       reply = "Catching a cold can be so uncomfortable. Is it a dry cough or runny nose, and do you feel any throat irritation?";
-      category = "caring";
-      searchQuery = "stay warm tea cozy caring cartoon";
+      category = "cold";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.cold;
     } else if (hasStomach) {
       reply = "I'm sorry you are dealing with stomach discomfort. Is it sharp or cramping, and does warmth or resting help relieve it?";
-      category = "caring";
-      searchQuery = "gentle comforting hug caring cartoon";
+      category = "stomach";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.stomach;
     } else if (hasBodyPain) {
       reply = "Body aches can really slow you down. Are the aches all over, and does rest make them feel any better?";
-      category = "caring";
-      searchQuery = "get well rest caring cartoon";
+      category = "body_pain";
+      searchQuery = PREDEFINED_CATEGORY_QUERIES.body_pain;
     }
 
     return {
@@ -776,7 +840,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "comforting",
+        category: "stomach",
         search_query: "warm friendly hug caring cartoon",
         reason: "Patient expressed feeling lonely",
         confidence: 0.95,
@@ -804,7 +868,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "comforting",
+        category: "stomach",
         search_query: "comforting warm hug caring cartoon",
         reason: "Patient expressed sadness or crying",
         confidence: 0.95,
@@ -832,7 +896,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "comforting",
+        category: "stomach",
         search_query: "breathe calm relax soothing cartoon",
         reason: "Patient expressed stress or anxiety",
         confidence: 0.92,
@@ -860,7 +924,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "celebration",
+        category: "recovery",
         search_query: "happy dancing celebration cartoon",
         reason: "Patient expressed happiness and positive mood",
         confidence: 0.95,
@@ -888,7 +952,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "entertainment",
+        category: "humor",
         search_query: "funny dancing cartoon",
         reason: "Patient expressed boredom",
         confidence: 0.9,
@@ -916,7 +980,7 @@ export function generateEnterpriseConversationResponse(
       },
       gif: {
         should_show: true,
-        category: "tired",
+        category: "farewell",
         search_query: "cozy sleepy bedtime rest cartoon",
         reason: "Patient expressed fatigue or sleepiness",
         confidence: 0.9,
@@ -1144,11 +1208,11 @@ export function generateEnterpriseConversationResponse(
       duration: currentDuration,
     },
     gif: {
-      should_show: false,
-      category: "none",
-      search_query: "",
-      reason: "No confident intent detected: GIF suppressed",
-      confidence: 0,
+      should_show: true,
+      category: "wellness",
+      search_query: PREDEFINED_CATEGORY_QUERIES.wellness,
+      reason: "Warm welcoming presence for general consultation",
+      confidence: 0.85,
     },
     safety: {
       is_medical: true,
@@ -1164,6 +1228,32 @@ export function generateEnterpriseConversationResponse(
       readyToBook: false,
     },
   };
+}
+
+export function generateEnterpriseConversationResponse(
+  userMessage: string,
+  history: Array<{ role: string; content: string }>,
+  contextState?: Partial<ConversationContextState>
+): GroqChatbotResponse {
+  const response = _generateEnterpriseResponseCore(userMessage, history, contextState);
+  const priorUserTurns = Array.isArray(history)
+    ? history.filter((m) => m.role === "user").length
+    : 0;
+  const isSubsequentTurn = priorUserTurns > 1;
+
+  if (isSubsequentTurn) {
+    return {
+      ...response,
+      gif: {
+        should_show: false,
+        category: "none",
+        search_query: "",
+        reason: "Subsequent conversation turn: GIFs only permitted on first interaction",
+        confidence: 1.0,
+      },
+    };
+  }
+  return response;
 }
 
 /**
@@ -1310,6 +1400,14 @@ export function validateAndSanitizeGroqResponse(
     reason = "Medical emergency: strictly suppressed all GIFs";
   }
 
+  // 1b. SENSITIVE / DISTRESSING OVERRIDE (e.g. death, grief, cancer, miscarriage, ICU):
+  if (isSensitiveMedicalSituation(userMessage)) {
+    should_show = false;
+    category = "none";
+    search_query = "";
+    reason = "Sensitive or distressing medical context: GIF suppressed to prioritize compassionate care";
+  }
+
   // 2. MEDICAL QUESTION OVERRIDE (e.g. "What causes fever?"):
   if (isMedicalQuestion && !isEmergency) {
     should_show = false;
@@ -1347,6 +1445,21 @@ export function validateAndSanitizeGroqResponse(
   if (confidence < 0.65) {
     should_show = false;
     search_query = "";
+  }
+
+  // 6. FIRST-TURN ONLY RULE:
+  // Only the first message / interaction of the conversation is eligible for a GIF.
+  // After the first turn (when history already contains prior user turns or turnCount > 1), suppress all GIFs.
+  const priorUserTurns = Array.isArray(history)
+    ? history.filter((m) => m.role === "user").length
+    : 0;
+  const isSubsequentTurn = priorUserTurns > 1;
+
+  if (isSubsequentTurn) {
+    should_show = false;
+    category = "none";
+    search_query = "";
+    reason = "Subsequent conversation turn: GIFs only permitted on first interaction";
   }
 
   return {

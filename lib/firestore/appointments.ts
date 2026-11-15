@@ -8,15 +8,15 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
-import { updateAppointmentLookup } from "@/lib/appointment-lookup";
-import { db } from "@/lib/firebase";
+import { updateAppointmentLookup } from "../appointment-lookup.ts";
+import { db } from "../firebase.ts";
 import {
   normalizeAppointment,
   type Appointment,
   type AppointmentStatus,
   type Prescription,
   type ProgressLog,
-} from "@/lib/types/appointment";
+} from "../types/appointment.ts";
 
 export async function fetchAppointments(): Promise<Appointment[]> {
   const snapshot = await getDocs(
@@ -28,22 +28,46 @@ export async function fetchAppointments(): Promise<Appointment[]> {
   );
 }
 
+export type DateQuickFilter = "all" | "today" | "upcoming" | "past";
+
 export function filterAppointments(
   appointments: Appointment[],
   search: string,
-  status: AppointmentStatus | "all"
+  status: AppointmentStatus | "all",
+  mode: "all" | "online" | "in-person" = "all",
+  dateFilter: DateQuickFilter = "all"
 ): Appointment[] {
   const term = search.trim().toLowerCase();
 
+  // Current date in Asia/Kolkata (YYYY-MM-DD)
+  const todayStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
   return appointments.filter((appt) => {
-    const matchesStatus = status === "all" || appt.status === status;
-    if (!matchesStatus) return false;
+    // 1. Status Filter
+    if (status !== "all" && appt.status !== status) return false;
+
+    // 2. Mode Filter
+    if (mode !== "all" && appt.consultationType !== mode) return false;
+
+    // 3. Date Quick Filter
+    if (dateFilter === "today" && appt.appointmentDate !== todayStr) return false;
+    if (dateFilter === "upcoming" && (appt.appointmentDate || "") < todayStr) return false;
+    if (dateFilter === "past" && (appt.appointmentDate || "") >= todayStr) return false;
+
+    // 4. Search Term
     if (!term) return true;
 
     return (
-      appt.patientName.toLowerCase().includes(term) ||
-      appt.patientEmail.toLowerCase().includes(term) ||
-      appt.patientPhone.toLowerCase().includes(term)
+      Boolean(appt.patientName && appt.patientName.toLowerCase().includes(term)) ||
+      Boolean(appt.patientEmail && appt.patientEmail.toLowerCase().includes(term)) ||
+      Boolean(appt.patientPhone && appt.patientPhone.toLowerCase().includes(term)) ||
+      Boolean(appt.condition && appt.condition.toLowerCase().includes(term)) ||
+      Boolean(appt.id && appt.id.toLowerCase().includes(term))
     );
   });
 }
@@ -88,6 +112,15 @@ export async function saveAppointmentPrescription(
 ): Promise<void> {
   await updateDoc(doc(db, "appointments", id), {
     prescription,
+  });
+}
+
+export async function saveDoctorNotes(
+  id: string,
+  doctorNotes: string
+): Promise<void> {
+  await updateDoc(doc(db, "appointments", id), {
+    doctorNotes,
   });
 }
 

@@ -1,7 +1,18 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, Users, Heart, Award, FileText, CheckCircle2 } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Heart,
+  FileText,
+  CheckCircle2,
+  Calendar,
+  Activity,
+  AlertTriangle,
+  Globe,
+  PieChart,
+} from "lucide-react";
 import type { Appointment } from "@/lib/types/appointment";
 
 type DoctorAnalyticsProps = {
@@ -12,39 +23,82 @@ export default function DoctorAnalytics({ appointments }: DoctorAnalyticsProps) 
   const totalBookings = appointments.length;
 
   const analysis = useMemo(() => {
-    // 1. Condition Metrics
     const conditionsMap: Record<string, number> = {};
-    // 2. Age brackets: Pediatric (<13), Youth (13-24), Adult (25-59), Senior (60+)
-    const ageBrackets = { Pediatric: 0, Youth: 0, Adult: 0, Senior: 0, Unspecified: 0 };
-    // 3. Language preference
+    const ageBrackets = {
+      Pediatric: 0,
+      Youth: 0,
+      Adult: 0,
+      Senior: 0,
+      Unspecified: 0,
+    };
     const languages: Record<string, number> = {};
-    // 4. Status counts
-    const statusCounts = { Pending: 0, Confirmed: 0, Completed: 0, Cancelled: 0 };
+    const statusCounts = {
+      Pending: 0,
+      Confirmed: 0,
+      Completed: 0,
+      Cancelled: 0,
+      Failed: 0,
+    };
+    let totalSeverityScore = 0;
+    let totalLogsCount = 0;
 
     appointments.forEach((appt) => {
-      // Parse conditions (normalize common keywords)
+      // 1. Conditions
       const cond = appt.condition?.toLowerCase().trim() || "";
       let category = "General Consultation";
-      if (cond.includes("skin") || cond.includes("acne") || cond.includes("rash") || cond.includes("psoriasis") || cond.includes("eczema")) {
+      if (
+        cond.includes("skin") ||
+        cond.includes("acne") ||
+        cond.includes("rash") ||
+        cond.includes("psoriasis") ||
+        cond.includes("eczema")
+      ) {
         category = "Skin & Dermatological";
-      } else if (cond.includes("cough") || cond.includes("cold") || cond.includes("asthma") || cond.includes("allergy") || cond.includes("sinus")) {
+      } else if (
+        cond.includes("cough") ||
+        cond.includes("cold") ||
+        cond.includes("asthma") ||
+        cond.includes("allergy") ||
+        cond.includes("sinus")
+      ) {
         category = "Allergies & Respiratory";
-      } else if (cond.includes("hair") || cond.includes("alopecia") || cond.includes("scalp")) {
+      } else if (
+        cond.includes("hair") ||
+        cond.includes("alopecia") ||
+        cond.includes("scalp") ||
+        cond.includes("fall")
+      ) {
         category = "Hair & Trichology";
-      } else if (cond.includes("stomach") || cond.includes("digestion") || cond.includes("acidity") || cond.includes("gastric")) {
+      } else if (
+        cond.includes("stomach") ||
+        cond.includes("digestion") ||
+        cond.includes("acidity") ||
+        cond.includes("gastric") ||
+        cond.includes("constipation")
+      ) {
         category = "Gastrointestinal";
-      } else if (cond.includes("joint") || cond.includes("pain") || cond.includes("arthritis") || cond.includes("rheumatism")) {
+      } else if (
+        cond.includes("joint") ||
+        cond.includes("pain") ||
+        cond.includes("arthritis") ||
+        cond.includes("rheumatism") ||
+        cond.includes("back")
+      ) {
         category = "Joints & Rheumatology";
-      } else if (cond.includes("headache") || cond.includes("migraine")) {
+      } else if (
+        cond.includes("headache") ||
+        cond.includes("migraine")
+      ) {
         category = "Migraine & Neurological";
       } else if (cond) {
-        // Capitalize first letter of parsed condition
-        category = appt.condition ? appt.condition.charAt(0).toUpperCase() + appt.condition.slice(1) : "General Consultation";
+        category = appt.condition
+          ? appt.condition.charAt(0).toUpperCase() + appt.condition.slice(1)
+          : "General Consultation";
       }
 
       conditionsMap[category] = (conditionsMap[category] || 0) + 1;
 
-      // Parse Age
+      // 2. Age Profile
       if (appt.age) {
         const val = parseInt(appt.age, 10);
         if (isNaN(val)) {
@@ -62,147 +116,180 @@ export default function DoctorAnalytics({ appointments }: DoctorAnalyticsProps) 
         ageBrackets.Unspecified++;
       }
 
-      // Parse Language
-      const lang = appt.lang ? appt.lang.trim().toLowerCase() : "unspecified";
-      languages[lang] = (languages[lang] || 0) + 1;
+      // 3. Languages
+      const lang = appt.lang ? appt.lang.trim().toLowerCase() : "English";
+      const normalizedLang =
+        lang === "hi"
+          ? "Hindi"
+          : lang === "mr"
+          ? "Marathi"
+          : lang === "en" || lang === "english"
+          ? "English"
+          : lang.charAt(0).toUpperCase() + lang.slice(1);
+      languages[normalizedLang] = (languages[normalizedLang] || 0) + 1;
 
-      // Parse Status
+      // 4. Status
       if (appt.status in statusCounts) {
         statusCounts[appt.status as keyof typeof statusCounts]++;
       }
+
+      // 5. Progress logs average severity
+      if (appt.progressLogs && Array.isArray(appt.progressLogs)) {
+        appt.progressLogs.forEach((log) => {
+          if (typeof log.rating === "number" && !isNaN(log.rating)) {
+            totalSeverityScore += log.rating;
+            totalLogsCount++;
+          }
+        });
+      }
     });
 
-    // Sort conditions list by popularity
+    // Top conditions
     const sortedConditions = Object.entries(conditionsMap)
-      .map(([name, count]) => ({ name, count, percent: totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0 }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    // Sort languages
-    const sortedLanguages = Object.entries(languages)
-      .map(([name, count]) => ({ name: name === "unspecified" ? "Not Specified" : name, count, percent: totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0 }))
+      .map(([name, count]) => ({
+        name,
+        count,
+        percent: totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0,
+      }))
       .sort((a, b) => b.count - a.count);
+
+    // Languages
+    const sortedLanguages = Object.entries(languages)
+      .map(([name, count]) => ({
+        name,
+        count,
+        percent: totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    const activeCases = statusCounts.Pending + statusCounts.Confirmed;
+    const completionRate =
+      totalBookings > 0
+        ? Math.round((statusCounts.Completed / totalBookings) * 100)
+        : 0;
+    const cancellationRate =
+      totalBookings > 0
+        ? Math.round((statusCounts.Cancelled / totalBookings) * 100)
+        : 0;
+
+    const avgSeverity =
+      totalLogsCount > 0 ? (totalSeverityScore / totalLogsCount).toFixed(1) : null;
 
     return {
       sortedConditions,
       ageBrackets,
       sortedLanguages,
-      statusCounts
+      statusCounts,
+      activeCases,
+      completionRate,
+      cancellationRate,
+      avgSeverity,
+      totalLogsCount,
     };
   }, [appointments, totalBookings]);
 
-  // Fallback / Sample data if no bookings exist
-  const displayConditions = totalBookings > 0 ? analysis.sortedConditions : [
-    { name: "Skin & Dermatological", count: 12, percent: 40 },
-    { name: "Allergies & Respiratory", count: 8, percent: 27 },
-    { name: "Hair & Trichology", count: 5, percent: 17 },
-    { name: "Gastrointestinal", count: 3, percent: 10 },
-    { name: "Joints & Rheumatology", count: 2, percent: 6 },
-  ];
-
-  const displayAgeBrackets = totalBookings > 0 ? analysis.ageBrackets : {
-    Pediatric: 5, Youth: 7, Adult: 15, Senior: 3, Unspecified: 0
-  };
-
-  const displayLanguages = totalBookings > 0 ? analysis.sortedLanguages : [
-    { name: "English", count: 18, percent: 60 },
-    { name: "Marathi", count: 8, percent: 27 },
-    { name: "Hindi", count: 4, percent: 13 },
-  ];
-
-  const activePatients = displayConditions.reduce((acc, curr) => acc + curr.count, 0);
+  if (totalBookings === 0) {
+    return (
+      <div className="p-12 text-center rounded-2xl border border-[var(--border-color)] bg-[var(--bg-surface)] space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-sage-50 text-sage-600 dark:bg-sage-950/60 dark:text-sage-300 flex items-center justify-center mx-auto">
+          <PieChart className="w-6 h-6" />
+        </div>
+        <h3 className="font-bold text-base text-[var(--text-primary)]">
+          No Clinical Analytics Available Yet
+        </h3>
+        <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
+          As patients book online teleconsultations and complete appointments, genuine clinical statistics, demographics, and condition breakdowns will populate here automatically.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Visual KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
-            title: "Total Cases Analyzed",
+            title: "Total Appointments",
             value: totalBookings,
             subtitle: "Lifetime patient bookings",
             icon: FileText,
-            color: "text-sage-600 dark:text-sage-400 bg-sage-50 dark:bg-sage-900/30"
+            color: "text-sage-600 bg-sage-50 dark:bg-sage-950/60 dark:text-sage-300",
           },
           {
-            title: "Remedy Success Rate",
-            value: "94.2%",
-            subtitle: "Symptom resolution rate",
-            icon: Award,
-            color: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20"
+            title: "Active Consultations",
+            value: analysis.activeCases,
+            subtitle: "Pending & confirmed slots",
+            icon: Activity,
+            color: "text-blue-600 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-300",
           },
           {
-            title: "Active Consultation Cases",
-            value: activePatients,
-            subtitle: "Patients currently under review",
-            icon: Users,
-            color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-          },
-          {
-            title: "Completed Checkups",
-            value: totalBookings > 0 ? analysis.statusCounts.Completed : 15,
-            subtitle: "Completed treatment cycles",
+            title: "Completed Treatments",
+            value: analysis.statusCounts.Completed,
+            subtitle: `${analysis.completionRate}% completion rate`,
             icon: CheckCircle2,
-            color: "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20"
-          }
+            color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300",
+          },
+          {
+            title: "Cancellation Rate",
+            value: `${analysis.cancellationRate}%`,
+            subtitle: `${analysis.statusCounts.Cancelled} total cancelled`,
+            icon: AlertTriangle,
+            color: "text-rose-600 bg-rose-50 dark:bg-rose-950/60 dark:text-rose-300",
+          },
         ].map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
             <div
               key={idx}
-              className="p-5 rounded-2xl border flex items-center justify-between"
-              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
+              className="p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-surface)] shadow-xs flex items-center justify-between"
             >
               <div>
-                <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                   {kpi.title}
                 </p>
-                <h4 className="text-2xl font-bold mt-1.5" style={{ color: "var(--text-primary)" }}>
+                <h4 className="text-2xl font-bold mt-1 text-[var(--text-primary)]">
                   {kpi.value}
                 </h4>
-                <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                   {kpi.subtitle}
                 </p>
               </div>
-              <span className={`p-3 rounded-xl ${kpi.color}`}>
-                <Icon className="w-6 h-6" />
-              </span>
+              <div className={`p-3 rounded-2xl ${kpi.color}`}>
+                <Icon className="w-5 h-5" />
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Main Charts Row */}
+      {/* Analytics Breakdown Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Conditions Treated */}
-        <div
-          className="p-6 rounded-2xl border"
-          style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
-        >
-          <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: "var(--border-color)" }}>
-            <h3 className="font-serif text-md sm:text-lg font-semibold flex items-center gap-2" style={{ color: "var(--text-primary)", fontFamily: "'Cormorant Garamond', serif" }}>
-              <Heart className="w-5 h-5 text-red-500 shrink-0" />
-              Common Homeopathic Cases
+        <div className="p-6 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-surface)] shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
+            <h3 className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
+              <Heart className="w-4 h-4 text-rose-500" />
+              <span>Common Homeopathic Clinical Cases</span>
             </h3>
-            <span className="text-xs text-sage-600 dark:text-sage-400 font-semibold uppercase tracking-wider bg-sage-50 dark:bg-sage-900 px-2 py-0.5 rounded border border-sage-100 dark:border-sage-800">
-              Top Categories
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sage-50 text-sage-700 dark:bg-sage-950/60 dark:text-sage-300 border border-sage-200 dark:border-sage-800">
+              Verified Data
             </span>
           </div>
 
-          <div className="space-y-4">
-            {displayConditions.map((item, idx) => (
-              <div key={idx} className="space-y-1.5">
+          <div className="space-y-3.5">
+            {analysis.sortedConditions.slice(0, 6).map((item, idx) => (
+              <div key={idx} className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-semibold">
-                  <span style={{ color: "var(--text-primary)" }}>{item.name}</span>
-                  <span style={{ color: "var(--text-secondary)" }}>
-                    {item.count} Cases ({item.percent}%)
+                  <span className="text-[var(--text-primary)]">{item.name}</span>
+                  <span className="text-[var(--text-secondary)] font-mono">
+                    {item.count} {item.count === 1 ? "case" : "cases"} ({item.percent}%)
                   </span>
                 </div>
-                {/* Visual Bar Indicator */}
-                <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-[var(--bg-muted)] overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sage-500 to-teal-500 transition-all duration-1000 ease-out"
-                    style={{ width: `${item.percent}%` }}
+                    className="h-full rounded-full bg-sage-600 transition-all duration-700 ease-out"
+                    style={{ width: `${Math.max(item.percent, 4)}%` }}
                   />
                 </div>
               </div>
@@ -210,45 +297,45 @@ export default function DoctorAnalytics({ appointments }: DoctorAnalyticsProps) 
           </div>
         </div>
 
-        {/* Demographics: Age & Language */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Demographics & Patient Insights */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Age Brackets Card */}
-          <div
-            className="p-6 rounded-2xl border flex flex-col justify-between"
-            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
-          >
-            <div className="border-b pb-3 mb-4 flex items-center gap-2" style={{ borderColor: "var(--border-color)" }}>
-              <TrendingUp className="w-5 h-5 text-sage-500" />
-              <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+          <div className="p-6 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-surface)] shadow-xs flex flex-col justify-between">
+            <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-color)] mb-4">
+              <TrendingUp className="w-4 h-4 text-sage-600" />
+              <h3 className="font-bold text-sm text-[var(--text-primary)]">
                 Patient Age Profile
               </h3>
             </div>
 
-            <div className="space-y-3.5 flex-1">
+            <div className="space-y-3 flex-1">
               {[
-                { label: "Pediatric (<13 yrs)", val: displayAgeBrackets.Pediatric, color: "bg-teal-500" },
-                { label: "Young Adults (13-24)", val: displayAgeBrackets.Youth, color: "bg-blue-500" },
-                { label: "Adults (25-59)", val: displayAgeBrackets.Adult, color: "bg-sage-600" },
-                { label: "Seniors (60+)", val: displayAgeBrackets.Senior, color: "bg-amber-500" },
+                { label: "Pediatric (<13)", val: analysis.ageBrackets.Pediatric, color: "bg-teal-500" },
+                { label: "Youth (13–24)", val: analysis.ageBrackets.Youth, color: "bg-sky-500" },
+                { label: "Adult (25–59)", val: analysis.ageBrackets.Adult, color: "bg-sage-600" },
+                { label: "Senior (60+)", val: analysis.ageBrackets.Senior, color: "bg-amber-500" },
               ].map((bracket, idx) => {
-                const totalAge =
-                  displayAgeBrackets.Pediatric +
-                  displayAgeBrackets.Youth +
-                  displayAgeBrackets.Adult +
-                  displayAgeBrackets.Senior;
-                const percentage = totalAge > 0 ? Math.round((bracket.val / totalAge) * 100) : 25;
+                const totalReportedAge =
+                  analysis.ageBrackets.Pediatric +
+                  analysis.ageBrackets.Youth +
+                  analysis.ageBrackets.Adult +
+                  analysis.ageBrackets.Senior;
+                const pct =
+                  totalReportedAge > 0
+                    ? Math.round((bracket.val / totalReportedAge) * 100)
+                    : 0;
 
                 return (
-                  <div key={idx} className="flex flex-col gap-1 text-xs">
-                    <div className="flex justify-between text-zinc-500 font-semibold" style={{ color: "var(--text-secondary)" }}>
+                  <div key={idx} className="space-y-1 text-xs">
+                    <div className="flex justify-between font-semibold text-[var(--text-secondary)]">
                       <span>{bracket.label}</span>
-                      <span>{bracket.val} Patients</span>
+                      <span className="font-mono">{bracket.val}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${bracket.color}`} style={{ width: `${percentage}%` }} />
-                      </div>
-                      <span className="text-[10px] font-bold text-zinc-400 w-8 text-right">{percentage}%</span>
+                    <div className="h-1.5 w-full bg-[var(--bg-muted)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${bracket.color}`}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -257,28 +344,25 @@ export default function DoctorAnalytics({ appointments }: DoctorAnalyticsProps) 
           </div>
 
           {/* Languages Breakdown Card */}
-          <div
-            className="p-6 rounded-2xl border flex flex-col justify-between"
-            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-color)" }}
-          >
-            <div className="border-b pb-3 mb-4 flex items-center gap-2" style={{ borderColor: "var(--border-color)" }}>
-              <Users className="w-5 h-5 text-sage-500" />
-              <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                Language Preference
+          <div className="p-6 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-surface)] shadow-xs flex flex-col justify-between">
+            <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-color)] mb-4">
+              <Globe className="w-4 h-4 text-sage-600" />
+              <h3 className="font-bold text-sm text-[var(--text-primary)]">
+                Language Distribution
               </h3>
             </div>
 
-            <div className="space-y-4 flex-1">
-              {displayLanguages.map((lang, idx) => (
+            <div className="space-y-3.5 flex-1">
+              {analysis.sortedLanguages.map((lang, idx) => (
                 <div key={idx} className="space-y-1">
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="capitalize" style={{ color: "var(--text-primary)" }}>{lang.name}</span>
-                    <span style={{ color: "var(--text-muted)" }}>{lang.percent}%</span>
+                    <span className="text-[var(--text-primary)]">{lang.name}</span>
+                    <span className="text-[var(--text-muted)] font-mono">{lang.percent}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-[var(--bg-muted)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full bg-sage-500"
-                      style={{ width: `${lang.percent}%` }}
+                      style={{ width: `${Math.max(lang.percent, 3)}%` }}
                     />
                   </div>
                 </div>

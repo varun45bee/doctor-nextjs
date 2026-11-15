@@ -17,7 +17,15 @@ import {
 } from "lucide-react";
 import { useAppointment } from "@/lib/appointment-context";
 import { useAuth } from "@/lib/auth-context";
-import { detectContextualReaction, fetchReactionGif } from "@/lib/giphy/reactionDetector";
+import {
+  detectContextualReaction,
+  fetchReactionGif,
+  resolveReactionCategory,
+  isProfanity,
+  isEmergencySituation,
+  isSensitiveMedicalSituation,
+} from "@/lib/giphy/reactionDetector";
+import { PREDEFINED_CATEGORY_QUERIES } from "@/lib/giphy/categoryPools";
 import ChatMessage, { type ChatMessageType } from "@/components/chatbot/ChatMessage";
 import {
   generateEnterpriseConversationResponse,
@@ -440,10 +448,31 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
     const botMessageId = `bot-${Date.now()}`;
 
     // Contextual reaction pre-detection (synchronous, instant)
-    const detected = detectContextualReaction(textToSend);
-    const initialGifCategory = detected?.subType || detected?.categoryId || "";
-    const initialGifQuery = detected?.query || "";
-    const initialGifLoading = Boolean(initialGifQuery);
+    // FIRST-MESSAGE-ONLY GIF RULE:
+    // Only the very first user message of the conversation can show a GIF.
+    // If the user has already sent a message or a GIF was already displayed, suppress all GIFs.
+    const priorUserMessagesCount = chatMessages.filter((m) => m.role === "user").length;
+    const hasAlreadyShownGif = chatMessages.some((m) => Boolean(m.gif));
+    const isFirstTurn = priorUserMessagesCount === 0 && !hasAlreadyShownGif;
+
+    const isPro = isProfanity(textToSend);
+    const isEm = isEmergencySituation(textToSend);
+    const isSens = isSensitiveMedicalSituation(textToSend);
+    const isSuppressed = isPro || isEm || isSens || !isFirstTurn;
+    const detected = !isSuppressed && isFirstTurn
+      ? detectContextualReaction(textToSend, {
+          history: chatMessages.map((m) => ({ role: m.role, content: m.content })),
+        })
+      : null;
+    const detectedCategory = detected
+      ? resolveReactionCategory(detected.subType || detected.query || detected.categoryId)
+      : null;
+    const initialResolvedCategory = !isSuppressed && isFirstTurn && detectedCategory ? detectedCategory : null;
+    const initialGifCategory = initialResolvedCategory || "";
+    const initialGifQuery = initialResolvedCategory
+      ? PREDEFINED_CATEGORY_QUERIES[initialResolvedCategory]
+      : "";
+    const initialGifLoading = Boolean(isFirstTurn && initialResolvedCategory);
 
     const newMessages: ChatMessageType[] = [
       ...chatMessages,
@@ -460,8 +489,8 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       .map(String);
 
     let earlyGifPromise: Promise<any> | null = null;
-    if (initialGifLoading) {
-      earlyGifPromise = fetchReactionGif(initialGifCategory || initialGifQuery, {
+    if (initialGifLoading && initialResolvedCategory && isFirstTurn) {
+      earlyGifPromise = fetchReactionGif(initialResolvedCategory, {
         conversationId,
         recentGifIds: currentRecentGifIds,
       }).catch(() => null);
@@ -538,7 +567,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
             setAnalysis(finalMetadata.analysis);
           }
 
-          if (finalMetadata.gif?.should_show === false) {
+          const serverCategory = finalMetadata.gif?.category || finalMetadata.gif?.search_query;
+          const resolvedCategory = resolveReactionCategory(serverCategory || initialGifCategory) || initialResolvedCategory;
+
+          if (finalMetadata.gif?.should_show === false || !resolvedCategory || isSuppressed) {
             setChatMessages((prev) =>
               prev.map((m) =>
                 m.id === botMessageId
@@ -547,33 +579,21 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               )
             );
           } else {
-            let targetQuery = finalMetadata.gif?.search_query || initialGifQuery;
-            let detectedCategory = finalMetadata.gif?.category || initialGifCategory;
+            const reactionGif = (earlyGifPromise && resolvedCategory === initialResolvedCategory)
+              ? await earlyGifPromise
+              : await fetchReactionGif(resolvedCategory, {
+                  conversationId,
+                  recentGifIds: currentRecentGifIds,
+                  query: finalMetadata.gif?.search_query,
+                }).catch(() => null);
 
-            if (targetQuery) {
-              const reactionGif = earlyGifPromise
-                ? await earlyGifPromise
-                : await fetchReactionGif(detectedCategory || targetQuery, {
-                    conversationId,
-                    recentGifIds: currentRecentGifIds,
-                  }).catch(() => null);
-
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId
-                    ? { ...m, gif: reactionGif, isGifLoading: false }
-                    : m
-                )
-              );
-            } else {
-              setChatMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMessageId
-                    ? { ...m, isGifLoading: false }
-                    : m
-                )
-              );
-            }
+            setChatMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMessageId
+                  ? { ...m, gif: reactionGif, isGifLoading: false }
+                  : m
+              )
+            );
           }
         }
       } else {
@@ -593,16 +613,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
 
         if (res.ok) {
           const data = await res.json();
-          let targetQuery = "";
-          let detectedCategory = "";
-          if (data.gif?.should_show && data.gif?.search_query) {
-            targetQuery = data.gif.search_query;
-            detectedCategory = data.gif.category || data.gif.subType || "";
-          } else if (data.gif?.should_show !== false && initialGifQuery) {
-            targetQuery = initialGifQuery;
-            detectedCategory = initialGifCategory;
-          }
-          const shouldShowGif = Boolean(targetQuery);
+          const resolvedFallbackCategory = resolveReactionCategory(
+            data.gif?.category || data.gif?.search_query || initialGifCategory
+          ) || initialResolvedCategory;
+          const shouldShowGif = Boolean(data.gif?.should_show !== false && resolvedFallbackCategory && !isSuppressed);
 
           // Typewriter pacing ensures even non-streaming response streams smoothly
           const typewriter = createSmoothTypewriter(botMessageId, shouldShowGif);
@@ -621,10 +635,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
             setAnalysis(data.analysis);
           }
 
-          if (shouldShowGif) {
+          if (shouldShowGif && resolvedFallbackCategory) {
             const reactionGif = earlyGifPromise
               ? await earlyGifPromise
-              : await fetchReactionGif(detectedCategory || targetQuery, {
+              : await fetchReactionGif(resolvedFallbackCategory, {
                   conversationId,
                   recentGifIds: currentRecentGifIds,
                 }).catch(() => null);
@@ -633,6 +647,14 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
               prev.map((m) =>
                 m.id === botMessageId
                   ? { ...m, gif: reactionGif, isGifLoading: false }
+                  : m
+              )
+            );
+          } else {
+            setChatMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMessageId
+                  ? { ...m, isGifLoading: false, gif: null }
                   : m
               )
             );
@@ -653,7 +675,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         newMessages.map((m) => ({ role: m.role, content: m.content })),
         conversationContext
       );
-      const shouldShowGif = Boolean(fallback.gif?.should_show && fallback.gif?.search_query);
+      const resolvedOfflineCategory = resolveReactionCategory(
+        fallback.gif?.category || fallback.gif?.search_query || initialGifCategory
+      ) || initialResolvedCategory;
+      const shouldShowGif = Boolean(fallback.gif?.should_show !== false && resolvedOfflineCategory && !isSuppressed);
 
       const typewriter = createSmoothTypewriter(botMessageId, shouldShowGif);
       typewriter.setFullText(fallback.reply);
@@ -671,10 +696,10 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
         setAnalysis(fallback.analysis);
       }
 
-      if (shouldShowGif) {
+      if (shouldShowGif && resolvedOfflineCategory) {
         const reactionGif = earlyGifPromise
           ? await earlyGifPromise
-          : await fetchReactionGif(fallback.gif.category || fallback.gif.search_query, {
+          : await fetchReactionGif(resolvedOfflineCategory, {
               conversationId,
               recentGifIds: currentRecentGifIds,
             }).catch(() => null);
@@ -683,6 +708,14 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           prev.map((m) =>
             m.id === botMessageId
               ? { ...m, gif: reactionGif, isGifLoading: false }
+              : m
+          )
+        );
+      } else {
+        setChatMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMessageId
+              ? { ...m, isGifLoading: false, gif: null }
               : m
           )
         );

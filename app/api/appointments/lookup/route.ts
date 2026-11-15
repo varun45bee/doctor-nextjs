@@ -63,9 +63,12 @@ export async function POST(req: NextRequest) {
       ...apptSnap.data(),
     });
 
+    // Strip internal accessSecret from public phone lookup
+    const { accessSecret, ...sanitizedAppointment } = appointment;
+
     return NextResponse.json({
       success: true,
-      appointment,
+      appointment: sanitizedAppointment,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Lookup failed";

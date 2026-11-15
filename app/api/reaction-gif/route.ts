@@ -7,6 +7,16 @@ import {
   CURATED_CATEGORY_POOLS,
   selectGifFromPool,
 } from "@/lib/giphy/categoryPools";
+import {
+  resolveReactionCategory,
+  isProfanity,
+  isEmergencySituation,
+  isSensitiveMedicalSituation,
+} from "@/lib/giphy/reactionDetector";
+import {
+  getConversationRecentGifIds,
+  recordConversationRecentGifId,
+} from "@/lib/giphy/gifPersistence";
 
 export const dynamic = "force-dynamic";
 
@@ -42,39 +52,52 @@ export async function POST(req: NextRequest) {
     const {
       category,
       subType,
+      searchQuery,
+      query,
       conversationId,
       recentGifIds = [],
     }: {
       category?: string;
       subType?: string;
+      searchQuery?: string;
+      query?: string;
       conversationId?: string;
       recentGifIds?: string[];
     } = body;
 
-    // 1. Strict Intent Validation: If no confident category is provided, return NO GIF
-    if (!category || !(category in PREDEFINED_CATEGORY_QUERIES)) {
-      return NextResponse.json({ gif: null, reason: "No confident intent category" });
+    const rawTarget = (searchQuery || query || category || subType || "").trim();
+
+    // 0. Safety Boundary: Emergencies, sensitive distress, and profanity strictly suppress all GIFs
+    if (isProfanity(rawTarget) || isEmergencySituation(rawTarget) || isSensitiveMedicalSituation(rawTarget)) {
+      return NextResponse.json({ gif: null, reason: "Safety gate: emergency, distress, or profanity suppressed" });
     }
 
-    const catKey = category as ReactionCategory;
-    const predefinedQuery = PREDEFINED_CATEGORY_QUERIES[catKey];
+    // 1. Resolve Category and Search Query
+    const resolvedCategory = resolveReactionCategory(category || subType || rawTarget || "");
+    const catKey: ReactionCategory = resolvedCategory || "wellness";
+    
+    // Determine the safe G-rated search term
+    let effectiveQuery = PREDEFINED_CATEGORY_QUERIES[catKey];
+    if (searchQuery && typeof searchQuery === "string" && searchQuery.trim()) {
+      effectiveQuery = searchQuery.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
+    } else if (query && typeof query === "string" && query.trim()) {
+      effectiveQuery = query.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
+    }
 
-    // 2. Resolve recent GIF history for this conversation
+    // 2. Resolve recent GIF history for this conversation (Firestore + in-memory + client state)
     const historyKey = conversationId || "default_session";
-    const existingServerHistory = serverConversationHistory.get(historyKey) || [];
-    const combinedRecentIds = Array.from(
-      new Set([...existingServerHistory, ...recentGifIds.map(String)])
-    );
+    const combinedRecentIds = await getConversationRecentGifIds(historyKey, recentGifIds);
 
     // 3. Fetch or retrieve cached candidate GIFs from GIPHY
-    let liveGifs = serverCategoryCache.get(catKey);
+    const cacheKey = `${catKey}_${effectiveQuery}`;
+    let liveGifs = serverCategoryCache.get(cacheKey) || serverCategoryCache.get(catKey);
 
     if (!liveGifs || liveGifs.length === 0) {
       const client = getServerGiphyClient();
       if (client) {
         try {
-          // Strictly enforce rating: "g" and use predefined category search term
-          const response = await client.search(predefinedQuery, {
+          // Strictly enforce rating: "g"
+          const response = await client.search(effectiveQuery, {
             limit: 25,
             rating: "g",
             sort: "relevant",
@@ -82,16 +105,17 @@ export async function POST(req: NextRequest) {
           });
           if (response?.data && response.data.length > 0) {
             liveGifs = response.data;
+            serverCategoryCache.set(cacheKey, liveGifs);
             serverCategoryCache.set(catKey, liveGifs);
           }
         } catch (fetchErr) {
-          console.warn(`GIPHY API fetch warning for category "${catKey}":`, fetchErr);
+          console.warn(`GIPHY API fetch warning for query "${effectiveQuery}":`, fetchErr);
         }
       }
     }
 
     // 4. Combine live GIPHY results with curated category fallback pool (deduplicating by ID)
-    const curatedPool = CURATED_CATEGORY_POOLS[catKey] || [];
+    const curatedPool = CURATED_CATEGORY_POOLS[catKey] || CURATED_CATEGORY_POOLS.wellness || [];
     const mergedPool: IGif[] = [];
     const seenIds = new Set<string>();
 
@@ -112,25 +136,28 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Select non-repeating GIF using conversation history & rotation
-    const selectedGif = selectGifFromPool(catKey, mergedPool, combinedRecentIds);
+    const explicitLastId =
+      recentGifIds && recentGifIds.length > 0
+        ? String(recentGifIds[recentGifIds.length - 1])
+        : undefined;
+    const selectedGif = selectGifFromPool(catKey, mergedPool, combinedRecentIds, explicitLastId);
 
     if (!selectedGif) {
       return NextResponse.json({ gif: null, reason: "No GIF available in category pool" });
     }
 
-    // 6. Record the served GIF ID in conversation history
-    combinedRecentIds.push(String(selectedGif.id));
-    // Keep max 50 recent IDs to avoid unbounded memory growth
-    if (combinedRecentIds.length > 50) {
-      combinedRecentIds.splice(0, combinedRecentIds.length - 50);
-    }
-    serverConversationHistory.set(historyKey, combinedRecentIds);
+    // 6. Record the served GIF ID in persistent conversation history
+    const updatedRecentIds = await recordConversationRecentGifId(
+      historyKey,
+      String(selectedGif.id),
+      combinedRecentIds
+    );
 
     return NextResponse.json({
       gif: selectedGif,
       category: catKey,
       gifId: selectedGif.id,
-      recentGifIds: combinedRecentIds,
+      recentGifIds: updatedRecentIds,
     });
   } catch (err: unknown) {
     console.error("Error in /api/reaction-gif:", err);

@@ -1,14 +1,21 @@
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase.ts";
 
+export interface BlockedDate {
+  date: string; // YYYY-MM-DD
+  reason: string;
+}
+
 export interface AvailabilitySettings {
   weeklyDays: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   slots: string[]; // array of time slots, e.g. ["09:00", "10:00"]
+  blockedDates?: BlockedDate[];
 }
 
 const DEFAULT_AVAILABILITY: AvailabilitySettings = {
   weeklyDays: [1, 2, 3, 4, 5, 6], // Monday to Saturday
   slots: ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00", "19:00"],
+  blockedDates: [],
 };
 
 // Fetch availability configuration set by the doctor
@@ -22,6 +29,7 @@ export async function fetchAvailabilitySettings(): Promise<AvailabilitySettings>
       return {
         weeklyDays: data.weeklyDays ?? DEFAULT_AVAILABILITY.weeklyDays,
         slots: data.slots ?? DEFAULT_AVAILABILITY.slots,
+        blockedDates: Array.isArray(data.blockedDates) ? data.blockedDates : [],
       };
     }
   } catch (err) {
@@ -36,6 +44,7 @@ export async function saveAvailabilitySettings(settings: AvailabilitySettings): 
   await setDoc(docRef, {
     weeklyDays: settings.weeklyDays,
     slots: settings.slots,
+    blockedDates: settings.blockedDates ?? [],
     updatedAt: new Date(),
   });
 }

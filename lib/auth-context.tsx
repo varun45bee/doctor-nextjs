@@ -20,6 +20,7 @@ import {
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
+import { isAllowedDoctorEmail } from "@/lib/doctor-access";
 import { isDoctorEmail } from "@/lib/firestore/doctors";
 import {
   getPatientProfile,
@@ -185,9 +186,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: parsed.role || "patient",
             profileCompleted: Boolean(parsed.profileCompleted),
           };
+          const isDoc = parsed.role === "doctor" && isAllowedDoctorEmail(parsed.email || "");
+          const safeRole: UserRole = isDoc ? "doctor" : "patient";
+          restoredProfile.role = safeRole;
           setUserProfile(restoredProfile);
-          setRole(parsed.role || "patient");
-          setIsDoctor(parsed.role === "doctor");
+          setRole(safeRole);
+          setIsDoctor(isDoc);
 
           // Synthesize user object so UI reflects logged in immediately
           setUser((prev) =>

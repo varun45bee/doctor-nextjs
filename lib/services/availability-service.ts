@@ -27,9 +27,14 @@ const DEFAULT_SLOTS = [
 ];
 const DEFAULT_WEEKLY_DAYS = [1, 2, 3, 4, 5, 6]; // Monday to Saturday
 
+export interface BlockedDateEntry {
+  date: string;
+  reason: string;
+}
+
 export async function getDoctorAvailabilitySettings(
   doctorId?: string
-): Promise<{ weeklyDays: number[]; slots: string[] }> {
+): Promise<{ weeklyDays: number[]; slots: string[]; blockedDates?: BlockedDateEntry[] }> {
   const db = getAdminDb();
 
   // Try doctor-specific availability first, then clinic settings
@@ -42,6 +47,7 @@ export async function getDoctorAvailabilitySettings(
           return {
             weeklyDays: data.weeklyDays || DEFAULT_WEEKLY_DAYS,
             slots: data.slots,
+            blockedDates: Array.isArray(data.blockedDates) ? data.blockedDates : [],
           };
         }
       }
@@ -53,6 +59,7 @@ export async function getDoctorAvailabilitySettings(
       return {
         weeklyDays: data?.weeklyDays ?? DEFAULT_WEEKLY_DAYS,
         slots: data?.slots ?? DEFAULT_SLOTS,
+        blockedDates: Array.isArray(data?.blockedDates) ? data.blockedDates : [],
       };
     }
   } catch (err) {
@@ -62,6 +69,7 @@ export async function getDoctorAvailabilitySettings(
   return {
     weeklyDays: DEFAULT_WEEKLY_DAYS,
     slots: DEFAULT_SLOTS,
+    blockedDates: [],
   };
 }
 
@@ -73,8 +81,24 @@ export async function calculateDateAvailability(
     throw new Error(`Invalid date format: ${dateStr}. Expected YYYY-MM-DD.`);
   }
 
-  const { weeklyDays, slots: configuredSlots } =
+  const { weeklyDays, slots: configuredSlots, blockedDates } =
     await getDoctorAvailabilitySettings(doctorId);
+
+  // Check if date is explicitly marked as a blocked holiday/leave
+  const blocked = blockedDates?.find((b) => b.date === dateStr);
+  if (blocked) {
+    return {
+      date: dateStr,
+      doctorId,
+      isWorkingDay: false,
+      availableSlotsCount: 0,
+      slots: configuredSlots.map((time) => ({
+        time,
+        available: false,
+        reason: "day_closed",
+      })),
+    };
+  }
 
   const dayOfWeek = getDayOfWeekKolkata(dateStr);
   const isWorkingDay = weeklyDays.includes(dayOfWeek);

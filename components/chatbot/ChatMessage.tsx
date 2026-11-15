@@ -95,14 +95,14 @@ export default function ChatMessage({
   // Assistant message bubble (Frosted translucent glass card)
   return (
     <div className="flex gap-2.5 items-start justify-start select-text animate-in fade-in slide-in-from-bottom-2 duration-200 group">
-      {/* Nirvana Avatar Badge */}
-      <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 border border-black/10 dark:border-white/30 bg-black/5 dark:bg-white/10 shadow-xs">
+      {/* Nirvana Avatar Character (transparent cutout, no circular background or border) */}
+      <div className="relative w-8 h-9 shrink-0 mt-0.5 select-none pointer-events-none drop-shadow-xs">
         <Image
           src="/cura-avatar.png"
           alt="Nirvana"
           fill
-          className="object-cover object-top"
-          sizes="32px"
+          className="object-contain object-bottom"
+          sizes="36px"
         />
       </div>
 

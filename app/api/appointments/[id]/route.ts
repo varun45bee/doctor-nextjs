@@ -95,6 +95,8 @@ export async function PATCH(
       "prescription",
       "progressLogs",
       "message",
+      "doctorNotes",
+      "clinicalNotes",
     ];
 
     const updates: Record<string, unknown> = {

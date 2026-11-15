@@ -76,6 +76,7 @@ export interface Appointment {
   // Clinical EHR
   prescription?: Prescription;
   progressLogs?: ProgressLog[];
+  doctorNotes?: string;
 
   // Notifications & Audit
   notificationStatus?: NotificationDeliveryStatus;
@@ -129,6 +130,7 @@ export interface AppointmentWrite {
   consentGiven?: boolean;
   prescription?: Prescription;
   progressLogs?: ProgressLog[];
+  doctorNotes?: string;
 }
 
 export interface SlotLock {
@@ -264,5 +266,6 @@ export function normalizeAppointment(doc: RawAppointment): Appointment {
     // Clinical EHR
     prescription: data.prescription ? (data.prescription as Prescription) : undefined,
     progressLogs: data.progressLogs ? (data.progressLogs as ProgressLog[]) : undefined,
+    doctorNotes: data.doctorNotes ? String(data.doctorNotes) : (data.clinicalNotes ? String(data.clinicalNotes) : undefined),
   };
 }
