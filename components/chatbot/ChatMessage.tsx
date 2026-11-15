@@ -15,6 +15,7 @@ export type ChatMessageType = {
   gif?: IGif | null;
   isGifLoading?: boolean;
   timestamp?: string;
+  isStreaming?: boolean;
 };
 
 interface ChatMessageProps {
@@ -107,40 +108,47 @@ export default function ChatMessage({
 
       {/* Assistant Bubble Card: Side-by-side Feddy layout for short/greeting messages, or vertical for long clinical messages */}
       {useSideLayout ? (
-        <div className="max-w-[94%] sm:max-w-[88%] rounded-2xl sm:rounded-3xl rounded-tl-xs bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25 overflow-hidden flex flex-row items-stretch">
+        <div className="max-w-[94%] sm:max-w-[88%] rounded-2xl sm:rounded-3xl rounded-tl-xs bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25 overflow-hidden flex flex-row items-stretch transition-all duration-300 ease-out">
           {/* Left Text Column */}
           <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0">
             <div className="text-xs sm:text-sm leading-relaxed text-black dark:text-white break-words pr-2">
               <MarkdownRenderer content={cleanContent} />
+              {message.isStreaming && (
+                <span
+                  className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-500 rounded-xs animate-pulse align-middle"
+                  aria-hidden="true"
+                />
+              )}
             </div>
 
             {/* Action Toolbar */}
-            <div className="flex items-center justify-between mt-2.5 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none">
-              <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                <button
-                  type="button"
-                  onClick={handleCopyText}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
-                  title="Copy response"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3 stroke-[2]" />
-                      <span className="text-[10px]">Copy</span>
-                    </>
-                  )}
-                </button>
-
+            {!message.isStreaming && (
+              <div className="flex items-center justify-between mt-2.5 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none animate-in fade-in duration-200">
+                <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={handleCopyText}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                    title="Copy response"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 stroke-[2]" />
+                        <span className="text-[10px]">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <span className="text-[10px] text-black/60 dark:text-white/60 font-medium">
+                  {timeDisplay}
+                </span>
               </div>
-              <span className="text-[10px] text-black/60 dark:text-white/60 font-medium">
-                {timeDisplay}
-              </span>
-            </div>
+            )}
           </div>
 
           {/* Right Side GIF Column (Federal Bank Feddy Layout) */}
@@ -159,10 +167,16 @@ export default function ChatMessage({
           </div>
         </div>
       ) : (
-        <div className="max-w-[88%] sm:max-w-[82%] rounded-2xl rounded-tl-xs p-3.5 sm:p-4 bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25">
+        <div className="max-w-[88%] sm:max-w-[82%] rounded-2xl rounded-tl-xs p-3.5 sm:p-4 bg-black/[0.03] dark:bg-white/15 backdrop-blur-xl text-black dark:text-white shadow-xs border border-black/10 dark:border-white/25 transition-all duration-300 ease-out">
           {/* Assistant Response with Enterprise Markdown Rendering */}
           <div className="text-xs sm:text-sm leading-relaxed text-black dark:text-white break-words">
             <MarkdownRenderer content={cleanContent} />
+            {message.isStreaming && (
+              <span
+                className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-500 rounded-xs animate-pulse align-middle"
+                aria-hidden="true"
+              />
+            )}
           </div>
 
           {/* Loading placeholder when GIF is loading asynchronously */}
@@ -184,40 +198,40 @@ export default function ChatMessage({
           )}
 
           {/* Action Toolbar: Copy Response, Regenerate & Timestamp */}
-          <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none">
-            <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-              {/* Copy Button */}
-              <button
-                type="button"
-                onClick={handleCopyText}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
-                title="Copy response"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">
-                      Copied
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3 stroke-[2]" />
-                    <span className="text-[10px]">Copy</span>
-                  </>
-                )}
-              </button>
+          {!message.isStreaming && (
+            <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/10 dark:border-white/15 text-[10px] text-black/60 dark:text-white/60 select-none animate-in fade-in duration-200">
+              <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                {/* Copy Button */}
+                <button
+                  type="button"
+                  onClick={handleCopyText}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/15 text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                  title="Copy response"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-300 stroke-[2.5]" />
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-medium">
+                        Copied
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3 stroke-[2]" />
+                      <span className="text-[10px]">Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
-           
+              {/* Timestamp */}
+              {!hasGif && (
+                <span className="text-[10px] text-black/50 dark:text-white/50 font-medium ml-auto">
+                  {timeDisplay}
+                </span>
+              )}
             </div>
-
-            {/* Timestamp */}
-            {!hasGif && (
-              <span className="text-[10px] text-black/50 dark:text-white/50 font-medium ml-auto">
-                {timeDisplay}
-              </span>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>

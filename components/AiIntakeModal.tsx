@@ -96,6 +96,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const typewriterTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if conversation has started (user has sent at least one message)
   const hasChatStarted = chatMessages.some((m) => m.role === "user");
@@ -221,8 +222,23 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
 
   // Auto-scroll chat container to bottom when messages or loading state change
   useEffect(() => {
-    scrollToBottom(true);
+    // Only smooth-scroll when not actively streaming typewriter frames
+    if (!chatMessages.some((m) => m.isStreaming)) {
+      scrollToBottom(true);
+    }
   }, [chatMessages, aiLoading]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (typewriterTimerRef.current) {
+        clearInterval(typewriterTimerRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Scroll to bottom when header finishes collapsing
   useEffect(() => {
@@ -245,6 +261,13 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    if (typewriterTimerRef.current) {
+      clearInterval(typewriterTimerRef.current);
+      typewriterTimerRef.current = null;
+    }
+    setChatMessages((prev) =>
+      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
+    );
     setAiLoading(false);
   };
 
@@ -269,6 +292,139 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
     }, 40);
   };
 
+  // Helper to extract clean reply text from raw token stream or JSON
+  const extractCleanReply = (raw: string): string => {
+    if (!raw) return "";
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        const p = JSON.parse(trimmed);
+        if (typeof p.reply === "string") return p.reply;
+      } catch {
+        const m = raw.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"?/);
+        if (m) {
+          return m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+        }
+        return "";
+      }
+    }
+    return raw;
+  };
+
+  const createSmoothTypewriter = (
+    botMessageId: string,
+    initialGifLoading: boolean
+  ) => {
+    let targetText = "";
+    let displayedText = "";
+    let streamDone = false;
+    let messageInserted = false;
+
+    if (typewriterTimerRef.current) {
+      clearInterval(typewriterTimerRef.current);
+      typewriterTimerRef.current = null;
+    }
+
+    const appendChunk = (chunk: string) => {
+      targetText += chunk;
+    };
+
+    const setFullText = (text: string) => {
+      targetText = text;
+    };
+
+    const finishStream = () => {
+      streamDone = true;
+    };
+
+    const promise = new Promise<void>((resolve) => {
+      const timer = setInterval(() => {
+        const cleanTarget = extractCleanReply(targetText);
+
+        if (!messageInserted && cleanTarget.length > 0) {
+          messageInserted = true;
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              id: botMessageId,
+              role: "assistant",
+              content: "",
+              isGifLoading: initialGifLoading,
+              gif: null,
+              timestamp: formatCurrentTime(),
+              isStreaming: true,
+            },
+          ]);
+        }
+
+        if (displayedText.length < cleanTarget.length) {
+          const diff = cleanTarget.length - displayedText.length;
+          let step = 1;
+          if (diff > 160) {
+            step = Math.ceil(diff / 15);
+          } else if (diff > 80) {
+            step = 5;
+          } else if (diff > 40) {
+            step = 3;
+          } else if (diff > 15) {
+            step = 2;
+          } else {
+            step = 1;
+          }
+
+          displayedText = cleanTarget.slice(0, displayedText.length + step);
+
+          setChatMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMessageId
+                ? { ...m, content: displayedText, isStreaming: true }
+                : m
+            )
+          );
+
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          }
+        } else if (streamDone && (displayedText.length >= cleanTarget.length || cleanTarget.length === 0)) {
+          clearInterval(timer);
+          typewriterTimerRef.current = null;
+
+          if (!messageInserted) {
+            setChatMessages((prev) => [
+              ...prev,
+              {
+                id: botMessageId,
+                role: "assistant",
+                content: cleanTarget || "I am here to assist you with your health concerns.",
+                isGifLoading: initialGifLoading,
+                gif: null,
+                timestamp: formatCurrentTime(),
+                isStreaming: false,
+              },
+            ]);
+          } else {
+            setChatMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMessageId
+                  ? { ...m, content: cleanTarget, isStreaming: false }
+                  : m
+              )
+            );
+          }
+
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          }
+          resolve();
+        }
+      }, 18);
+
+      typewriterTimerRef.current = timer;
+    });
+
+    return { appendChunk, setFullText, finishStream, promise };
+  };
+
   const handleSendMessage = async (userText?: string) => {
     const textToSend = userText || chatInput.trim();
     if (!textToSend || aiLoading) return;
@@ -283,6 +439,12 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
     const userMessageId = `user-${Date.now()}`;
     const botMessageId = `bot-${Date.now()}`;
 
+    // Contextual reaction pre-detection (synchronous, instant)
+    const detected = detectContextualReaction(textToSend);
+    const initialGifCategory = detected?.subType || detected?.categoryId || "";
+    const initialGifQuery = detected?.query || "";
+    const initialGifLoading = Boolean(initialGifQuery);
+
     const newMessages: ChatMessageType[] = [
       ...chatMessages,
       { id: userMessageId, role: "user", content: textToSend, timestamp: currentTime },
@@ -290,6 +452,20 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
     setChatMessages(newMessages);
     setChatInput("");
     setAiLoading(true);
+
+    // Concurrently fetch reaction GIF in background so it loads seamlessly with zero layout jump
+    const currentRecentGifIds = chatMessages
+      .map((m) => m.gif?.id)
+      .filter(Boolean)
+      .map(String);
+
+    let earlyGifPromise: Promise<any> | null = null;
+    if (initialGifLoading) {
+      earlyGifPromise = fetchReactionGif(initialGifCategory || initialGifQuery, {
+        conversationId,
+        recentGifIds: currentRecentGifIds,
+      }).catch(() => null);
+    }
 
     try {
       // 1. Attempt Real-Time Token Streaming via /api/consult-ai/stream
@@ -309,21 +485,9 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       if (streamRes.ok && streamRes.body) {
         const reader = streamRes.body.getReader();
         const decoder = new TextDecoder();
-        let accumulatedReply = "";
         let finalMetadata: any = null;
 
-        // Add assistant placeholder to receive streamed tokens
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: botMessageId,
-            role: "assistant",
-            content: "",
-            isGifLoading: false,
-            gif: null,
-            timestamp: formatCurrentTime(),
-          },
-        ]);
+        const typewriter = createSmoothTypewriter(botMessageId, initialGifLoading);
 
         let streamDone = false;
         let sseBuffer = "";
@@ -346,23 +510,7 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
             try {
               const data = JSON.parse(trimmed.slice(6));
               if (data.token) {
-                accumulatedReply += data.token;
-                // If model output is wrapped in JSON, extract the clean reply field for streaming display
-                let textToDisplay = accumulatedReply;
-                if (textToDisplay.trim().startsWith("{")) {
-                  const match = textToDisplay.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"?/);
-                  if (match) {
-                    textToDisplay = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
-                  }
-                }
-                setChatMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMessageId
-                      ? { ...m, content: textToDisplay }
-                      : m
-                  )
-                );
-                scrollToBottom(false);
+                typewriter.appendChunk(data.token);
               }
               if (data.done) {
                 finalMetadata = data;
@@ -373,28 +521,11 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           }
         }
 
+        typewriter.finishStream();
+        await typewriter.promise;
+
         // Apply metadata updates from the stream completion
         if (finalMetadata) {
-          const rawFinalText = finalMetadata.fullText || accumulatedReply;
-          let cleanFinalText = rawFinalText;
-          if (cleanFinalText.trim().startsWith("{")) {
-            try {
-              const p = JSON.parse(cleanFinalText);
-              if (p.reply) cleanFinalText = p.reply;
-            } catch {
-              const m = cleanFinalText.match(/"reply"\s*:\s*"((?:\\.|[^"\\])*)"/);
-              if (m) cleanFinalText = m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
-            }
-          }
-
-          setChatMessages((prev) =>
-            prev.map((m) =>
-              m.id === botMessageId
-                ? { ...m, content: cleanFinalText }
-                : m
-            )
-          );
-
           if (finalMetadata.context_update) {
             setConversationContext((prev) => ({
               ...prev,
@@ -407,52 +538,42 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
             setAnalysis(finalMetadata.analysis);
           }
 
-          // Determine GIF reaction from server metadata or client contextual detector
-          let targetQuery = "";
-          let detectedCategory = "";
-          if (finalMetadata.gif?.should_show && finalMetadata.gif?.search_query) {
-            targetQuery = finalMetadata.gif.search_query;
-            detectedCategory = finalMetadata.gif.category || finalMetadata.gif.subType || "";
-          } else if (finalMetadata.gif?.should_show !== false) {
-            // Client contextual fallback detection ONLY if server didn't explicitly suppress GIFs
-            const detected = detectContextualReaction(textToSend);
-            if (detected && detected.query) {
-              targetQuery = detected.query;
-              detectedCategory = detected.subType || detected.categoryId || "";
-            }
-          }
-
-          if (targetQuery) {
-            const currentRecentGifIds = chatMessages
-              .map((m) => m.gif?.id)
-              .filter(Boolean)
-              .map(String);
-
+          if (finalMetadata.gif?.should_show === false) {
             setChatMessages((prev) =>
               prev.map((m) =>
-                m.id === botMessageId ? { ...m, isGifLoading: true } : m
+                m.id === botMessageId
+                  ? { ...m, isGifLoading: false, gif: null }
+                  : m
               )
             );
-            fetchReactionGif(detectedCategory || targetQuery, {
-              conversationId,
-              recentGifIds: currentRecentGifIds,
-            })
-              .then((reactionGif) => {
-                setChatMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMessageId
-                      ? { ...m, gif: reactionGif, isGifLoading: false }
-                      : m
-                  )
-                );
-              })
-              .catch(() => {
-                setChatMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMessageId ? { ...m, isGifLoading: false } : m
-                  )
-                );
-              });
+          } else {
+            let targetQuery = finalMetadata.gif?.search_query || initialGifQuery;
+            let detectedCategory = finalMetadata.gif?.category || initialGifCategory;
+
+            if (targetQuery) {
+              const reactionGif = earlyGifPromise
+                ? await earlyGifPromise
+                : await fetchReactionGif(detectedCategory || targetQuery, {
+                    conversationId,
+                    recentGifIds: currentRecentGifIds,
+                  }).catch(() => null);
+
+              setChatMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMessageId
+                    ? { ...m, gif: reactionGif, isGifLoading: false }
+                    : m
+                )
+              );
+            } else {
+              setChatMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMessageId
+                    ? { ...m, isGifLoading: false }
+                    : m
+                )
+              );
+            }
           }
         }
       } else {
@@ -477,24 +598,16 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           if (data.gif?.should_show && data.gif?.search_query) {
             targetQuery = data.gif.search_query;
             detectedCategory = data.gif.category || data.gif.subType || "";
-          } else if (data.gif?.should_show !== false) {
-            const detected = detectContextualReaction(textToSend);
-            if (detected && detected.query) {
-              targetQuery = detected.query;
-              detectedCategory = detected.subType || detected.categoryId || "";
-            }
+          } else if (data.gif?.should_show !== false && initialGifQuery) {
+            targetQuery = initialGifQuery;
+            detectedCategory = initialGifCategory;
           }
           const shouldShowGif = Boolean(targetQuery);
-          const assistantMessage: ChatMessageType = {
-            id: botMessageId,
-            role: "assistant",
-            content: data.reply || "I am here to guide your care. How can I help you today?",
-            isGifLoading: shouldShowGif,
-            gif: null,
-            timestamp: formatCurrentTime(),
-          };
 
-          setChatMessages((prev) => [...prev, assistantMessage]);
+          // Typewriter pacing ensures even non-streaming response streams smoothly
+          const typewriter = createSmoothTypewriter(botMessageId, shouldShowGif);
+          typewriter.setFullText(data.reply || "I am here to guide your care. How can I help you today?");
+          typewriter.finishStream();
 
           if (data.context_update) {
             setConversationContext((prev) => ({
@@ -509,31 +622,23 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           }
 
           if (shouldShowGif) {
-            const currentRecentGifIds = newMessages
-              .map((m) => m.gif?.id)
-              .filter(Boolean)
-              .map(String);
-            fetchReactionGif(detectedCategory || targetQuery, {
-              conversationId,
-              recentGifIds: currentRecentGifIds,
-            })
-              .then((reactionGif) => {
-                setChatMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMessageId
-                      ? { ...m, gif: reactionGif, isGifLoading: false }
-                      : m
-                  )
-                );
-              })
-              .catch(() => {
-                setChatMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMessageId ? { ...m, isGifLoading: false } : m
-                  )
-                );
-              });
+            const reactionGif = earlyGifPromise
+              ? await earlyGifPromise
+              : await fetchReactionGif(detectedCategory || targetQuery, {
+                  conversationId,
+                  recentGifIds: currentRecentGifIds,
+                }).catch(() => null);
+
+            setChatMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMessageId
+                  ? { ...m, gif: reactionGif, isGifLoading: false }
+                  : m
+              )
+            );
           }
+
+          await typewriter.promise;
         } else {
           throw new Error("Server returned non-ok");
         }
@@ -550,32 +655,9 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       );
       const shouldShowGif = Boolean(fallback.gif?.should_show && fallback.gif?.search_query);
 
-      setChatMessages((prev) => {
-        const exists = prev.some((m) => m.id === botMessageId);
-        if (exists) {
-          return prev.map((m) =>
-            m.id === botMessageId
-              ? {
-                  ...m,
-                  content: fallback.reply,
-                  isGifLoading: shouldShowGif,
-                  gif: null,
-                }
-              : m
-          );
-        }
-        return [
-          ...prev,
-          {
-            id: botMessageId,
-            role: "assistant",
-            content: fallback.reply,
-            isGifLoading: shouldShowGif,
-            gif: null,
-            timestamp: formatCurrentTime(),
-          },
-        ];
-      });
+      const typewriter = createSmoothTypewriter(botMessageId, shouldShowGif);
+      typewriter.setFullText(fallback.reply);
+      typewriter.finishStream();
 
       if (fallback.context_update) {
         setConversationContext((prev) => ({
@@ -590,31 +672,23 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
       }
 
       if (shouldShowGif) {
-        const currentRecentGifIds = newMessages
-          .map((m) => m.gif?.id)
-          .filter(Boolean)
-          .map(String);
-        fetchReactionGif(fallback.gif.category || fallback.gif.search_query, {
-          conversationId,
-          recentGifIds: currentRecentGifIds,
-        })
-          .then((reactionGif) => {
-            setChatMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMessageId
-                  ? { ...m, gif: reactionGif, isGifLoading: false }
-                  : m
-              )
-            );
-          })
-          .catch(() => {
-            setChatMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMessageId ? { ...m, isGifLoading: false } : m
-              )
-            );
-          });
+        const reactionGif = earlyGifPromise
+          ? await earlyGifPromise
+          : await fetchReactionGif(fallback.gif.category || fallback.gif.search_query, {
+              conversationId,
+              recentGifIds: currentRecentGifIds,
+            }).catch(() => null);
+
+        setChatMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMessageId
+              ? { ...m, gif: reactionGif, isGifLoading: false }
+              : m
+          )
+        );
       }
+
+      await typewriter.promise;
     } finally {
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
@@ -944,14 +1018,27 @@ export default function AiIntakeModal({ isOpen, onClose }: AiIntakeModalProps) {
           {/* Typing Indicator with Stop Generation Button */}
           {aiLoading && (
             <div className="flex items-center justify-between pl-2 pr-1 animate-in fade-in duration-200">
-              <div className="flex items-center gap-2 text-xs text-black/80 dark:text-white/90 italic bg-black/5 dark:bg-white/15 backdrop-blur-md border border-black/10 dark:border-white/20 py-1.5 px-3 rounded-full shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]" />
-                <span className="font-medium text-black dark:text-white">
-                  Nirvana is thinking...
-                </span>
-              </div>
+              {!chatMessages.some((m) => m.role === "assistant" && m.isStreaming) ? (
+                <div className="flex items-center gap-2 text-xs text-black/80 dark:text-white/90 italic bg-black/5 dark:bg-white/15 backdrop-blur-md border border-black/10 dark:border-white/20 py-1.5 px-3 rounded-full shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]" />
+                  <span className="font-medium text-black dark:text-white">
+                    Nirvana is thinking...
+                  </span>
+                </div>
+              ) : (
+                <div />
+              )}
+              <button
+                type="button"
+                onClick={handleStopGeneration}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/5 dark:bg-white/15 hover:bg-black/10 dark:hover:bg-white/25 text-black/80 dark:text-white/90 border border-black/10 dark:border-white/20 transition-all cursor-pointer shadow-xs ml-auto"
+                title="Stop generation"
+              >
+                <span className="w-2 h-2 rounded-[2px] bg-rose-500" />
+                <span>Stop</span>
+              </button>
             </div>
           )}
 
